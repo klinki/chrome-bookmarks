@@ -1,0 +1,23 @@
+{
+  "name": "chrome-bookmarks",
+  "version": "1.0.0",
+  "description": "Google Chrome Bookmarks extension",
+  "main": "popup.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/klinki/chrome-bookmarks.git"
+  },
+  "author": "David Klingenberg",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/klinki/chrome-bookmarks/issues"
+  },
+  "homepage": "https://github.com/klinki/chrome-bookmarks#readme",
+  "devDependencies": {
+    "typescript": "^1.8.10",
+    "typings": "^1.1.0"
+  }
+}
