@@ -1,0 +1,12 @@
+<ul>
+  <li *ngFor="let dir of directories">
+    <span (click)="toggle(dir)" *ngIf="dir.children.length > 0">
+      <strong *ngIf="!expanded(dir)">+</strong>
+      <strong *ngIf="expanded(dir)">-</strong>
+    </span>
+    <strong (click)="open(dir)">{{dir.title}}</strong>
+    <div *ngIf="expanded(dir)">
+      <app-tree-view [directories]="dir.children"></app-tree-view>
+    </div>
+  </li>
+</ul>

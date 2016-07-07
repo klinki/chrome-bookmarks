@@ -1,0 +1,14 @@
+<ul *ngIf="item">
+  <li *ngFor="let item of items">
+    <span>{{item.title}}</span>
+  </li>
+</ul>
+
+<table>
+  <tr>
+    <th *ngFor="let column of displayedColumns">{{column.title}}</th>
+  </tr>
+  <tr *ngFor="let item of items" draggable>
+    <td *ngFor="let column of displayedColumns">{{item[column.name]}}</td> 
+  </tr>
+</table>
