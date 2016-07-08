@@ -1,8 +1,6 @@
 import { Component, provide } from '@angular/core';
-import {BookmarksViewComponent} from './bookmarks-view';
-import {BookmarksProviderService} from './bookmarks-provider.service';
-import {MockBookmarksProviderService} from './mock-bookmarks-provider.service';
-import {BookmarkService} from './bookmark.service'
+import { BookmarksViewComponent } from './components/index';
+import { BookmarksProviderService, MockBookmarksProviderService, BookmarkService } from './services/index';
 
 @Component({
   moduleId: module.id,

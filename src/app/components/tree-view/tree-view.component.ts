@@ -1,7 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
-import { BookmarksProviderService } from '../bookmarks-provider.service';
-import { BookmarkService } from '../bookmark.service';
-import { FilterBookmarksPipe } from '../filter-bookmarks.pipe';
+import { FilterBookmarksPipe } from '../../pipes/index';
+import { BookmarksProviderService, BookmarkService } from '../../services/index';
 
 @Component({
   moduleId: module.id,
