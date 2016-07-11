@@ -13,7 +13,7 @@ export interface Bookmarks {
   onImportBegan;
   onImportEnded;
 
-  get(bookmarkId: string|string[]): Promise<chrome.bookmarks.BookmarkTreeNode>;
+  get(bookmarkId: string|string[]): Promise<chrome.bookmarks.BookmarkTreeNode[]>;
   getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]>;
   getRecent(count: number): Promise<chrome.bookmarks.BookmarkTreeNode[]>;
   getTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]>;

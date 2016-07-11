@@ -1,16 +1,17 @@
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
+import { BookmarksService } from './bookmarks.service';
 
 @Injectable()
 export class MockBookmarksService extends BookmarksService {
   /** @deprecated */
-  public static MAX_WRITE_OPERATIONS_PER_HOUR = chrome.bookmarks.MAX_WRITE_OPERATIONS_PER_HOUR;
-  
+  public static MAX_WRITE_OPERATIONS_PER_HOUR = 1000;
+
   /** @deprecated */
-  public static MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE = chrome.bookmarks.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE;
+  public static MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE = 10000;
 
   protected bookmarksTree: chrome.bookmarks.BookmarkTreeNode[];
-  protected flatBookmarksArray: Object; // { string: chrome.bookmarks.BookmarkTreeNode[] };
+  protected flatBookmarksArray: { [id: string]: chrome.bookmarks.BookmarkTreeNode } = {};
 
   public onCreatedEvent;
   public onRemovedEvent;
@@ -102,11 +103,18 @@ export class MockBookmarksService extends BookmarksService {
       let directory = {
           id: id, 
           title: title,
-          parentId: parent.id,
-          index: parent.children.length,
-          managed: managed
+          managed: managed,
+          parentId: null,
+          index: null,
+          children: []
       };
-      parent.children.push(directory);
+
+      if (parent) {
+          directory.parentId = parent.id;
+          directory.index = parent.children.length;
+          parent.children.push(directory);
+      }
+
       this.addBookmark(directory);
       
       return directory;
@@ -120,7 +128,7 @@ export class MockBookmarksService extends BookmarksService {
           parentId: directory.id,
           index: directory.children.length
       };
-      directory.children.push(directory);
+      directory.children.push(bookmark);
       this.addBookmark(bookmark);
 
       return bookmark;
@@ -134,11 +142,6 @@ export class MockBookmarksService extends BookmarksService {
   }
 
   protected addBookmark(bookmark: chrome.bookmarks.BookmarkTreeNode) {
-      if (bookmark.parentId && !this.flatBookmarksArray.hasOwnProperty(bookmark.parentId)) {
-          throw new Error('Invalid parent id');
-      }
-
-      let parent = this.flatBookmarksArray[bookmark.parentId];
       this.flatBookmarksArray[bookmark.id] = bookmark;
   }
 
@@ -156,7 +159,7 @@ export class MockBookmarksService extends BookmarksService {
           }
 
           let result = arrayOfIds.map((id) => this.flatBookmarksArray[id]);
-
+ 
           return resolve(result);
       });
   }
@@ -166,7 +169,17 @@ export class MockBookmarksService extends BookmarksService {
   }
 
   public getRecent(count: number): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+      return new Promise((resolve, error) => {
+        let results: chrome.bookmarks.BookmarkTreeNode[] = [];
 
+        for (let index in this.flatBookmarksArray) {
+            results.push(this.flatBookmarksArray[index]);
+        }
+
+        results.sort((a, b) => a.dateAdded - b.dateAdded);
+
+        return resolve(results);
+      });
   }
 
   public getTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {   
@@ -178,26 +191,94 @@ export class MockBookmarksService extends BookmarksService {
   }
 
   public search(term: string|chrome.bookmarks.BookmarkSearchQuery): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+      return new Promise((resolve, error) => {
+          let results =[];
 
+          for (let property in this.flatBookmarksArray) {
+              if (this.flatBookmarksArray.hasOwnProperty(property)) {
+                  let node = this.flatBookmarksArray[property];
+
+                  if (typeof term == 'string') {
+                    if (node.url.indexOf(term as any as string) || node.title.indexOf(term as any as string)) {
+                        results.push(node);
+                    }
+                  } else {
+                      let t: chrome.bookmarks.BookmarkSearchQuery;
+                      if (node.url.indexOf(t.url) || node.title.indexOf(t.title) || node.url.indexOf(t.query)) {
+                          results.push(node);
+                      }
+                  }
+              }
+          }
+          
+          return resolve(results);
+      });
   }
 
   public create(bookmark: chrome.bookmarks.BookmarkCreateArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
-      let newBookmark = Object.create(bookmark);
-      newBookmark.id = this.getGUID();
+      return new Promise((resolve, error) => {
+        let parent = this.getBookmark(bookmark.parentId);
+        let newBookmark = Object.create(bookmark);
+        newBookmark.id = this.getGUID();
+        newBookmark.index = parent.children.length;
+
+        parent.children.push(newBookmark);
+        this.flatBookmarksArray[newBookmark.id] = newBookmark;
+        
+        return resolve(newBookmark);
+      });
   }
 
   public move(id: string, destination: chrome.bookmarks.BookmarkDestinationArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
+      return new Promise((resolve, error) => {
+          let bookmark = this.getBookmark(id);
+          let oldParent = this.getBookmark(bookmark.parentId);
+          let newParent = this.getBookmark(destination.parentId);
 
+          bookmark.index = destination.index;
+          let index = oldParent.children.indexOf(bookmark);
+          oldParent.children.splice(index, 1);
+
+          newParent.children.push(bookmark);
+
+          return resolve(bookmark);
+      });
   }
 
   public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
+      return new Promise((resolve, error) => {
+          let bookmark = this.getBookmark(id);
+          bookmark.title = changes.title;
+          bookmark.url = changes.url;
 
+          return resolve(bookmark);
+      });
   }
 
   public remove(id: string): Promise<any> {
+      return new Promise((resolve, error) => {
+            resolve();
 
+            let child = this.getBookmark(id);
+            let parent = this.flatBookmarksArray[child.parentId];
+            let index = parent.children.indexOf(child);
+            parent.children.splice(index, 1);
+
+            delete this.flatBookmarksArray[id];
+
+            return resolve();
+      });
   }
 
   public removeTree(id: string): Promise<any> {
+      return this.remove(id);
+  }
+
+  protected getBookmark(id: string): chrome.bookmarks.BookmarkTreeNode {
+    if (!this.flatBookmarksArray.hasOwnProperty(id)) {
+        throw new Error('Invalid id');
+    }
+
+    return this.flatBookmarksArray[id];
   }
 }

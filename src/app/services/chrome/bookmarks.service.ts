@@ -4,10 +4,10 @@ import { Subject } from 'rxjs/Subject';
 @Injectable()
 export class BookmarksService {
   /** @deprecated */
-  public static MAX_WRITE_OPERATIONS_PER_HOUR = chrome.bookmarks.MAX_WRITE_OPERATIONS_PER_HOUR;
-  
+  public static MAX_WRITE_OPERATIONS_PER_HOUR;
+
   /** @deprecated */
-  public static MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE = chrome.bookmarks.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE;
+  public static MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE;
 
   public onCreatedEvent;
   public onRemovedEvent;
@@ -30,11 +30,16 @@ export class BookmarksService {
     this.onCreatedEvent = new Subject();
   }
 
+  protected initialize() {
+    BookmarksService.MAX_WRITE_OPERATIONS_PER_HOUR = chrome.bookmarks.MAX_WRITE_OPERATIONS_PER_HOUR;
+    BookmarksService.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE = chrome.bookmarks.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE
+  }
+
   protected initializeEventListeners() {
 
   }
 
-  public get(bookmarkId: string|string[]): Promise<chrome.bookmarks.BookmarkTreeNode> {
+  public get(bookmarkId: string|string[]): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return new Promise(function(resolve, reject) {
       return chrome.bookmarks.get(bookmarkId as any, resolve);
     });
@@ -52,7 +57,7 @@ export class BookmarksService {
     });
   }
 
-  public getTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {   
+  public getTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return new Promise(function(resolve, reject) {
         return chrome.bookmarks.getTree(resolve);
     });
@@ -70,19 +75,19 @@ export class BookmarksService {
     });
   }
 
-  public create(bookmark: chrome.bookmarks.BookmarkCreateArg): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+  public create(bookmark: chrome.bookmarks.BookmarkCreateArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
     return new Promise(function(resolve, reject) {
       return chrome.bookmarks.create(bookmark, resolve);
     });
   }
 
-  public move(id: string, destination: chrome.bookmarks.BookmarkDestinationArg): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+  public move(id: string, destination: chrome.bookmarks.BookmarkDestinationArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
     return new Promise(function(resolve, reject) {
       return chrome.bookmarks.move(id, destination, resolve);
     });
   }
 
-  public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+  public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
     return new Promise(function(resolve, reject) {
       return chrome.bookmarks.update(id, changes, resolve);
     });

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { BookmarksProviderService, BookmarkService } from '../../services/index';
-import { TreeViewComponent, ListViewComponent } from '../index';
+import {ListViewComponent} from '../list-view/list-view.component';
+import {TreeViewComponent} from '../tree-view/tree-view.component';
 
 @Component({
   moduleId: module.id,
