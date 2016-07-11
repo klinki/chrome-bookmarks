@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BookmarksProviderService } from './bookmarks-provider.service';
+import { BookmarksProviderService } from './index';
 
 @Injectable()
 export class MockBookmarksProviderService extends BookmarksProviderService {
@@ -8,7 +8,7 @@ export class MockBookmarksProviderService extends BookmarksProviderService {
     super();
   }
 
-  public getBookmarks(): Promise<chrome.bookmarks.BookmarkTreeNode> {
+  public getBookmarks(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return new Promise(function(resolve, reject) {
         let data = [
           {
