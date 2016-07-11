@@ -1,7 +1,10 @@
 import { Injectable } from '@angular/core';
+import { BookmarksService } from './chrome/bookmarks.service';
 
 @Injectable()
 export class BookmarksProviderService {
+  protected bookmarksService: BookmarksService;
+
   protected bookmarks;
   
   public static EmptyDirectory: chrome.bookmarks.BookmarkTreeNode = {
@@ -16,20 +19,16 @@ export class BookmarksProviderService {
       url: ''
   };
 
-  constructor() {
-
+  constructor(bookmarksService: BookmarksService) {
+    this.bookmarksService = bookmarksService;
   }
 
   public getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.getChildren(id, resolve);
-    });
+    return this.bookmarksService.getChildren(id);
   }
 
-  public getBookmarks(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {   
-    return new Promise(function(resolve, reject) {
-        return chrome.bookmarks.getTree(resolve);
-    });
+  public getBookmarks(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+    return this.bookmarksService.getTree();
   }
 
   public filterDirectories(bookmarks: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {

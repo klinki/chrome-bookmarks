@@ -1,6 +1,7 @@
 import { Component, provide } from '@angular/core';
 import { BookmarksViewComponent } from './components/index';
-import { BookmarksProviderService, MockBookmarksProviderService, BookmarkService } from './services/index';
+import { BookmarksProviderService, BookmarkService, MockBookmarksService, BookmarksService } from './services/index';
+import { BookmarksServiceProvider } from './shared/providers';
 
 @Component({
   moduleId: module.id,
@@ -9,9 +10,11 @@ import { BookmarksProviderService, MockBookmarksProviderService, BookmarkService
   styleUrls: ['app.component.css'],
   directives: [BookmarksViewComponent],
   providers: [
-    BookmarkService,
+//    MockBookmarksService,
+//    BookmarksService,
+    BookmarksServiceProvider,
     BookmarksProviderService,
-//    provide(BookmarksProviderService, {useClass: MockBookmarksProviderService})
+    BookmarkService
   ]
 })
 export class AppComponent {
