@@ -7,10 +7,15 @@ import { Component, OnInit, Input } from '@angular/core';
   styleUrls: ['list-view.component.css']
 })
 export class ListViewComponent implements OnInit {
-  @Input() items;
+  @Input() items: chrome.bookmarks.BookmarkTreeNode[];
 
   @Input() columns;
   @Input() selectedColumns;
+
+  orderProperties = {
+    column: '',
+    asc: true
+  };
 
   availableColumns = [
     {
@@ -40,4 +45,32 @@ export class ListViewComponent implements OnInit {
   ngOnInit() {
   }
 
+  orderBy(column: string) {
+    if (!this.orderProperties || column != this.orderProperties.column) {
+      this.orderProperties = {
+        column: column,
+        asc: true
+      };
+    } else {
+      this.orderProperties.asc = !this.orderProperties.asc;
+    }
+
+    let order = this.orderProperties.asc ? 1 : -1;
+
+    this.items.sort((a, b) => {
+      if (a.url && b.url) {
+        if (a[column] > b[column]) {
+          return 1 * order;
+        } else if (a[column] < b[column]) {
+          return -1 * order;
+        } else {
+          return 0;
+        }
+      } else if (a.url) {
+        return 1 * order;
+      } else {
+        return -1 * order;
+      }
+    });
+  }
 }

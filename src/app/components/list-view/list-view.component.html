@@ -6,9 +6,15 @@
 
 <table>
   <tr>
-    <th *ngFor="let column of displayedColumns">{{column.title}}</th>
+    <th *ngFor="let column of displayedColumns" (click)="orderBy(column.name)">
+      <span *ngIf="orderProperties.column == column.name">
+        <span *ngIf="orderProperties.asc">ASC</span>
+        <span *ngIf="!orderProperties.asc">DESC</span>
+      </span>  
+      {{column.title}}
+    </th>
   </tr>
   <tr *ngFor="let item of items" draggable>
-    <td *ngFor="let column of displayedColumns">{{item[column.name]}}</td> 
+    <td *ngFor="let column of displayedColumns">{{item[column.name]}}</td>
   </tr>
 </table>
