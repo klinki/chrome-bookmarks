@@ -97,6 +97,8 @@ export class MockBookmarksService extends BookmarksService {
       this.addUrl('3', 'Seznam - najdu tam co neznám', 'http://seznam.cz', toolbarBookmarks);
       this.addUrl('4', 'Google - search', 'http://google.com', otherBookmarks);
       this.addUrl('6', 'Alza.cz - The annoying green alien', 'http://alza.cz', shops);
+
+      this.addUrl('7', 'Centrum.cz - centrum vesmíru', 'http://centrum.cz', toolbarBookmarks);
   }
 
   protected addDirectory(id: string, title: string, parent: chrome.bookmarks.BookmarkTreeNode, managed?: string) {
