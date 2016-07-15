@@ -1,10 +1,13 @@
 import { Component, OnInit, Input } from '@angular/core';
+import {DragulaService, Dragula} from 'ng2-dragula/ng2-dragula';
 
 @Component({
   moduleId: module.id,
   selector: 'app-list-view',
   templateUrl: 'list-view.component.html',
-  styleUrls: ['list-view.component.css']
+  styleUrls: ['list-view.component.css'],
+  directives: [Dragula],
+  viewProviders: [DragulaService]
 })
 export class ListViewComponent implements OnInit {
   @Input() items: chrome.bookmarks.BookmarkTreeNode[];
@@ -46,7 +49,7 @@ export class ListViewComponent implements OnInit {
   }
 
   orderBy(column: string) {
-    if (!this.orderProperties || column != this.orderProperties.column) {
+    if (!this.orderProperties || column !== this.orderProperties.column) {
       this.orderProperties = {
         column: column,
         asc: true
@@ -60,16 +63,16 @@ export class ListViewComponent implements OnInit {
     this.items.sort((a, b) => {
       if (a.url && b.url) {
         if (a[column] > b[column]) {
-          return 1 * order;
+          return order;
         } else if (a[column] < b[column]) {
-          return -1 * order;
+          return -order;
         } else {
           return 0;
         }
       } else if (a.url) {
-        return 1 * order;
+        return order;
       } else {
-        return -1 * order;
+        return -order;
       }
     });
   }

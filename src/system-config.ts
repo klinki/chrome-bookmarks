@@ -38,6 +38,7 @@ const barrels: string[] = [
   'app/tree-view',
   'app/bookmarks-view',
   'app/bookmarks-view/list-view',
+  'app/components/search-box',
   /** @cli-barrel */
 ];
 

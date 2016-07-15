@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { BookmarksProviderService, BookmarkService } from '../../services/index';
-import {ListViewComponent} from '../list-view/list-view.component';
-import {TreeViewComponent} from '../tree-view/tree-view.component';
+import { ListViewComponent } from '../list-view/list-view.component';
+import { TreeViewComponent } from '../tree-view/tree-view.component';
+import { SearchBoxComponent } from '../search-box/search-box.component';
 
 @Component({
   moduleId: module.id,
   selector: 'app-bookmarks-view',
   templateUrl: 'bookmarks-view.component.html',
   styleUrls: ['bookmarks-view.component.css'],
-  directives: [ListViewComponent, TreeViewComponent]
+  directives: [ListViewComponent, TreeViewComponent, SearchBoxComponent]
 })
 export class BookmarksViewComponent implements OnInit {
   protected bookmarkProviderService: BookmarksProviderService;

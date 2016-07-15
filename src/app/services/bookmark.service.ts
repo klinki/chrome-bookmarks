@@ -9,6 +9,10 @@ export class BookmarkService {
   
   protected selectedBookmark: chrome.bookmarks.BookmarkTreeNode;
 
+  protected search = {
+    term: '',
+    result: []
+  };
 
   constructor() {
     this.selectionChanged = new Subject<chrome.bookmarks.BookmarkTreeNode>();
