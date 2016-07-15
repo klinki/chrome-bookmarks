@@ -1,6 +1,6 @@
 import { Component, provide } from '@angular/core';
 import { BookmarksViewComponent } from './components/index';
-import { BookmarksProviderService, BookmarkService, MockBookmarksService, BookmarksService } from './services/index';
+import { BookmarksProviderService, SelectionService, MockBookmarksService, BookmarksService } from './services/index';
 import { BookmarksServiceProvider } from './shared/providers';
 
 @Component({
@@ -14,7 +14,7 @@ import { BookmarksServiceProvider } from './shared/providers';
 //    BookmarksService,
     BookmarksServiceProvider,
     BookmarksProviderService,
-    BookmarkService
+    SelectionService
   ]
 })
 export class AppComponent {

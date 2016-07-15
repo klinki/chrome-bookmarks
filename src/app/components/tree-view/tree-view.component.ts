@@ -1,6 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { FilterBookmarksPipe } from '../../pipes/index';
-import { BookmarksProviderService, BookmarkService } from '../../services/index';
+import { BookmarksProviderService, SelectionService } from '../../services/index';
 
 @Component({
   moduleId: module.id,
@@ -13,9 +13,9 @@ import { BookmarksProviderService, BookmarkService } from '../../services/index'
 export class TreeViewComponent implements OnInit {
   @Input() directories;
 
-  protected bookmarkService: BookmarkService;
+  protected bookmarkService: SelectionService;
 
-  constructor(boomarkService: BookmarkService) {
+  constructor(boomarkService: SelectionService) {
     this.bookmarkService = boomarkService;
   }
 

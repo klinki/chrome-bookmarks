@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { BookmarksProviderService, BookmarkService } from '../../services/index';
+import { BookmarksProviderService, SelectionService } from '../../services/index';
 import { ListViewComponent } from '../list-view/list-view.component';
 import { TreeViewComponent } from '../tree-view/tree-view.component';
 import { SearchBoxComponent } from '../search-box/search-box.component';
@@ -13,7 +13,7 @@ import { SearchBoxComponent } from '../search-box/search-box.component';
 })
 export class BookmarksViewComponent implements OnInit {
   protected bookmarkProviderService: BookmarksProviderService;
-  protected bookmarkService: BookmarkService;
+  protected bookmarkService: SelectionService;
 
   protected bookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
   protected directoryTree: chrome.bookmarks.BookmarkTreeNode[]  = [];
@@ -21,7 +21,7 @@ export class BookmarksViewComponent implements OnInit {
   protected selectedDirectory = BookmarksProviderService.EmptyDirectory;
   protected items: chrome.bookmarks.BookmarkTreeNode[]  = [];
 
-  constructor(bookmarkProviderService: BookmarksProviderService, bookmarkService: BookmarkService) {
+  constructor(bookmarkProviderService: BookmarksProviderService, bookmarkService: SelectionService) {
     this.bookmarkProviderService = bookmarkProviderService;
     this.bookmarkService = bookmarkService;
 

@@ -3,10 +3,10 @@ import {Subject} from 'rxjs/Subject';
 import {Observable} from 'rxjs/Observable';
 
 @Injectable()
-export class BookmarkService {
+export class SelectionService {
   protected selectionChanged: Subject<chrome.bookmarks.BookmarkTreeNode>;
   public onSelectionChanged: Observable<chrome.bookmarks.BookmarkTreeNode>;
-  
+
   protected selectedBookmark: chrome.bookmarks.BookmarkTreeNode;
 
   protected search = {

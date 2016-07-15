@@ -6,13 +6,13 @@ import {
   expect, it, xit,
   async, inject
 } from '@angular/core/testing';
-import { BookmarkService } from './bookmark.service';
+import { SelectionService } from './bookmark.service';
 
-describe('BookmarkService Service', () => {
-  beforeEachProviders(() => [BookmarkService]);
+describe('SelectionService Service', () => {
+  beforeEachProviders(() => [SelectionService]);
 
   it('should ...',
-      inject([BookmarkService], (service: BookmarkService) => {
+      inject([SelectionService], (service: SelectionService) => {
     expect(service).toBeTruthy();
   }));
 });
