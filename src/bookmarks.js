@@ -137,3 +137,7 @@ function isInnerNode(node) {
 function isLeaf(node) {
     return !isInnerNode(node);
 }
+
+chrome.bookmarks.onRemoved.addListener(function(node) {
+    
+});
