@@ -1,2 +1,3 @@
-export * from './bookmarks.service';
-export * from './mock-bookmarks.service';
+export * from './bookmarks/bookmarks.service';
+export * from './bookmark/mock-bookmarks.service';
+export * from './storage/storage.service';
