@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
-import {StorageArea} from './storage-area.class';
+import { StorageArea } from './storage-area.class';
 
 @Injectable()
 export class StorageService {
-  protected _sync = new StorageArea(chrome.bookmarks.sync);
-  protected _local = new StorageArea(chrome.bookmarks.local);
-  protected _managed = new StorageArea(chrome.bookmarks.managed);
+  protected _sync = new StorageArea(chrome.storage.sync);
+  protected _local = new StorageArea(chrome.storage.local);
+  protected _managed = new StorageArea(chrome.storage.managed);
 
   constructor() {
 
   }
 
-  public getSync(): chrome.storage.StorageArea {
+  public getSync(): StorageArea {
     return this._sync;
   }
 

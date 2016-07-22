@@ -6,7 +6,7 @@ import {
   expect, it, xit,
   async, inject
 } from '@angular/core/testing';
-import { SelectionService } from './bookmark.service';
+import { SelectionService } from './selection.service';
 
 describe('SelectionService Service', () => {
   beforeEachProviders(() => [SelectionService]);

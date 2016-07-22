@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BookmarksService } from './chrome/bookmarks.service';
+import { BookmarksService } from './chrome/bookmarks/bookmarks.service';
 
 @Injectable()
 export class BookmarksProviderService {

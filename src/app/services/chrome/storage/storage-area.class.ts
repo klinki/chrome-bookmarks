@@ -15,9 +15,7 @@ export class StorageArea {
    * @returns {Promise<number>} Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
    *                            Parameter bytesInUse: Amount of space being used in storage, in bytes.
    */
-  public getBytesInUse(): Promise<number> {
-    return new Promise((resolve, error) => this.storage.getBytesInUse(resolve));
-  }
+  public getBytesInUse(): Promise<number>;
 
   /**
    * Gets the amount of space (in bytes) being used by one or more items.
@@ -26,9 +24,7 @@ export class StorageArea {
    * @returns {Promise<number>} Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
    *                            Parameter bytesInUse: Amount of space being used in storage, in bytes.
    */
-  public getBytesInUse(key: string): Promise<number> {
-    return new Promise((resolve, error) => this.storage.getBytesInUse(key, resolve));
-  }
+  public getBytesInUse(key: string): Promise<number>;
 
   /**
    * Gets the amount of space (in bytes) being used by one or more items.
@@ -37,8 +33,13 @@ export class StorageArea {
    * @returns {Promise<number>} Callback with the amount of space being used by storage, or on failure (in which case runtime.lastError will be set).
    *                            Parameter bytesInUse: Amount of space being used in storage, in bytes.
    */
-  public getBytesInUse(keys: string[]): Promise<number> {
-    return new Promise((resolve, error) => this.storage.getBytesInUse(keys, resolve));
+  public getBytesInUse(keys: string[]): Promise<number>;
+  public getBytesInUse(keys?: string|string[]): Promise<number> {
+    if (keys === undefined) {
+      return new Promise((resolve, error) => this.storage.getBytesInUse(resolve));
+    } else {
+      return new Promise((resolve, error) => this.storage.getBytesInUse(keys as any, resolve));
+    }
   }
 
   /**
@@ -46,7 +47,7 @@ export class StorageArea {
    *
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public clear(): Promise<void> {
+  public clear(): Promise<any> {
     return new Promise((resolve, error) => this.storage.clear(resolve));
   }
 
@@ -58,7 +59,7 @@ export class StorageArea {
    *          with the exception of Array (serializes as expected), Date, and Regex (serialize using their String representation).
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public set(items: Object): Promise<void> {
+  public set(items: Object): Promise<any> {
     return new Promise((resolve, error) => this.storage.set(items, resolve));
   };
 
@@ -68,17 +69,17 @@ export class StorageArea {
    * @param key A single key for items to remove.
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public remove(key: string): Promise<void> {
-    return new Promise((resolve, error) => this.storage.remove(key, resolve));
-  }
+  public remove(key: string): Promise<any>;
+
   /**
    * Removes items from storage.
    *
    * @param keys A list of keys for items to remove.
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public remove(keys: string[]): Promise<void> {
-    return new Promise((resolve, error) => this.storage.remove(keys, resolve));
+  public remove(keys: string[]): Promise<any>;
+  public remove(keys: string|string[]): Promise<any> {
+    return new Promise((resolve, error) => this.storage.remove(keys as any, resolve));
   }
 
   /**
@@ -87,9 +88,7 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  public get(): Promise<{ [key: string]: any }> {
-    return new Promise((resolve, error) => this.storage.get(resolve));
-  }
+  public get(): Promise<{ [key: string]: any }>;
 
   /**
    * Gets one or more items from storage.
@@ -98,10 +97,7 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  get(key: string): Promise<{ [key: string]: any }> {
-    return new Promise((resolve, error) => this.storage.get(key, resolve));
-  }
-
+  public get(key: string): Promise<{ [key: string]: any }>;
   /**
    * Gets one or more items from storage.
    *
@@ -109,10 +105,7 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  get(keys: string[]): Promise<{ [key: string]: any }> {
-    return new Promise((resolve, error) => this.storage.get(keys, resolve));
-  }
-
+  public get(keys: string[]): Promise<{ [key: string]: any }>;
   /**
    * Gets one or more items from storage.
    *
@@ -120,7 +113,13 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  get(keys: Object): Promise<{ [key: string]: any }> {
-    return new Promise((resolve, error) => this.storage.get(keys, resolve));
+  public get(keys: Object): Promise<{ [key: string]: any }>;
+
+  public get(keys?: string|string[]|Object): Promise<{ [key: string]: any }> {
+    if (keys === undefined) {
+      return new Promise((resolve, error) => this.storage.get(resolve));
+    } else {
+      return new Promise((resolve, error) => this.storage.get(keys, resolve));
+    }
   }
 }
