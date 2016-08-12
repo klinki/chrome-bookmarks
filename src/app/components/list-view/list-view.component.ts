@@ -1,12 +1,11 @@
 import { Component, OnInit, Input } from '@angular/core';
-import {DragulaService, Dragula} from 'ng2-dragula/ng2-dragula';
+import { DragulaService } from 'ng2-dragula/ng2-dragula';
 
 @Component({
   moduleId: module.id,
   selector: 'app-list-view',
   templateUrl: 'list-view.component.html',
   styleUrls: ['list-view.component.css'],
-  directives: [Dragula],
   viewProviders: [DragulaService]
 })
 export class ListViewComponent implements OnInit {
