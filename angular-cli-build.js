@@ -15,7 +15,9 @@ module.exports = function(defaults) {
       'es6-shim/es6-shim.js',
       'reflect-metadata/**/*.+(ts|js|js.map)',
       'rxjs/**/*.+(js|js.map)',
-      '@angular/**/*.+(js|js.map)'
+      '@angular/**/*.+(js|js.map)',
+      'ng2-dragula/**/*.+(js|js.map|d.ts)',
+      'dragula/**/*.+(js|js.map|d.ts)'
     ]
   });
 };

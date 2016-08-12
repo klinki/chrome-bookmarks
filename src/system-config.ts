@@ -7,10 +7,14 @@
  **********************************************************************************************/
 /** Map relative paths to URLs. */
 const map: any = {
+  'ng2-dragula': 'vendor/ng2-dragula',
+  'dragula'       : 'vendor/dragula/dist/dragula.js'
 };
 
 /** User packages configuration. */
 const packages: any = {
+  'dragula': { format: "global" },
+  'ng2-dragula': { format: "cjs", main: "ng2-dragula", "defaultExtension": "js" },
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -55,6 +59,7 @@ System.config({
   map: {
     '@angular': 'vendor/@angular',
     'rxjs': 'vendor/rxjs',
+    'ng2-dragula': 'vendor/ng2-dragula',
     'main': 'main.js'
   },
   packages: cliSystemConfigPackages
