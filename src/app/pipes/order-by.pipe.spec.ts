@@ -1,10 +1,7 @@
 /* tslint:disable:no-unused-variable */
 
 import {
-  beforeEach, beforeEachProviders,
-  describe, xdescribe,
-  expect, it, xit,
-  async, inject
+  async, inject, TestBed
 } from '@angular/core/testing';
 import { OrderByPipe } from './order-by.pipe';
 

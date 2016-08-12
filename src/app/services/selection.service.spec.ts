@@ -1,15 +1,14 @@
 /* tslint:disable:no-unused-variable */
 
 import {
-  beforeEach, beforeEachProviders,
-  describe, xdescribe,
-  expect, it, xit,
-  async, inject
+  async, inject, TestBed
 } from '@angular/core/testing';
 import { SelectionService } from './selection.service';
 
 describe('SelectionService Service', () => {
-  beforeEachProviders(() => [SelectionService]);
+  beforeEach(() => {
+     TestBed.configureTestingModule([SelectionService]);
+   });
 
   it('should ...',
       inject([SelectionService], (service: SelectionService) => {

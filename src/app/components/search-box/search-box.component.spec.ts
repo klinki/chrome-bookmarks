@@ -1,16 +1,7 @@
 /* tslint:disable:no-unused-variable */
 
-import { By }           from '@angular/platform-browser';
-import { DebugElement } from '@angular/core';
 
-import {
-  beforeEach, beforeEachProviders,
-  describe, xdescribe,
-  expect, it, xit,
-  async, inject
-} from '@angular/core/testing';
-
-import { SearchBoxComponent } from './search-box.component';
+import {SearchBoxComponent} from "./search-box.component";
 
 describe('Component: SearchBox', () => {
   it('should create an instance', () => {
@@ -19,6 +10,6 @@ describe('Component: SearchBox', () => {
   });
 
   it('should fire an event when input changes', () => {
-        
+
   });
 });

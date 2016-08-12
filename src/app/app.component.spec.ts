@@ -1,16 +1,16 @@
 /* tslint:disable:no-unused-variable */
 
 import {
-  beforeEach, beforeEachProviders,
-  describe, xdescribe,
-  expect, it, xit,
-  async, inject
+  TestBed, inject
 } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 
-beforeEachProviders(() => [AppComponent]);
 
 describe('App: TestNgCli', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule([AppComponent]);
+  });
+
   it('should create the app',
       inject([AppComponent], (app: AppComponent) => {
     expect(app).toBeTruthy();
