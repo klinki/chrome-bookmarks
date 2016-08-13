@@ -1,0 +1,21 @@
+<div 
+  class="tree-item" 
+  role="treeitem" 
+  [attr.has-children]="hasSubDirectories(dir) ? true : null"
+  [attr.may-have-children]="hasSubDirectories(dir) ? true : null"
+  [attr.selected]="isSelected(dir) ? true : null"
+  [attr.expanded]="expanded(dir) ? true : null"
+>
+  <div class="tree-row"
+    (click)="open(dir)"  
+    [attr.may-have-children]="hasSubDirectories(dir) ? true : null"
+    [style.-webkit-padding-start]="(level * 20) + 'px'"
+   >
+    <span class="expand-icon" (click)="toggle(dir)"></span>
+    <span class="tree-label">{{dir.title}}</span>
+  </div>
+  <div class="tree-children" [attr.expanded]="expanded(dir) ? true : null">
+      <app-tree-item *ngFor="let child of dir.children" [dir]="child" [level]="level + 1">
+      </app-tree-item>
+  </div>
+</div>

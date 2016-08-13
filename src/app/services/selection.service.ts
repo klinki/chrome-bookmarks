@@ -20,7 +20,12 @@ export class SelectionService {
   }
 
   public select(bookmark: chrome.bookmarks.BookmarkTreeNode) {
+    if (this.selectedBookmark) {
+      this.selectedBookmark['selected'] = false;
+    }
+
     this.selectedBookmark = bookmark;
+    this.selectedBookmark['selected'] = true;
     this.selectionChanged.next(this.selectedBookmark);
   }
 

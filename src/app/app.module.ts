@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Dragula } from 'ng2-dragula/ng2-dragula';
 import { FilterBookmarksPipe } from './pipes/filter-bookmarks.pipe';
 import { TreeViewComponent } from './components/tree-view/tree-view.component';
+import { TreeItemComponent } from './components/tree-view/tree-item.component';
 import { ListViewComponent } from './components/list-view/list-view.component';
 import { SearchBoxComponent } from './components/search-box/search-box.component';
 
@@ -15,6 +16,7 @@ import { SearchBoxComponent } from './components/search-box/search-box.component
     TreeViewComponent,
     ListViewComponent,
     TreeViewComponent,
+    TreeItemComponent,
     SearchBoxComponent,
     FilterBookmarksPipe
   ],
