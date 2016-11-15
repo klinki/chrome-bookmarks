@@ -1,16 +1,35 @@
+var dataTable = '';
+
+$(document).ready(function() {
+    dataTable = $('#bookmark-table').DataTable({
+        select: true,
+        rowReorder: true,
+        data: [],
+        columns: [
+            { data: 'title', title: 'Name' },
+            { data: function(row) {
+                if (row.hasOwnProperty('url')) {
+                    return row['url'];
+                }
+            }, title: 'Url' },
+            { data: 'dateAdded', title: 'Date Added' }
+        ]
+    });
+});
+
 chrome.bookmarks.getTree(function(results) {
     var makeTreeVisitable = function(node) {
         return traverseTree(node, makeVisitable);
-    }
+    };
 
     results.forEach(makeTreeVisitable, this);
 
     var visitor = createTreeVisitor();
-    var elements = results.map(function(node) { 
+    var elements = results.map(function(node) {
         return node.accept(visitor); 
     });
 
-    $('#tree').append(elements[0]);
+    $('#bookmark-tree').append(elements[0]);
     return;
 });
 
@@ -27,7 +46,12 @@ function traverseTree(root, operation) {
 }
 
 function showSubTree(root) {
-    var table = $('#bookmark-table');
+    dataTable.clear();
+    dataTable.rows.add(root.children);
+    dataTable.draw();
+    //dataTable.
+    //var table = dataTable.rows.add(root.children).draw();
+    /*
     table.find('.row').remove();
 
     root.children.forEach(function(child) {
@@ -37,6 +61,7 @@ function showSubTree(root) {
         row.append(li);
         table.append(row);
     });
+    */
 }
 
 function createTreeVisitor() {

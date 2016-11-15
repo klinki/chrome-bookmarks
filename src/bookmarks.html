@@ -2,17 +2,18 @@
 <html>
 <head>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/select/1.2.0/js/dataTables.select.min.js"></script>
+  <script src="https://cdn.datatables.net/rowreorder/1.1.2/js/dataTables.rowReorder.min.js"></script>
   <script src="bookmarks.js"></script>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/rowreorder/1.1.2/css/rowReorder.dataTables.min.css">
 </head>
 <body style="width: 400px">
   <div>Search Bookmarks: <input id="search"></div>
-  <div id="tree">
-    
-  </div>
+  <div id="bookmark-tree"></div>
   <div id="bookmarks">
-    <table id="bookmark-table">
-      <tr><th>Name</th><th>Address</th><th>Added</th></tr>
-    </table>
+    <table id="bookmark-table" class="stripe row-border order-column hover"></table>
   </div>
   <div id="editdialog"></div>
   <div id="deletedialog"></div>
