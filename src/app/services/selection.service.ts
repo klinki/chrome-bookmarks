@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from 'rxjs';
+import {BehaviorSubject, Observable, Subject} from 'rxjs';
 
 @Injectable()
 export class SelectionService {
@@ -7,6 +7,8 @@ export class SelectionService {
   public onSelectionChanged$: Observable<chrome.bookmarks.BookmarkTreeNode>;
 
   protected selectedBookmark: null|chrome.bookmarks.BookmarkTreeNode & { selected: boolean } = null;
+
+  public selectedDirectory$ = new BehaviorSubject<chrome.bookmarks.BookmarkTreeNode|null>(null);
 
   protected search = {
     term: '',
@@ -26,6 +28,11 @@ export class SelectionService {
     this.selectedBookmark = { ...bookmark, selected: true };
     this.selectedBookmark['selected'] = true;
     this.selectionChanged.next(this.selectedBookmark);
+  }
+
+  public selectDirectory(bookmark: chrome.bookmarks.BookmarkTreeNode) {
+    console.log('sel directory');
+    this.selectedDirectory$.next(bookmark);
   }
 
   public getSelectedBookmark() {

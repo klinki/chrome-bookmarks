@@ -3,6 +3,9 @@ import {BookmarksProviderService, SelectionService} from '../../services';
 import {SearchBoxComponent} from "../search-box";
 import {TreeViewComponent} from "../tree-view";
 import {ListViewComponent} from "../list-view";
+import {mergeMap, of} from "rxjs";
+import {fromPromise} from "rxjs/internal/observable/innerFrom";
+import {AsyncPipe} from "@angular/common";
 
 @Component({
   standalone: true,
@@ -11,42 +14,36 @@ import {ListViewComponent} from "../list-view";
   imports: [
     SearchBoxComponent,
     TreeViewComponent,
-    ListViewComponent
+    ListViewComponent,
+    AsyncPipe
   ],
-  styleUrls: ['bookmarks-view.component.css'],
+  styleUrls: ['./bookmarks-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookmarksViewComponent implements OnInit {
-  protected bookmarkProviderService: BookmarksProviderService;
-  protected bookmarkService: SelectionService;
-
   protected bookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
   protected directoryTree: chrome.bookmarks.BookmarkTreeNode[]  = [];
 
   protected selectedDirectory = BookmarksProviderService.EmptyDirectory;
-  protected items: chrome.bookmarks.BookmarkTreeNode[]  = [];
 
-  constructor(bookmarkProviderService: BookmarksProviderService, bookmarkService: SelectionService) {
-    this.bookmarkProviderService = bookmarkProviderService;
-    this.bookmarkService = bookmarkService;
+  public directories$ = fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
+  public items$ = this.bookmarkService.selectedDirectory$.asObservable().pipe(
+    mergeMap(directory => {
+      if (directory == null) {
+        return of([]);
+      }
 
-    let self = this;
-    this.bookmarkService.onSelectionChanged$.subscribe((bookmark) => {
-        self.bookmarkProviderService.getChildren(bookmark.id).then((children) => {
-          self.items = children;
-        });
-    });
+      return fromPromise(this.bookmarkProviderService.getChildren(directory.id));
+    })
+  );
+
+  constructor(private bookmarkProviderService: BookmarksProviderService, private bookmarkService: SelectionService) {
   }
 
   ngOnInit() {
     this.bookmarkProviderService.getBookmarks().then((bookmarks) => {
       this.bookmarks = bookmarks[0].children ?? [];
       this.selectedDirectory = bookmarks[0];
-    });
-
-    this.bookmarkProviderService.getBookmarks().then((bookmarks) => {
-      const directories = this.bookmarkProviderService.filterDirectories(bookmarks[0].children ?? []);
-      this.directoryTree = directories;
     });
   }
 

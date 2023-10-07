@@ -6,7 +6,7 @@ import { Pipe, PipeTransform } from '@angular/core';
 })
 export class FilterBookmarksPipe implements PipeTransform {
 
-  transform(bookmarks: chrome.bookmarks.BookmarkTreeNode[], args?: any): any {
-    return bookmarks.filter((bookmark) => bookmark.url === undefined);
+  transform(bookmarks: chrome.bookmarks.BookmarkTreeNode[]|null, searchText: string): any {
+    return bookmarks?.filter((bookmark) => bookmark.url === undefined) ?? [];
   }
 }

@@ -103,11 +103,11 @@ export class BookmarksService {
   }
 
 	/**
-	 * Searches for BookmarkTreeNodes matching the given query. Queries specified with an object produce BookmarkTreeNodes matching all specified properties.
+   * Searches for BookmarkTreeNodes matching the given query. Queries specified with an object produce BookmarkTreeNodes matching all specified properties.
    *
-	 * @param {string|chrome.bookmarks.BookmarkSearchQuery} query A string of words and quoted phrases that are matched against bookmark URLs and titles.
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]}
-	 */
+   * @param term
+   */
   public search(term: string|chrome.bookmarks.BookmarkSearchQuery): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return new Promise(function(resolve, reject) {
       return chrome.bookmarks.search(term as any, resolve);

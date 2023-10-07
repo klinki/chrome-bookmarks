@@ -39,7 +39,7 @@ export class TreeItemComponent implements OnInit {
 
   open(directory: BookmarkDirectory) {
     console.log(directory);
-    this.bookmarkService.select(directory);
+    this.bookmarkService.selectDirectory(directory);
   }
 
   isSelected(directory: BookmarkDirectory) {

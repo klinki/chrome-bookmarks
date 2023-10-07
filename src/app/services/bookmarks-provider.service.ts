@@ -32,16 +32,19 @@ export class BookmarksProviderService {
   }
 
   public filterDirectories(bookmarks: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
-    let directories = [];
     return bookmarks.filter((bookmark) => bookmark.url === undefined).map((bookmark) => {
       let newBookmark = Object.create(bookmark);
       newBookmark.children = this.filterDirectories(bookmark.children ?? []);
 
       return newBookmark;
-    });;
+    });
   }
 
   public getDirectoryTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return this.getBookmarks().then((bookmarks) => this.filterDirectories(bookmarks));
+  }
+
+  public getDirectoryTreeWithoutRoot(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+    return this.getBookmarks().then((bookmarks) => this.filterDirectories(bookmarks[0].children ?? []));
   }
 }

@@ -16,12 +16,9 @@ export type BookmarkDirectory = any;
   ]
 })
 export class TreeViewComponent implements OnInit {
-  @Input() directories: BookmarkDirectory[] = [];
+  @Input() directories: BookmarkDirectory[]|null = [];
 
-  protected bookmarkService: SelectionService;
-
-  constructor(boomarkService: SelectionService) {
-    this.bookmarkService = boomarkService;
+  constructor(private bookmarkService: SelectionService) {
   }
 
   ngOnInit() {
@@ -40,6 +37,6 @@ export class TreeViewComponent implements OnInit {
   }
 
   open(directory: BookmarkDirectory) {
-    this.bookmarkService.select(directory);
+    this.bookmarkService.selectDirectory(directory);
   }
 }

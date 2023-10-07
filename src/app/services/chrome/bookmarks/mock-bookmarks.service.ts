@@ -142,8 +142,9 @@ export class MockBookmarksService extends BookmarksService {
       });
   }
 
-  public override getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-      return this.get(id).then((bookmark) => bookmark[0]?.children ?? []);
+  public override async getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
+    const bookmark = await this.get(id);
+    return bookmark[0]?.children ?? [];
   }
 
   public override getRecent(count: number): Promise<chrome.bookmarks.BookmarkTreeNode[]> {

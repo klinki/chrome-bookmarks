@@ -1,0 +1,29 @@
+.container {
+  display: grid;
+  grid-template-columns: 1fr 5fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "header header"
+    "tree-view main"
+    "tree-view main";
+}
+
+.top-toolbar {
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
+  grid-area: header;
+}
+
+.tree-view {
+  grid-area: tree-view;
+}
+
+.main-view {
+  grid-area: main;
+}
+
+app-search-box {
+  margin-top: auto;
+  margin-bottom: auto;
+}

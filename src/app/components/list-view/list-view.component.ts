@@ -1,6 +1,7 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input, OnChanges, SimpleChanges} from '@angular/core';
 import {DragulaModule, DragulaService} from "ng2-dragula";
 import {NgForOf, NgIf} from "@angular/common";
+import {FilterBookmarksPipe} from "../../pipes";
 
 @Component({
   standalone: true,
@@ -10,12 +11,13 @@ import {NgForOf, NgIf} from "@angular/common";
   imports: [
     DragulaModule,
     NgForOf,
-    NgIf
+    NgIf,
+    FilterBookmarksPipe
   ],
   viewProviders: [DragulaService]
 })
-export class ListViewComponent implements OnInit {
-  @Input() items: chrome.bookmarks.BookmarkTreeNode[] = [];
+export class ListViewComponent implements OnInit, OnChanges {
+  @Input() items: chrome.bookmarks.BookmarkTreeNode[]|null = [];
 
   @Input() columns: string[] = [];
   @Input() selectedColumns: string[] = [];
@@ -53,6 +55,10 @@ export class ListViewComponent implements OnInit {
   ngOnInit() {
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    console.log(changes);
+  }
+
   orderBy(column: string) {
     const columnKey = column as keyof chrome.bookmarks.BookmarkTreeNode;
 
@@ -67,7 +73,7 @@ export class ListViewComponent implements OnInit {
 
     let order = this.orderProperties.asc ? 1 : -1;
 
-    this.items.sort((a, b) => {
+    this.items?.sort((a, b) => {
       if (a.url && b.url) {
         if ((a[columnKey] ?? 0) > (b[columnKey] ?? 0)) {
           return order;
@@ -86,5 +92,17 @@ export class ListViewComponent implements OnInit {
 
   getColumnValue(item: chrome.bookmarks.BookmarkTreeNode, column: string): string | number | undefined | chrome.bookmarks.BookmarkTreeNode[] {
     return item[column as keyof chrome.bookmarks.BookmarkTreeNode];
+  }
+
+  itemClick(item: chrome.bookmarks.BookmarkTreeNode) {
+    console.log('click');
+    console.log({ item });
+  }
+
+  itemDoubleClick(item: chrome.bookmarks.BookmarkTreeNode) {
+    console.log('dbl click');
+    if ((item?.children?.length ?? 0) === 0) {
+      window.open(item.url, '_blank');
+    }
   }
 }
