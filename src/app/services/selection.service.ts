@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
-import {Subject} from 'rxjs/Subject';
-import {Observable} from 'rxjs/Observable';
+import { Observable, Subject } from 'rxjs';
 
 @Injectable()
 export class SelectionService {
   protected selectionChanged: Subject<chrome.bookmarks.BookmarkTreeNode>;
-  public onSelectionChanged: Observable<chrome.bookmarks.BookmarkTreeNode>;
+  public onSelectionChanged$: Observable<chrome.bookmarks.BookmarkTreeNode>;
 
-  protected selectedBookmark: chrome.bookmarks.BookmarkTreeNode;
+  protected selectedBookmark: null|chrome.bookmarks.BookmarkTreeNode & { selected: boolean } = null;
 
   protected search = {
     term: '',
@@ -16,7 +15,7 @@ export class SelectionService {
 
   constructor() {
     this.selectionChanged = new Subject<chrome.bookmarks.BookmarkTreeNode>();
-    this.onSelectionChanged = this.selectionChanged.asObservable();
+    this.onSelectionChanged$ = this.selectionChanged.asObservable();
   }
 
   public select(bookmark: chrome.bookmarks.BookmarkTreeNode) {
@@ -24,12 +23,12 @@ export class SelectionService {
       this.selectedBookmark['selected'] = false;
     }
 
-    this.selectedBookmark = bookmark;
+    this.selectedBookmark = { ...bookmark, selected: true };
     this.selectedBookmark['selected'] = true;
     this.selectionChanged.next(this.selectedBookmark);
   }
 
-  public getSelectedBookmark(): chrome.bookmarks.BookmarkTreeNode {
+  public getSelectedBookmark() {
     return this.selectedBookmark;
   }
 }

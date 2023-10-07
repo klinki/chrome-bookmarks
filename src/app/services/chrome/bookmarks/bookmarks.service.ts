@@ -1,52 +1,50 @@
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs/Subject';
+import {Injectable, OnDestroy, OnInit} from '@angular/core';
+import {fromEvent, fromEventPattern, Observable, Subject} from 'rxjs';
+
+const fromChromeEventPattern = <T, U extends Function>(source: chrome.events.Event<U>) => fromEventPattern<T>(
+  (handler) => source.addListener(handler as any),
+  (handler) => source.removeListener(handler as any)
+);
+
 
 /**
  * Google Chrome Bookmarks Service
- * 
+ *
  * @class BookmarksService
  */
 @Injectable()
 export class BookmarksService {
-  /** @deprecated */
-  public static MAX_WRITE_OPERATIONS_PER_HOUR;
-
-  /** @deprecated */
-  public static MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE;
-
-  public onCreatedEvent;
-  public onRemovedEvent;
-  public onChangedEvent;
-  public onMovedEvent;
-  public onChildrenReorderedEvent;
-  public onImportBeganEvent;
-  public onImportEndedEvent;
-
-
-  public onCreated;
-  public onRemoved;
-  public onChanged;
-  public onMoved;
-  public onChildrenReordered;
-  public onImportBegan;
-  public onImportEnded;
+  public onCreatedEvent$: Observable<chrome.bookmarks.BookmarkCreatedEvent>;
+  public onRemovedEvent$: Observable<chrome.bookmarks.BookmarkRemovedEvent>;
+  public onChangedEvent$: Observable<chrome.bookmarks.BookmarkChangedEvent>;
+  public onMovedEvent$: Observable<chrome.bookmarks.BookmarkMovedEvent>;
+  public onChildrenReorderedEvent$: Observable<chrome.bookmarks.BookmarkChildrenReordered>;
+  public onImportBeganEvent$: Observable<chrome.bookmarks.BookmarkImportBeganEvent>;
+  public onImportEndedEvent$: Observable<chrome.bookmarks.BookmarkImportEndedEvent>;
 
   constructor() {
-    this.onCreatedEvent = new Subject();
-  }
-
-  protected initialize() {
-    BookmarksService.MAX_WRITE_OPERATIONS_PER_HOUR = chrome.bookmarks.MAX_WRITE_OPERATIONS_PER_HOUR;
-    BookmarksService.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE = chrome.bookmarks.MAX_SUSTAINED_WRITE_OPERATIONS_PER_MINUTE
-  }
-
-  protected initializeEventListeners() {
-
+    if (chrome.bookmarks) {
+      this.onCreatedEvent$ = fromChromeEventPattern(chrome.bookmarks.onCreated);
+      this.onRemovedEvent$ = fromChromeEventPattern(chrome.bookmarks.onRemoved);
+      this.onChangedEvent$ = fromChromeEventPattern(chrome.bookmarks.onChanged);
+      this.onMovedEvent$ = fromChromeEventPattern(chrome.bookmarks.onMoved);
+      this.onChildrenReorderedEvent$ = fromChromeEventPattern(chrome.bookmarks.onChildrenReordered);
+      this.onImportBeganEvent$ = fromChromeEventPattern(chrome.bookmarks.onImportBegan);
+      this.onImportEndedEvent$ = fromChromeEventPattern(chrome.bookmarks.onImportEnded);
+    } else {
+      this.onCreatedEvent$ = new Subject();
+      this.onRemovedEvent$ = new Subject();
+      this.onChangedEvent$ = new Subject();
+      this.onMovedEvent$ = new Subject();
+      this.onChildrenReorderedEvent$ = new Subject();
+      this.onImportBeganEvent$ = new Subject();
+      this.onImportEndedEvent$ = new Subject();
+    }
   }
 
   /**
    * Retrieves the specified BookmarkTreeNode.
-   * 
+   *
    * @param {(string|string[])} bookmarkId An array of string-valued ids or single string-valued id
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
@@ -58,7 +56,7 @@ export class BookmarksService {
 
   /**
    * Retrieves the children of the specified BookmarkTreeNode id.
-   * 
+   *
    * @param {string} id
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
@@ -70,7 +68,7 @@ export class BookmarksService {
 
   /**
    * Retrieves the recently added bookmarks.
-   * 
+   *
    * @param {number} count The maximum number of items to return.
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
@@ -82,7 +80,7 @@ export class BookmarksService {
 
   /**
    * Retrieves the entire Bookmarks hierarchy.
-   * 
+   *
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
   public getTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
@@ -94,7 +92,7 @@ export class BookmarksService {
   /**
 	 * Since Chrome 14.
 	 * Retrieves part of the Bookmarks hierarchy, starting at the specified node.
-   * 
+   *
    * @param {string} id The ID of the root of the subtree to retrieve.
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
@@ -106,19 +104,19 @@ export class BookmarksService {
 
 	/**
 	 * Searches for BookmarkTreeNodes matching the given query. Queries specified with an object produce BookmarkTreeNodes matching all specified properties.
-   * 
+   *
 	 * @param {string|chrome.bookmarks.BookmarkSearchQuery} query A string of words and quoted phrases that are matched against bookmark URLs and titles.
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]}
 	 */
   public search(term: string|chrome.bookmarks.BookmarkSearchQuery): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.search(term, resolve);
+      return chrome.bookmarks.search(term as any, resolve);
     });
   }
 
   /**
    * Creates a bookmark or folder under the specified parentId. If url is NULL or missing, it will be a folder.
-   * 
+   *
    * @param {chrome.bookmarks.BookmarkCreateArg} bookmark
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode>}
    */
@@ -130,7 +128,7 @@ export class BookmarksService {
 
   /**
    * Moves the specified BookmarkTreeNode to the provided location.
-   * 
+   *
    * @param {string} id
    * @param {chrome.bookmarks.BookmarkDestinationArg} destination
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode>}
@@ -142,9 +140,9 @@ export class BookmarksService {
   }
 
   /**
-	 * Updates the properties of a bookmark or folder. Specify only the properties that you want to change; unspecified properties will be left unchanged. 
+	 * Updates the properties of a bookmark or folder. Specify only the properties that you want to change; unspecified properties will be left unchanged.
    * Note: Currently, only 'title' and 'url' are supported.
-   * 
+   *
    * @param {string} id
    * @param {chrome.bookmarks.BookmarkChangesArg} changes
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode>}
@@ -157,21 +155,21 @@ export class BookmarksService {
 
 
   /**
-   * Removes a bookmark or an empty bookmark folder. 
-   * 
+   * Removes a bookmark or an empty bookmark folder.
+   *
    * @param {string} id
    * @returns {Promise<any>}
    */
   public remove(id: string): Promise<any> {
     return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.update(id, resolve);
+      return chrome.bookmarks.update(id, resolve as any);
     });
   }
 
 
   /**
    * Recursively removes a bookmark folder.
-   * 
+   *
    * @param {string} id
    * @returns {Promise<any>}
    */

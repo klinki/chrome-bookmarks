@@ -1,11 +1,17 @@
-import {platformBrowserDynamic} from "@angular/platform-browser-dynamic";
-import {enableProdMode} from "@angular/core";
-import {environment} from "./app/";
-import {AppModule} from "./app/app.module";
+import { FormsModule } from "@angular/forms";
+import { BrowserModule, bootstrapApplication } from "@angular/platform-browser";
+import { enableProdMode, importProvidersFrom } from "@angular/core";
+
+import {AppComponent, environment} from "./app";
+import {DragulaModule} from "ng2-dragula";
 
 if (environment.production) {
   enableProdMode();
 }
 
-platformBrowserDynamic().bootstrapModule(AppModule);
-
+bootstrapApplication(AppComponent, {
+    providers: [
+      importProvidersFrom(BrowserModule, FormsModule, DragulaModule.forRoot())
+    ]
+})
+.catch(err => console.error(err));

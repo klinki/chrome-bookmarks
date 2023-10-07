@@ -1,11 +1,6 @@
-import { provide } from '@angular/core';
 import { environment } from '../index';
-import { BookmarksService, MockBookmarksService } from '../services/index';
+import { BookmarksService, MockBookmarksService } from '../services';
 
-export let BookmarksServiceProvider;
-
-if (environment.production) {
-    BookmarksServiceProvider = BookmarksService;
-} else {
-    BookmarksServiceProvider = provide(BookmarksService, {useClass: MockBookmarksService});
-}
+export const BookmarksServiceProvider = environment.production
+  ? BookmarksService
+  : { provide: BookmarksService, useClass: MockBookmarksService };

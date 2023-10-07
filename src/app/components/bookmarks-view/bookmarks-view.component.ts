@@ -1,11 +1,20 @@
-import { Component, OnInit } from '@angular/core';
-import { BookmarksProviderService, SelectionService } from '../../services/index';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {BookmarksProviderService, SelectionService} from '../../services';
+import {SearchBoxComponent} from "../search-box";
+import {TreeViewComponent} from "../tree-view";
+import {ListViewComponent} from "../list-view";
 
 @Component({
-  moduleId: module.id,
+  standalone: true,
   selector: 'app-bookmarks-view',
   templateUrl: 'bookmarks-view.component.html',
-  styleUrls: ['bookmarks-view.component.css']
+  imports: [
+    SearchBoxComponent,
+    TreeViewComponent,
+    ListViewComponent
+  ],
+  styleUrls: ['bookmarks-view.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookmarksViewComponent implements OnInit {
   protected bookmarkProviderService: BookmarksProviderService;
@@ -22,7 +31,7 @@ export class BookmarksViewComponent implements OnInit {
     this.bookmarkService = bookmarkService;
 
     let self = this;
-    this.bookmarkService.onSelectionChanged.subscribe((bookmark) => {
+    this.bookmarkService.onSelectionChanged$.subscribe((bookmark) => {
         self.bookmarkProviderService.getChildren(bookmark.id).then((children) => {
           self.items = children;
         });
@@ -31,17 +40,17 @@ export class BookmarksViewComponent implements OnInit {
 
   ngOnInit() {
     this.bookmarkProviderService.getBookmarks().then((bookmarks) => {
-      this.bookmarks = bookmarks[0].children;
+      this.bookmarks = bookmarks[0].children ?? [];
       this.selectedDirectory = bookmarks[0];
     });
 
     this.bookmarkProviderService.getBookmarks().then((bookmarks) => {
-      let directories = this.bookmarkProviderService.filterDirectories(bookmarks[0].children);
+      const directories = this.bookmarkProviderService.filterDirectories(bookmarks[0].children ?? []);
       this.directoryTree = directories;
     });
   }
 
-  public onDirectorySelected(directory) {
+  public onDirectorySelected(directory: chrome.bookmarks.BookmarkTreeNode) {
     this.selectedDirectory = directory;
   }
 }

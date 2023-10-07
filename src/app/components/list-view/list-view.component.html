@@ -1,4 +1,4 @@
-<ul *ngIf="item">
+<ul *ngIf="items">
   <li *ngFor="let item of items">
     <span>{{item.title}}</span>
   </li>
@@ -11,14 +11,16 @@
       <span *ngIf="orderProperties.column == column.name">
         <span *ngIf="orderProperties.asc">ASC</span>
         <span *ngIf="!orderProperties.asc">DESC</span>
-      </span>  
+      </span>
       {{column.title}}
     </th>
   </tr>
   </thead>
   <tbody [dragula]='"bookmarks"'>
   <tr *ngFor="let item of items">
-    <td *ngFor="let column of displayedColumns">{{item[column.name]}}</td>
+    <td *ngFor="let column of displayedColumns">
+      {{getColumnValue(item, column.name)}}
+    </td>
   </tr>
   </tbody>
 </table>

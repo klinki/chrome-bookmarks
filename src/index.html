@@ -5,15 +5,6 @@
   <title>Google Chrome Bookmarks</title>
   <base href="/">
 
-  {{#unless environment.production}}
-    <script src="/ember-cli-live-reload.js" type="text/javascript"></script>
-  {{/unless}}
-
-  {{#each scripts.polyfills}}
-  <script src="{{.}}"></script>
-  {{/each}}
-  <script src="systemjs-init-config.js"></script>
-
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="stylesheet" type="test/css" href="style/tree.css">
@@ -196,6 +187,7 @@ html[dir=rtl] .tree-item[editing] input {
   </style>
 </head>
 <body>
+<script>window.global = window;</script>
   <app-root>Loading...</app-root>
 </body>
 </html>

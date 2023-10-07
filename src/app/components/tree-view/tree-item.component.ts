@@ -1,14 +1,19 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { SelectionService } from '../../services/index';
+import {BookmarkDirectory} from "./tree-view.component";
+import {NgForOf} from "@angular/common";
 
 @Component({
-  moduleId: module.id,
+  standalone: true,
   selector: 'app-tree-item',
+  imports: [
+    NgForOf
+  ],
   templateUrl: 'tree-item.component.html'
 })
 export class TreeItemComponent implements OnInit {
-  @Input() dir;
-  @Input() level: number;
+  @Input() dir: any;
+  @Input() level: number = 0;
 
   protected bookmarkService: SelectionService;
 
@@ -19,31 +24,32 @@ export class TreeItemComponent implements OnInit {
   ngOnInit() {
   }
 
-  toggle(directory) {
+  toggle(directory: BookmarkDirectory) {
+    console.log(directory);
     directory.expanded = !directory.expanded;
   }
 
-  expanded(directory) {
+  expanded(directory: BookmarkDirectory) {
     return directory.expanded;
   }
 
-  isVisible(directory) {
+  isVisible(directory: BookmarkDirectory) {
     return directory && !directory.url;
   }
 
-  open(directory) {
+  open(directory: BookmarkDirectory) {
+    console.log(directory);
     this.bookmarkService.select(directory);
   }
 
-  isSelected(directory) {
+  isSelected(directory: BookmarkDirectory) {
       return directory.hasOwnProperty('selected') && directory.selected;
   }
 
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
-      if (directory.children.length > 0) {
-        //   directory.children.filter
-        var hasSubDirectories = directory.children.reduce((prev, curr, index, arr) => {
-            return arr[index].hasOwnProperty('children') && prev; 
+      if ((directory?.children?.length ?? 0) > 0) {
+        const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {
+            return arr[index].hasOwnProperty('children') && prev;
         }, true);
 
         return hasSubDirectories;

@@ -1,14 +1,22 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { SelectionService } from '../../services/index';
+import { SelectionService } from '../../services';
+import {TreeItemComponent} from "./tree-item.component";
+import {NgForOf} from "@angular/common";
+
+export type BookmarkDirectory = any;
 
 @Component({
-  moduleId: module.id,
+  standalone: true,
   selector: 'app-tree-view',
   templateUrl: 'tree-view.component.html',
   styleUrls: ['tree-view.component.css'],
+  imports: [
+    TreeItemComponent,
+    NgForOf
+  ]
 })
 export class TreeViewComponent implements OnInit {
-  @Input() directories;
+  @Input() directories: BookmarkDirectory[] = [];
 
   protected bookmarkService: SelectionService;
 
@@ -19,19 +27,19 @@ export class TreeViewComponent implements OnInit {
   ngOnInit() {
   }
 
-  toggle(directory) {
+  toggle(directory: BookmarkDirectory) {
     directory.expanded = !directory.expanded;
   }
 
-  expanded(directory) {
+  expanded(directory: BookmarkDirectory) {
     return directory.expanded;
   }
 
-  isVisible(directory) {
+  isVisible(directory: BookmarkDirectory) {
     return directory && !directory.url;
   }
 
-  open(directory) {
+  open(directory: BookmarkDirectory) {
     this.bookmarkService.select(directory);
   }
 }

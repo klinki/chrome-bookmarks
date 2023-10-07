@@ -1,18 +1,18 @@
 import { Injectable } from '@angular/core';
-import { BookmarksService } from './chrome/bookmarks/bookmarks.service';
+import { BookmarksService } from './chrome';
 
 @Injectable()
 export class BookmarksProviderService {
   protected bookmarksService: BookmarksService;
 
-  protected bookmarks;
-  
+  protected bookmarks: any[] = [];
+
   public static EmptyDirectory: chrome.bookmarks.BookmarkTreeNode = {
       id: '0',
       title: '',
       children: []
   };
- 
+
   public static EmptyBookmark = {
       id: '0',
       title: '',
@@ -35,8 +35,8 @@ export class BookmarksProviderService {
     let directories = [];
     return bookmarks.filter((bookmark) => bookmark.url === undefined).map((bookmark) => {
       let newBookmark = Object.create(bookmark);
-      newBookmark.children = this.filterDirectories(bookmark.children);
-      
+      newBookmark.children = this.filterDirectories(bookmark.children ?? []);
+
       return newBookmark;
     });;
   }

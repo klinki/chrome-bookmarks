@@ -1,22 +1,25 @@
-import { Component, provide } from '@angular/core';
-import { BookmarksViewComponent } from './components/index';
-import { BookmarksProviderService, SelectionService, MockBookmarksService, BookmarksService } from './services/index';
+import { Component } from '@angular/core';
+import { BookmarksProviderService, SelectionService } from './services';
 import { BookmarksServiceProvider } from './shared/providers';
+import { BookmarksViewComponent } from "./components";
+import {DragulaModule} from "ng2-dragula";
 
 @Component({
-  moduleId: module.id,
+  standalone: true,
   selector: 'app-root',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.css'],
-  directives: [BookmarksViewComponent],
+  imports: [
+    BookmarksViewComponent,
+  ],
   providers: [
-//    MockBookmarksService,
-//    BookmarksService,
     BookmarksServiceProvider,
     BookmarksProviderService,
-    SelectionService
+    SelectionService,
   ]
 })
 export class AppComponent {
-  title = 'app works!';
+  constructor() {
+
+  }
 }

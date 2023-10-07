@@ -1,6 +1,3 @@
-import {Injectable} from '@angular/core';
-
-@Injectable()
 export class StorageArea {
 
   protected storage: chrome.storage.StorageArea;
@@ -48,7 +45,7 @@ export class StorageArea {
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
   public clear(): Promise<any> {
-    return new Promise((resolve, error) => this.storage.clear(resolve));
+    return new Promise((resolve, error) => this.storage.clear(resolve as any));
   }
 
   /**
@@ -60,7 +57,7 @@ export class StorageArea {
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
   public set(items: Object): Promise<any> {
-    return new Promise((resolve, error) => this.storage.set(items, resolve));
+    return new Promise((resolve, error) => this.storage.set(items, resolve as any));
   };
 
   /**
@@ -79,7 +76,7 @@ export class StorageArea {
    */
   public remove(keys: string[]): Promise<any>;
   public remove(keys: string|string[]): Promise<any> {
-    return new Promise((resolve, error) => this.storage.remove(keys as any, resolve));
+    return new Promise((resolve, error) => this.storage.remove(keys as any, resolve as any));
   }
 
   /**
