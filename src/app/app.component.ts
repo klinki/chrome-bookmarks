@@ -20,6 +20,5 @@ import {DragulaModule} from "ng2-dragula";
 })
 export class AppComponent {
   constructor() {
-
   }
 }
