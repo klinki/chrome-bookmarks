@@ -108,4 +108,16 @@ export class ListViewComponent implements OnInit, OnChanges {
       this.selectionService.selectDirectory(item);
     }
   }
+
+  // https://developer.chrome.com/docs/extensions/how-to/ui/favicons
+  getFavicon(item: chrome.bookmarks.BookmarkTreeNode) {
+    if (item.url != null) {
+      const url = new URL(chrome.runtime.getURL("/_favicon/"));
+      url.searchParams.set("pageUrl", item.url);
+      url.searchParams.set("size", "16");
+      return url.toString();
+    }
+
+    return '';
+  }
 }

@@ -13,6 +13,9 @@
   <tbody [dragula]='"bookmarks"'>
     <tr *ngFor="let item of items" (dblclick)="itemDoubleClick(item)" (click)="itemClick(item)">
       <td *ngFor="let column of displayedColumns">
+        @if (column.name === 'title') {
+          <img alt="" [src]="getFavicon(item)" />
+        }
         {{getColumnValue(item, column.name)}}
       </td>
     </tr>
