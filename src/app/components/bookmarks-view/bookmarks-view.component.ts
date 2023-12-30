@@ -3,7 +3,7 @@ import {BookmarksProviderService, SelectionService} from '../../services';
 import {SearchBoxComponent} from "../search-box";
 import {TreeViewComponent} from "../tree-view";
 import {ListViewComponent} from "../list-view";
-import {mergeMap, of} from "rxjs";
+import {BehaviorSubject, debounceTime, mergeMap, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {AsyncPipe} from "@angular/common";
 
@@ -25,16 +25,26 @@ export class BookmarksViewComponent implements OnInit {
   protected directoryTree: chrome.bookmarks.BookmarkTreeNode[]  = [];
 
   protected selectedDirectory = BookmarksProviderService.EmptyDirectory;
+  public searchTerm$ = new BehaviorSubject<string>('');
 
   public directories$ = fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
-  public items$ = this.bookmarkService.selectedDirectory$.asObservable().pipe(
-    mergeMap(directory => {
-      if (directory == null) {
-        return of([]);
+  public items$ = this.searchTerm$.asObservable().pipe(
+    debounceTime(1000),
+    mergeMap(searchTerm => {
+      if (searchTerm === '') {
+        return this.bookmarkService.selectedDirectory$.asObservable().pipe(
+          mergeMap(directory => {
+            if (directory == null) {
+              return of([]);
+            }
+
+            return fromPromise(this.bookmarkProviderService.getChildren(directory.id));
+          })
+        );
       }
 
-      return fromPromise(this.bookmarkProviderService.getChildren(directory.id));
-    })
+      return fromPromise(this.bookmarkProviderService.search(searchTerm));
+    }),
   );
 
   constructor(private bookmarkProviderService: BookmarksProviderService, private bookmarkService: SelectionService) {
@@ -49,5 +59,9 @@ export class BookmarksViewComponent implements OnInit {
 
   public onDirectorySelected(directory: chrome.bookmarks.BookmarkTreeNode) {
     this.selectedDirectory = directory;
+  }
+
+  public search(searchTerm: string|null) {
+    this.searchTerm$.next(searchTerm ?? '');
   }
 }

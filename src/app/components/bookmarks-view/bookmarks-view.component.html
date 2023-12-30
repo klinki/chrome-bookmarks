@@ -1,7 +1,7 @@
 <div class="container">
   <div class="top-toolbar">
     <h1>Bookmarks manager</h1>
-    <app-search-box></app-search-box>
+    <app-search-box (searchTermChange)="search($event)"></app-search-box>
   </div>
   <div class="tree-view">
     <app-tree-view
