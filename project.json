@@ -1,6 +1,6 @@
 {
-  "$schema": "node_modules/nx/schemas/project-schema.json",
   "name": "bookmarks",
+  "$schema": "node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
   "generators": {
     "@schematics/angular:component": {
@@ -15,7 +15,7 @@
       "options": {
         "outputPath": "dist/bookmarks",
         "index": "src/index.html",
-        "main":  "src/main.ts",
+        "main": "src/main.ts",
         "polyfills": [
           "zone.js",
           "src/polyfills.ts"
@@ -66,10 +66,10 @@
       "executor": "@angular-devkit/build-angular:dev-server",
       "configurations": {
         "production": {
-          "browserTarget": "bookmarks:build:production"
+          "buildTarget": "bookmarks:build:production"
         },
         "development": {
-          "browserTarget": "bookmarks:build:development"
+          "buildTarget": "bookmarks:build:development"
         }
       },
       "defaultConfiguration": "development"
@@ -77,7 +77,7 @@
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
       "options": {
-        "browserTarget": "bookmarks:build"
+        "buildTarget": "bookmarks:build"
       }
     },
     "test": {
