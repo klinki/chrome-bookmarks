@@ -32,7 +32,7 @@ export class BookmarksViewComponent implements OnInit {
     debounceTime(1000),
     mergeMap(searchTerm => {
       if (searchTerm === '') {
-        return this.bookmarkService.selectedDirectory$.asObservable().pipe(
+        return this.selectionService.selectedDirectory$.asObservable().pipe(
           mergeMap(directory => {
             if (directory == null) {
               return of([]);
@@ -47,7 +47,7 @@ export class BookmarksViewComponent implements OnInit {
     }),
   );
 
-  constructor(private bookmarkProviderService: BookmarksProviderService, private bookmarkService: SelectionService) {
+  constructor(private bookmarkProviderService: BookmarksProviderService, private selectionService: SelectionService) {
   }
 
   ngOnInit() {

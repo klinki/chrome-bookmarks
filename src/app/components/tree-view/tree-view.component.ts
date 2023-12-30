@@ -19,9 +19,9 @@ export type BookmarkDirectory = any;
 export class TreeViewComponent implements OnInit {
   @Input() directories: BookmarkDirectory[]|null = [];
 
-  selectedDirectory$ = this.bookmarkService.selectedDirectory$;
+  selectedDirectory$ = this.selectionService.selectedDirectory$;
 
-  constructor(private bookmarkService: SelectionService) {
+  constructor(private selectionService: SelectionService) {
   }
 
   ngOnInit() {
@@ -40,6 +40,6 @@ export class TreeViewComponent implements OnInit {
   }
 
   open(directory: BookmarkDirectory) {
-    this.bookmarkService.selectDirectory(directory);
+    this.selectionService.selectDirectory(directory);
   }
 }
