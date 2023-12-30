@@ -2,6 +2,7 @@ import {Component, OnInit, Input, OnChanges, SimpleChanges} from '@angular/core'
 import {DragulaModule, DragulaService} from "ng2-dragula";
 import {NgForOf, NgIf} from "@angular/common";
 import {FilterBookmarksPipe} from "../../pipes";
+import {SelectionService} from "../../services";
 
 @Component({
   standalone: true,
@@ -48,7 +49,7 @@ export class ListViewComponent implements OnInit, OnChanges {
     this.availableColumns[2]
   ];
 
-  constructor() {
+  constructor(private selectionService: SelectionService) {
 
   }
 
@@ -95,14 +96,16 @@ export class ListViewComponent implements OnInit, OnChanges {
   }
 
   itemClick(item: chrome.bookmarks.BookmarkTreeNode) {
+    this.selectionService.select(item);
     console.log('click');
     console.log({ item });
   }
 
   itemDoubleClick(item: chrome.bookmarks.BookmarkTreeNode) {
-    console.log('dbl click');
-    if ((item?.children?.length ?? 0) === 0) {
+    if ((item?.children?.length ?? 0) === 0 && item.url != null) {
       window.open(item.url, '_blank');
+    } else {
+      this.selectionService.selectDirectory(item);
     }
   }
 }

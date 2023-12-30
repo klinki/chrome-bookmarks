@@ -19,6 +19,10 @@ export class TreeItemComponent implements OnInit {
   constructor(private bookmarkService: SelectionService) {
   }
 
+  get isSelected() {
+    return this.selectedItem?.id === this.dir?.id;
+  }
+
   ngOnInit() {
   }
 
