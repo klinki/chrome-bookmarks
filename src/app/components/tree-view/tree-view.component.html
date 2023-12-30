@@ -1,3 +1,8 @@
 <div id="tree-container">
-  <app-tree-item *ngFor="let dir of directories" [dir]="dir" [level]="0"></app-tree-item>
+  <app-tree-item
+    *ngFor="let dir of directories"
+    [dir]="dir"
+    [level]="0"
+    [selectedItem]="(selectedDirectory$ | async)"
+  ></app-tree-item>
 </div>

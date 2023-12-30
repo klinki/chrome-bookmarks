@@ -1,22 +1,25 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { SelectionService } from '../../services';
 import {TreeItemComponent} from "./tree-item.component";
-import {NgForOf} from "@angular/common";
+import {AsyncPipe, NgForOf} from "@angular/common";
 
 export type BookmarkDirectory = any;
 
 @Component({
   standalone: true,
   selector: 'app-tree-view',
-  templateUrl: 'tree-view.component.html',
-  styleUrls: ['tree-view.component.css'],
+  templateUrl: './tree-view.component.html',
+  styleUrls: ['./tree-view.component.scss'],
   imports: [
     TreeItemComponent,
-    NgForOf
+    NgForOf,
+    AsyncPipe
   ]
 })
 export class TreeViewComponent implements OnInit {
   @Input() directories: BookmarkDirectory[]|null = [];
+
+  selectedDirectory$ = this.bookmarkService.selectedDirectory$;
 
   constructor(private bookmarkService: SelectionService) {
   }

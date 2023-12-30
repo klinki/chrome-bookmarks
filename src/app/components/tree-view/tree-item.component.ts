@@ -1,5 +1,5 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { SelectionService } from '../../services/index';
+import { SelectionService } from '../../services';
 import {BookmarkDirectory} from "./tree-view.component";
 import {NgForOf} from "@angular/common";
 
@@ -9,16 +9,14 @@ import {NgForOf} from "@angular/common";
   imports: [
     NgForOf
   ],
-  templateUrl: 'tree-item.component.html'
+  templateUrl: './tree-item.component.html'
 })
 export class TreeItemComponent implements OnInit {
   @Input() dir: any;
   @Input() level: number = 0;
+  @Input() selectedItem: any = null;
 
-  protected bookmarkService: SelectionService;
-
-  constructor(boomarkService: SelectionService) {
-    this.bookmarkService = boomarkService;
+  constructor(private bookmarkService: SelectionService) {
   }
 
   ngOnInit() {
@@ -40,10 +38,6 @@ export class TreeItemComponent implements OnInit {
   open(directory: BookmarkDirectory) {
     console.log(directory);
     this.bookmarkService.selectDirectory(directory);
-  }
-
-  isSelected(directory: BookmarkDirectory) {
-      return directory.hasOwnProperty('selected') && directory.selected;
   }
 
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
