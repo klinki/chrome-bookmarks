@@ -3,8 +3,8 @@ import {BehaviorSubject, Observable, Subject} from 'rxjs';
 
 @Injectable()
 export class SelectionService {
-  protected selectionChanged: Subject<chrome.bookmarks.BookmarkTreeNode>;
-  public onSelectionChanged$: Observable<chrome.bookmarks.BookmarkTreeNode>;
+  protected selectionChanged = new BehaviorSubject<Set<string>>(new Set());
+  public onSelectionChanged$ = this.selectionChanged.asObservable();
 
   protected selectedBookmark: null|chrome.bookmarks.BookmarkTreeNode & { selected: boolean } = null;
 
@@ -15,19 +15,30 @@ export class SelectionService {
     result: []
   };
 
+  private selection = new Set<string>();
+
   constructor() {
-    this.selectionChanged = new Subject<chrome.bookmarks.BookmarkTreeNode>();
-    this.onSelectionChanged$ = this.selectionChanged.asObservable();
   }
 
-  public select(bookmark: chrome.bookmarks.BookmarkTreeNode) {
-    if (this.selectedBookmark) {
-      this.selectedBookmark['selected'] = false;
+  public select(bookmark: chrome.bookmarks.BookmarkTreeNode, config: {
+    clear: boolean,
+    range: boolean,
+    toggle: boolean
+  }) {
+    let newItems = new Set<string>();
+
+    if (!config.clear) {
+      newItems = new Set(this.selection);
     }
 
-    this.selectedBookmark = { ...bookmark, selected: true };
-    this.selectedBookmark['selected'] = true;
-    this.selectionChanged.next(this.selectedBookmark);
+    if (newItems.has(bookmark.id)) {
+      newItems.delete(bookmark.id);
+    } else {
+      newItems.add(bookmark.id);
+    }
+
+    this.selection = newItems;
+    this.selectionChanged.next(this.selection);
   }
 
   public selectDirectory(bookmark: chrome.bookmarks.BookmarkTreeNode) {

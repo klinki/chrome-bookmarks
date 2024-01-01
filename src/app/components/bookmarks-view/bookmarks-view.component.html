@@ -10,6 +10,10 @@
     </app-tree-view>
   </div>
   <div class="main-view">
-    <app-list-view [items]="items$ | async"></app-list-view>
+    <app-list-view
+      [items]="items$ | async"
+      [selectedItems]="(selectedItems$ | async)!"
+    ></app-list-view>
+    <app-bookmark-detail></app-bookmark-detail>
   </div>
 </div>

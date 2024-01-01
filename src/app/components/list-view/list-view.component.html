@@ -11,7 +11,11 @@
   </tr>
   </thead>
   <tbody [dragula]='"bookmarks"'>
-    <tr *ngFor="let item of items" (dblclick)="itemDoubleClick(item)" (click)="itemClick(item)">
+    <tr *ngFor="let item of items"
+        (dblclick)="itemDoubleClick(item)"
+        (click)="itemClick($event, item)"
+        [attr.selected]="isSelected(item) ? true : null"
+    >
       <td *ngFor="let column of displayedColumns">
         @if (column.name === 'title') {
           <img alt="" [src]="getFavicon(item)" />

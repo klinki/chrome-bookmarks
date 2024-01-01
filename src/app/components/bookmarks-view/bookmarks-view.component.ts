@@ -26,6 +26,7 @@ export class BookmarksViewComponent implements OnInit {
 
   protected selectedDirectory = BookmarksProviderService.EmptyDirectory;
   public searchTerm$ = new BehaviorSubject<string>('');
+  public selectedItems$ = this.selectionService.onSelectionChanged$;
 
   public directories$ = fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
   public items$ = this.searchTerm$.asObservable().pipe(

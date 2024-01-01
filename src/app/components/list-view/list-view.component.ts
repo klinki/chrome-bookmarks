@@ -23,6 +23,8 @@ export class ListViewComponent implements OnInit, OnChanges {
   @Input() columns: string[] = [];
   @Input() selectedColumns: string[] = [];
 
+  @Input() selectedItems: Set<string> = new Set();
+
   orderProperties = {
     column: '',
     asc: true
@@ -51,6 +53,10 @@ export class ListViewComponent implements OnInit, OnChanges {
 
   constructor(private selectionService: SelectionService) {
 
+  }
+
+  isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
+    return this.selectedItems.has(item.id);
   }
 
   ngOnInit() {
@@ -95,10 +101,25 @@ export class ListViewComponent implements OnInit, OnChanges {
     return item[column as keyof chrome.bookmarks.BookmarkTreeNode];
   }
 
-  itemClick(item: chrome.bookmarks.BookmarkTreeNode) {
-    this.selectionService.select(item);
-    console.log('click');
-    console.log({ item });
+  itemClick(e: MouseEvent, item: chrome.bookmarks.BookmarkTreeNode) {
+    // Ignore double clicks so that Ctrl double-clicking an item won't deselect
+    // the item before opening.
+    if (e.detail !== 2) {
+      const isMac = false;
+      const addKey = isMac ? e.metaKey : e.ctrlKey;
+
+      this.selectionService.select(item, {
+        clear: !addKey,
+        range: e.shiftKey,
+        toggle: addKey && !e.shiftKey
+      });
+
+      console.log('click');
+      console.log({ item });
+    }
+
+    e.stopPropagation();
+    e.preventDefault();
   }
 
   itemDoubleClick(item: chrome.bookmarks.BookmarkTreeNode) {
