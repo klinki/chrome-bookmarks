@@ -8,7 +8,7 @@ import {SelectionService} from "../../services";
   standalone: true,
   selector: 'app-list-view',
   templateUrl: 'list-view.component.html',
-  styleUrls: ['list-view.component.css'],
+  styleUrls: ['list-view.component.scss'],
   imports: [
     DragulaModule,
     NgForOf,
@@ -56,6 +56,10 @@ export class ListViewComponent implements OnInit, OnChanges {
   }
 
   isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
+    if (this.selectionService.selectAllActive) {
+      return !this.selectedItems.has(item.id);
+    }
+
     return this.selectedItems.has(item.id);
   }
 
@@ -132,13 +136,28 @@ export class ListViewComponent implements OnInit, OnChanges {
 
   // https://developer.chrome.com/docs/extensions/how-to/ui/favicons
   getFavicon(item: chrome.bookmarks.BookmarkTreeNode) {
-    if (item.url != null) {
-      const url = new URL(chrome.runtime.getURL("/_favicon/"));
+    if (item?.url != null) {
+      const url = new URL(chrome?.runtime?.getURL("/_favicon/") ?? 'https://www.google.com');
       url.searchParams.set("pageUrl", item.url);
       url.searchParams.set("size", "16");
       return url.toString();
     }
 
     return '';
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyup(event: KeyboardEvent) {
+    if (event.ctrlKey && event.key == 'a') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.selectionService.selectAll();
+      return false;
+    } else if (event.key == 'Delete') {
+
+    }
+    console.log('keyup..', event);
+
+    return true;
   }
 }
