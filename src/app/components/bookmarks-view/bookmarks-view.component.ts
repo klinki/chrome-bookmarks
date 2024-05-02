@@ -3,9 +3,10 @@ import {BookmarksProviderService, SelectionService} from '../../services';
 import {SearchBoxComponent} from "../search-box";
 import {TreeViewComponent} from "../tree-view";
 import {ListViewComponent} from "../list-view";
-import {BehaviorSubject, debounceTime, mergeMap, of} from "rxjs";
+import {BehaviorSubject, combineLatest, debounceTime, map, mergeMap, of} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {AsyncPipe} from "@angular/common";
+import {BookmarkDetailComponent} from "../bookmark-detail/bookmark-detail.component";
 
 @Component({
   standalone: true,
@@ -15,7 +16,8 @@ import {AsyncPipe} from "@angular/common";
     SearchBoxComponent,
     TreeViewComponent,
     ListViewComponent,
-    AsyncPipe
+    AsyncPipe,
+    BookmarkDetailComponent
   ],
   styleUrls: ['./bookmarks-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +48,21 @@ export class BookmarksViewComponent implements OnInit {
 
       return fromPromise(this.bookmarkProviderService.search(searchTerm));
     }),
+  );
+
+  public selectedBookmarks$ = combineLatest([
+    this.items$,
+    this.selectedItems$
+  ]).pipe(
+    map(([allItems, selectedItems]) => {
+      return allItems.filter(x => {
+        if (!this.selectionService.selectAllActive) {
+          return selectedItems.has(x.id);
+        }
+
+        return !selectedItems.has(x.id);
+      });
+    })
   );
 
   constructor(private bookmarkProviderService: BookmarksProviderService, private selectionService: SelectionService) {

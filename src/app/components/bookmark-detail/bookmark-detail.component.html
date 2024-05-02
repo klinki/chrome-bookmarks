@@ -1,0 +1,10 @@
+@if (onlyBookmarksSelected) {
+  <p>Selected {{selection?.length}} items</p>
+  <strong>TODO: Tag form</strong>
+} @else if (mixedSelection) {
+  <p>Selected {{selection?.length}} items - mixed</p>
+} @else if (singleItemSelected) {
+  <strong>Name: {{ selection?.[0]?.title }}</strong>
+  <strong>Type: Folder</strong>
+  <strong>TODO: Folder name form</strong>
+}
