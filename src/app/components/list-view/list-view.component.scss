@@ -1,0 +1,34 @@
+// @import '@ngx-nova/material-extensions-table-virtual-scroll/styles/virtual-scroll.scss';
+
+list > [selected],
+grid > [selected],
+tr[selected] {
+  background-color: hsl(0, 0%, 90%);
+  background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.8),
+  rgba(255, 255, 255, 0));
+  border-color: hsl(0, 0%, 85%);
+  z-index: 2;
+}
+
+list:focus > [selected],
+grid:focus > [selected],
+tr:focus[selected] {
+  background-color: hsl(214, 91%, 89%);
+  border-color: hsl(214, 91%, 65%);
+}
+
+mat-row {
+  line-height: 20px;
+}
+
+.mat-mdc-row:hover .mat-mdc-cell {
+  background-color: hsl(214, 91%, 97%);
+  border-color: hsl(214, 91%, 85%);
+  z-index: 1;
+}
+
+
+list:not([disabled]) > :hover,
+grid:not([disabled]) > :hover {
+
+}
