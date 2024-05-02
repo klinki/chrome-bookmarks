@@ -1,5 +1,5 @@
-import {Injectable, OnDestroy, OnInit} from '@angular/core';
-import {fromEvent, fromEventPattern, Observable, Subject} from 'rxjs';
+import {Injectable} from '@angular/core';
+import {fromEventPattern, Observable, Subject} from 'rxjs';
 
 const fromChromeEventPattern = <T, U extends Function>(source: chrome.events.Event<U>) => fromEventPattern<T>(
   (handler) => source.addListener(handler as any),
