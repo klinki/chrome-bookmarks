@@ -2,12 +2,16 @@ import { Component, OnInit, Input } from '@angular/core';
 import { SelectionService } from '../../services';
 import {BookmarkDirectory} from "./tree-view.component";
 import {NgForOf} from "@angular/common";
+import {CdkContextMenuTrigger} from "@angular/cdk/menu";
+import {FolderMenuComponent} from "../menus/folder-menu/folder-menu.component";
 
 @Component({
   standalone: true,
   selector: 'app-tree-item',
   imports: [
-    NgForOf
+    NgForOf,
+    CdkContextMenuTrigger,
+    FolderMenuComponent
   ],
   templateUrl: './tree-item.component.html'
 })
@@ -15,6 +19,8 @@ export class TreeItemComponent implements OnInit {
   @Input() dir: any;
   @Input() level: number = 0;
   @Input() selectedItem: any = null;
+  @Input() menu: any;
+  @Input() menuComponent?: FolderMenuComponent;
 
   constructor(private bookmarkService: SelectionService) {
   }
@@ -27,6 +33,9 @@ export class TreeItemComponent implements OnInit {
   }
 
   toggle(directory: BookmarkDirectory) {
+    if (directory.children.length === 0)
+      return;
+
     console.log(directory);
     directory.expanded = !directory.expanded;
   }
@@ -40,6 +49,9 @@ export class TreeItemComponent implements OnInit {
   }
 
   open(directory: BookmarkDirectory) {
+    if (this.menuComponent != null) {
+      this.menuComponent.folder = directory;
+    }
     console.log(directory);
     this.bookmarkService.selectDirectory(directory);
   }

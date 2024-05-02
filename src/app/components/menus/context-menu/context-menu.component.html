@@ -1,0 +1,49 @@
+<ng-template #menu>
+  <div cdkMenu class="submenu" [ngClass]="menuClasses" [ngStyle]="menuStyles">
+    <ng-container *ngFor="let group of menuGroupsInput; let first = first; let last = last">
+      <ng-container *ngFor="let item of group.visibleMenuItems">
+        <ng-container *ngIf="item.hasChildren; else leafNode">
+          <a class="item" [attr.toggled]="item.toggled ? 'true' : null"
+             [attr.disabled]="!item.enabled ? 'true': null"
+             cdkMenuItem
+             [cdkMenuItemDisabled]="!item.enabled"
+             [cdkMenuTriggerFor]="subMenu"
+             (cdkMenuItemTriggered)="item?.activate?.emit()"
+             *ngIf="menuComponent.menu as subMenu">
+            <div class="icon-container">
+              <div class="icon-backdrop"></div>
+              <div class="icon" *ngIf="item.icon != null">{{item.icon}}</div>
+            </div>
+
+            <div class="text">{{ item.label }}</div>
+            <div *ngIf="item.hasChildren" class="icon-like dropdown-indicator">{{Icons.next}}</div>
+          </a>
+          <app-context-menu #menuComponent
+                            [menuGroupsInput]="item.menuGroups.toArray()">
+          </app-context-menu>
+        </ng-container>
+        <ng-template #leafNode>
+          <a class="item" cdkMenuItem [attr.toggled]="item.toggled && item.icon != null ? 'true' : null"
+             [attr.disabled]="!item.enabled ? 'true': null"
+             [cdkMenuItemDisabled]="!item.enabled"
+             (cdkMenuItemTriggered)="item?.activate?.emit()">
+            <div class="icon-container" [ngStyle]="item.iconColor != null && {'--icon-color': item.iconColor} || null">
+              <div class="icon-backdrop"></div>
+              <div class="icon" *ngIf="item.icon != null || item.toggled">
+                <ng-container *ngIf="item.icon != null; else elseIfToggled">
+                  {{item.icon}}
+                </ng-container>
+                <ng-template #elseIfToggled>
+                  {{Icons.accept}}
+                </ng-template>
+              </div>
+            </div>
+
+            <div class="text">{{ item.label }}</div>
+          </a>
+        </ng-template>
+      </ng-container>
+      <hr *ngIf="!last" />
+    </ng-container>
+  </div>
+</ng-template>

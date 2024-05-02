@@ -2,6 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { SelectionService } from '../../services';
 import {TreeItemComponent} from "./tree-item.component";
 import {AsyncPipe, NgForOf} from "@angular/common";
+import {FolderMenuComponent} from "../menus/folder-menu/folder-menu.component";
 
 export type BookmarkDirectory = any;
 
@@ -13,7 +14,8 @@ export type BookmarkDirectory = any;
   imports: [
     TreeItemComponent,
     NgForOf,
-    AsyncPipe
+    AsyncPipe,
+    FolderMenuComponent
   ]
 })
 export class TreeViewComponent implements OnInit {
@@ -28,6 +30,9 @@ export class TreeViewComponent implements OnInit {
   }
 
   toggle(directory: BookmarkDirectory) {
+    if (directory.children.length === 0)
+      return;
+
     directory.expanded = !directory.expanded;
   }
 

@@ -1,0 +1,7 @@
+<app-context-menu #menu>
+  <app-context-menu-group>
+    <app-context-menu-item label="Open all bookmarks" [icon]="Icons.popup" (activate)="openInNewTab()"></app-context-menu-item>
+    <app-context-menu-item label="New folder" [icon]="Icons.popup" (activate)="createNewFolder()"></app-context-menu-item>
+    <app-context-menu-item label="New bookmark" [icon]="Icons.popup" (activate)="createNewBookmark()"></app-context-menu-item>
+  </app-context-menu-group>
+</app-context-menu>
