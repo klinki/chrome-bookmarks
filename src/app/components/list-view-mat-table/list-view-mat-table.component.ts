@@ -1,22 +1,35 @@
-import {Component, OnInit, Input, OnChanges, SimpleChanges, HostListener} from '@angular/core';
-import {DragulaModule, DragulaService} from "ng2-dragula";
-import {NgForOf, NgIf} from "@angular/common";
+import {Component, HostListener, Input, SimpleChanges, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {MatTableDataSource, MatTableModule} from "@angular/material/table";
+import {MatSort, MatSortModule} from "@angular/material/sort";
 import {SelectionService} from "../../services";
+import {
+  CdkTableFixedSizeVirtualScroll,
+  CdkTableVirtualScrollable,
+  CdkTableVirtualScrollDataHandler
+} from "@ngx-nova/material-extensions-table-virtual-scroll";
+import {NoopAnimationsModule} from "@angular/platform-browser/animations";
 
 @Component({
+  selector: 'app-list-view-mat-table',
   standalone: true,
-  selector: 'app-list-view',
-  templateUrl: 'list-view.component.html',
-  styleUrls: ['list-view.component.scss'],
   imports: [
-    DragulaModule,
-    NgForOf,
-    NgIf,
+    CommonModule,
+    CdkTableFixedSizeVirtualScroll,
+    CdkTableVirtualScrollDataHandler,
+    CdkTableVirtualScrollable,
+    MatSortModule,
+    MatTableModule,
+//    NoopAnimationsModule,
   ],
-  viewProviders: [DragulaService]
+  templateUrl: './list-view-mat-table.component.html',
+  styleUrl: './list-view-mat-table.component.scss'
 })
-export class ListViewComponent implements OnInit, OnChanges {
-  @Input() items: chrome.bookmarks.BookmarkTreeNode[]|null = [];
+export class ListViewMatTableComponent {
+  @Input() set items(items: chrome.bookmarks.BookmarkTreeNode[]|null) {
+    this.dataSource = new MatTableDataSource(items ?? []);
+    this.dataSource.sort = this.sort;
+  }
 
   @Input() columns: string[] = [];
   @Input() selectedColumns: string[] = [];
@@ -49,8 +62,19 @@ export class ListViewComponent implements OnInit, OnChanges {
     this.availableColumns[2]
   ];
 
+  displayedColumnNames = this.displayedColumns.map(x => x.name);
+
+  dataSource = new MatTableDataSource<chrome.bookmarks.BookmarkTreeNode>();
+
+  @ViewChild(MatSort)
+  sort!: MatSort;
+
   constructor(private selectionService: SelectionService) {
 
+  }
+
+  ngAfterViewInit() {
+    this.dataSource.sort = this.sort;
   }
 
   isSelected(item: chrome.bookmarks.BookmarkTreeNode) {

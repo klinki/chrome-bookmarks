@@ -1,0 +1,26 @@
+<mat-table [virtual-scroll]="items" [rowHeight]="40" matSort>
+  <ng-container matColumnDef="title">
+    <mat-header-cell *matHeaderCellDef mat-sort-header>Title</mat-header-cell>
+    <mat-cell *matCellDef="let element">
+      <img alt="" [src]="getFavicon(element)" />
+      {{element.title}}
+    </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="url">
+    <mat-header-cell *matHeaderCellDef>URL</mat-header-cell>
+    <mat-cell *matCellDef="let element">{{element.url}} </mat-cell>
+  </ng-container>
+  <ng-container matColumnDef="date">
+    <mat-header-cell *matHeaderCellDef>Date</mat-header-cell>
+    <mat-cell *matCellDef="let element">{{element.date}} </mat-cell>
+  </ng-container>
+  <!-- Any other columns normally -->
+
+  <mat-header-row *matHeaderRowDef="displayedColumnNames,sticky:true"></mat-header-row>
+
+  <mat-row *matRowDef="let row; columns:displayedColumnNames"
+           (dblclick)="itemDoubleClick(row)"
+           (click)="itemClick($event, row)"
+           [attr.selected]="isSelected(row) ? true : null" class="tree-item"
+  ></mat-row>
+</mat-table>

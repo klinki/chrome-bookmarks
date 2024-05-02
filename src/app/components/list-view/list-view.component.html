@@ -3,8 +3,7 @@
   <tr>
     <th *ngFor="let column of displayedColumns" (click)="orderBy(column.name)">
       <span *ngIf="orderProperties.column == column.name">
-        <span *ngIf="orderProperties.asc">ASC</span>
-        <span *ngIf="!orderProperties.asc">DESC</span>
+        <span>{{ orderProperties.asc ? 'ASC' : 'DESC' }}</span>
       </span>
       {{column.title}}
     </th>
