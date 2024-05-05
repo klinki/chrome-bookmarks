@@ -17,7 +17,11 @@
     >
       <td *ngFor="let column of displayedColumns">
         @if (column.name === 'title') {
-          <img alt="" [src]="getFavicon(item)" />
+          @if (!item.children) {
+            <img alt="" [src]="getFavicon(item)" />
+          } @else {
+            <span class="tree-label"></span>
+          }
         }
         {{getColumnValue(item, column.name)}}
       </td>
