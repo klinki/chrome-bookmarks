@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BookmarksService } from './bookmarks.service';
 import {BehaviorSubject, Observable, Subject} from "rxjs";
 import {BookmarkRemovedEvent} from "../../../types";
+import {BookmarkDirectory} from "../../../components";
 
 @Injectable()
 export class MockBookmarksService extends BookmarksService {
@@ -15,6 +16,8 @@ export class MockBookmarksService extends BookmarksService {
 
   protected bookmarksTree: chrome.bookmarks.BookmarkTreeNode[];
   protected flatBookmarksArray: { [id: string]: chrome.bookmarks.BookmarkTreeNode } = {};
+
+  bookmarkId = 0;
 
   constructor() {
       super();
@@ -79,13 +82,39 @@ export class MockBookmarksService extends BookmarksService {
       let root = this.addDirectory('0', 'root', null, 'managed');
       let toolbarBookmarks = this.addDirectory('1', 'Bookmarks Toolbar', root, 'managed');
       let otherBookmarks = this.addDirectory('2', 'Other Bookmarks', root, 'managed');
-      let shops = this.addDirectory('5', 'E-Shopy', otherBookmarks);
+      let shops = this.addDirectory('3', 'E-Shopy', otherBookmarks);
 
-      this.addUrl('3', 'Seznam - najdu tam co neznám', 'http://seznam.cz', toolbarBookmarks);
-      this.addUrl('4', 'Google - search', 'http://google.com', otherBookmarks);
-      this.addUrl('6', 'Alza.cz - The annoying green alien', 'http://alza.cz', shops);
+      this.bookmarksTree = [ root ];
+      this.bookmarkId = 4;
 
-      this.addUrl('7', 'Centrum.cz - centrum vesmíru', 'http://centrum.cz', toolbarBookmarks);
+      this.generateRandomTree(5, 5, root);
+
+      const countDirs = Object.keys(this.flatBookmarksArray).length;
+
+      for (let i = 0; i < 2000; i++) {
+        const randomNumber = Math.floor(Math.random() * countDirs);
+        const folder = this.flatBookmarksArray[randomNumber.toString()];
+        this.addUrl((7 + i).toString(), `Random ${i}`, 'https://centrum.cz', folder);
+      }
+
+      this.addUrl((this.bookmarkId++).toString(), 'Seznam - najdu tam co neznám', 'http://seznam.cz', toolbarBookmarks);
+      this.addUrl((this.bookmarkId++).toString(), 'Google - search', 'http://google.com', otherBookmarks);
+      this.addUrl((this.bookmarkId++).toString(), 'Alza.cz - The annoying green alien', 'http://alza.cz', shops);
+      this.addUrl((this.bookmarkId++).toString(), 'Centrum.cz - centrum vesmíru', 'http://centrum.cz', toolbarBookmarks);
+  }
+
+  generateRandomTree(depth: number, maxChildren: number, root: any = null) {
+    if (depth <= 0) {
+      return null;
+    }
+
+    const node = this.addDirectory((this.bookmarkId++).toString(), `Directory ${this.bookmarkId}`, root);
+    const numChildren = Math.floor(Math.random() * (maxChildren + 1));
+    for (let i = 0; i < numChildren; i++) {
+      const child = this.generateRandomTree(depth - 1, maxChildren, node);
+    }
+
+    return node;
   }
 
   protected addDirectory(id: string, title: string, parent: chrome.bookmarks.BookmarkTreeNode|null, managed?: string) {
@@ -178,12 +207,12 @@ export class MockBookmarksService extends BookmarksService {
                   let node = this.flatBookmarksArray[property];
 
                   if (typeof term == 'string') {
-                    if (node.url?.indexOf(term as any as string) || node.title.indexOf(term as any as string)) {
+                    if (node.url?.indexOf(term as any as string) !== -1 || node.title.indexOf(term as any as string) !== -1) {
                         results.push(node);
                     }
                   } else {
                       const t = term as chrome.bookmarks.BookmarkSearchQuery;
-                      if (node.url?.indexOf(t.url ?? '') || node.title.indexOf(t.title ?? '') || node.url?.indexOf(t.query ?? '')) {
+                      if (node.url?.indexOf(t.url ?? '') !== -1 || node.title.indexOf(t.title ?? '') !== -1 || node.url?.indexOf(t.query ?? '') !== -1) {
                           results.push(node);
                       }
                   }
@@ -260,3 +289,6 @@ export class MockBookmarksService extends BookmarksService {
     return this.flatBookmarksArray[id];
   }
 }
+
+
+
