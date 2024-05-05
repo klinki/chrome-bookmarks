@@ -80,6 +80,7 @@ export class BookmarksViewComponent implements OnInit {
   }
 
   public search(searchTerm: string|null) {
+    this.selectionService.clearSelection();
     this.searchTerm$.next(searchTerm ?? '');
   }
 }
