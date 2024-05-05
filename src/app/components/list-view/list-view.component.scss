@@ -1,4 +1,11 @@
 // @import '@ngx-nova/material-extensions-table-virtual-scroll/styles/virtual-scroll.scss';
+:host {
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+}
 
 list > [selected],
 grid > [selected],
@@ -31,4 +38,13 @@ mat-row {
 list:not([disabled]) > :hover,
 grid:not([disabled]) > :hover {
 
+}
+
+list:focus > [lead][selected],
+list > [selected]:hover,
+grid:focus > [lead][selected],
+grid > [selected]:hover,
+tr:hover {
+  background-color: hsl(214, 91%, 87%);
+  border-color: hsl(214, 91%, 65%);
 }

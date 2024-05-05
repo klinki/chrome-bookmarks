@@ -14,14 +14,19 @@
   flex-flow: row;
   justify-content: space-between;
   grid-area: header;
+  margin: 0 15px;
 }
 
 .tree-view {
   grid-area: tree-view;
+  overflow-y: auto;
 }
 
 .main-view {
   grid-area: main;
+  overflow-y: auto;
+  display: grid;
+  grid-template-rows: 1fr 100px;
 }
 
 app-search-box {
