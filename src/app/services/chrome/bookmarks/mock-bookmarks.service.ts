@@ -201,24 +201,16 @@ export class MockBookmarksService extends BookmarksService {
 
   public override search(term: string|chrome.bookmarks.BookmarkSearchQuery): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
       return new Promise((resolve, error) => {
-          let results =[];
-
-          for (let property in this.flatBookmarksArray) {
-              if (this.flatBookmarksArray.hasOwnProperty(property)) {
-                  let node = this.flatBookmarksArray[property];
-
-                  if (typeof term == 'string') {
-                    if (node.url?.indexOf(term as any as string) !== -1 || node.title.indexOf(term as any as string) !== -1) {
-                        results.push(node);
-                    }
-                  } else {
-                      const t = term as chrome.bookmarks.BookmarkSearchQuery;
-                      if (node.url?.indexOf(t.url ?? '') !== -1 || node.title.indexOf(t.title ?? '') !== -1 || node.url?.indexOf(t.query ?? '') !== -1) {
-                          results.push(node);
-                      }
-                  }
-              }
-          }
+          const results = Object.values(this.flatBookmarksArray).filter(node => {
+            if (typeof term === 'string') {
+              return node.url?.includes(term) || node.title.includes(term);
+            } else {
+              const t = term as chrome.bookmarks.BookmarkSearchQuery;
+              return node.url?.includes(t.url ?? '')
+                || node.title.includes(t.title ?? '')
+                || node.url?.includes(t.query ?? '');
+            }
+          });
 
           return resolve(results);
       });
