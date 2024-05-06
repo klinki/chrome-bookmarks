@@ -1,7 +1,4 @@
 {
-  "affected": {
-    "defaultBase": "master"
-  },
   "namedInputs": {
     "sharedGlobals": [],
     "default": [
@@ -33,5 +30,7 @@
       "cache": true
     }
   },
-  "nxCloudAccessToken": "MDVjMzdlY2QtZjNkNy00N2RiLWFhOTctMTg4YTk1MjIzZTA5fHJlYWQ="
+  "nxCloudAccessToken": "MDVjMzdlY2QtZjNkNy00N2RiLWFhOTctMTg4YTk1MjIzZTA5fHJlYWQ=",
+  "useInferencePlugins": false,
+  "defaultBase": "master"
 }
