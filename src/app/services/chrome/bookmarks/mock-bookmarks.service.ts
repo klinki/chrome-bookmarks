@@ -94,7 +94,7 @@ export class MockBookmarksService extends BookmarksService {
       for (let i = 0; i < 2000; i++) {
         const randomNumber = Math.floor(Math.random() * countDirs);
         const folder = this.flatBookmarksArray[randomNumber.toString()];
-        this.addUrl((7 + i).toString(), `Random ${i}`, 'https://centrum.cz', folder);
+        this.addUrl((this.bookmarkId++).toString(), `Random ${i}`, 'https://centrum.cz', folder);
       }
 
       this.addUrl((this.bookmarkId++).toString(), 'Seznam - najdu tam co neznám', 'http://seznam.cz', toolbarBookmarks);
@@ -159,6 +159,7 @@ export class MockBookmarksService extends BookmarksService {
   }
 
   protected addBookmark(bookmark: chrome.bookmarks.BookmarkTreeNode) {
+      // Object.freeze(bookmark);
       this.flatBookmarksArray[bookmark.id] = bookmark;
   }
 
