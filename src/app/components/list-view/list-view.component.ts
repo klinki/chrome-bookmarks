@@ -146,6 +146,10 @@ export class ListViewComponent implements OnInit, OnChanges {
 
   @HostListener('window:keydown', ['$event'])
   onKeyup(event: KeyboardEvent) {
+    if ((event.target as HTMLElement).localName == 'input') {
+      return true;
+    }
+
     if (event.ctrlKey && event.key == 'a') {
       event.preventDefault();
       event.stopPropagation();
