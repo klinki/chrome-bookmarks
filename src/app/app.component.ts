@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { BookmarksProviderService, SelectionService } from './services';
 import { BookmarksServiceProvider } from './shared/providers';
 import { BookmarksViewComponent } from "./components";
-import {DragulaModule} from "ng2-dragula";
+import {BookmarksFacadeService} from "./services/bookmarks-facade.service";
 
 @Component({
   standalone: true,
@@ -16,6 +16,7 @@ import {DragulaModule} from "ng2-dragula";
     BookmarksServiceProvider,
     BookmarksProviderService,
     SelectionService,
+    BookmarksFacadeService,
   ]
 })
 export class AppComponent {

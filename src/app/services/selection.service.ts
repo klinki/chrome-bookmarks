@@ -21,6 +21,15 @@ export class SelectionService {
 
   public selectAllActive = false;
 
+  private _items: chrome.bookmarks.BookmarkTreeNode[] = [];
+
+  public get items() {
+    return this._items;
+  }
+  public set items(items: chrome.bookmarks.BookmarkTreeNode[]) {
+    this._items = items ?? [];
+  }
+
   constructor() {
   }
 
