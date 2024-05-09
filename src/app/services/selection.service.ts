@@ -3,13 +3,14 @@ import {BehaviorSubject, Observable, Subject} from 'rxjs';
 
 @Injectable()
 export class SelectionService {
-  // private selectionModel: SelectionModel
-
   protected selectionChanged = new BehaviorSubject<Set<string>>(new Set());
   public onSelectionChanged$ = this.selectionChanged.asObservable();
 
   protected selectedBookmark: null|chrome.bookmarks.BookmarkTreeNode & { selected: boolean } = null;
 
+  /**
+   * Directory selected in left tree view
+   */
   public selectedDirectory$ = new BehaviorSubject<chrome.bookmarks.BookmarkTreeNode|null>(null);
 
   protected search = {
@@ -18,6 +19,7 @@ export class SelectionService {
   };
 
   private selection = new Set<string>();
+  private lastSelectedItem: chrome.bookmarks.BookmarkTreeNode|null = null;
 
   public selectAllActive = false;
 
@@ -46,14 +48,33 @@ export class SelectionService {
       this.selectAllActive = false;
     }
 
-    if (newItems.has(bookmark.id)) {
-      newItems.delete(bookmark.id);
-    } else {
-      newItems.add(bookmark.id);
+    if (config.range && this.lastSelectedItem != null) {
+      const range = [
+        this.items.indexOf(this.lastSelectedItem),
+        this.items.indexOf(bookmark),
+      ];
+
+      const selectedRangeFrom = Math.min(...range);
+      const selectedRangeTo = Math.max(...range);
+
+      const selectedIds = this.items.slice(selectedRangeFrom, selectedRangeTo + 1)
+        .map(x => x.id);
+
+      newItems = new Set(selectedIds);
+    } else if (!config.range) {
+      if (newItems.has(bookmark.id)) {
+        newItems.delete(bookmark.id);
+      } else {
+        newItems.add(bookmark.id);
+      }
     }
 
     this.selection = newItems;
     this.selectionChanged.next(this.selection);
+
+    if (!config.range) {
+      this.lastSelectedItem = bookmark
+    }
   }
 
   public selectDirectory(bookmark: chrome.bookmarks.BookmarkTreeNode) {
