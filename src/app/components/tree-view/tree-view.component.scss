@@ -3,3 +3,31 @@
   outline: none;
   height: 100%;
 }
+
+
+::ng-deep {
+  --interactive-color: red;
+
+  .drag-above::before {
+    top: 0;
+    transform: translateY(-50%);
+  }
+
+  .drag-above::before, .drag-below::after {
+    background-clip: padding-box;
+    background-color: var(--interactive-color);
+    border: 3px solid var(--interactive-color);
+    border-bottom-color: transparent;
+    border-radius: 0;
+    border-top-color: transparent;
+    box-sizing: border-box;
+    content: '';
+    display: block;
+    height: 8px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    z-index: 1;
+  }
+
+}

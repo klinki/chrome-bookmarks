@@ -3,6 +3,7 @@ import { BookmarksProviderService, SelectionService } from './services';
 import { BookmarksServiceProvider } from './shared/providers';
 import { BookmarksViewComponent } from "./components";
 import {BookmarksFacadeService} from "./services/bookmarks-facade.service";
+import {DragAndDropService} from "./services/drag-and-drop.service";
 
 @Component({
   standalone: true,
@@ -17,6 +18,7 @@ import {BookmarksFacadeService} from "./services/bookmarks-facade.service";
     BookmarksProviderService,
     SelectionService,
     BookmarksFacadeService,
+    DragAndDropService,
   ]
 })
 export class AppComponent {

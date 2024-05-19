@@ -140,7 +140,8 @@ export class BookmarksService {
   }
 
   /**
-	 * Updates the properties of a bookmark or folder. Specify only the properties that you want to change; unspecified properties will be left unchanged.
+   * Updates the properties of a bookmark or folder. Specify only the properties that you want to change;
+   * unspecified properties will be left unchanged.
    * Note: Currently, only 'title' and 'url' are supported.
    *
    * @param {string} id
@@ -162,7 +163,7 @@ export class BookmarksService {
    */
   public remove(id: string): Promise<any> {
     return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.update(id, resolve as any);
+      return chrome.bookmarks.remove(id, resolve as any);
     });
   }
 

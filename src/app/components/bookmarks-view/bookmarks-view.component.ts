@@ -5,6 +5,7 @@ import {ListViewComponent} from "../list-view";
 import {AsyncPipe} from "@angular/common";
 import {BookmarkDetailComponent} from "../bookmark-detail/bookmark-detail.component";
 import {BookmarksFacadeService} from "../../services/bookmarks-facade.service";
+import {DragAndDropService} from "../../services/drag-and-drop.service";
 
 @Component({
   standalone: true,
@@ -26,7 +27,8 @@ export class BookmarksViewComponent implements OnInit {
   public items$ = this.facade.items$;
   public selectedBookmarks$ = this.facade.selectedBookmarks$;
 
-  constructor(private facade: BookmarksFacadeService) {
+  constructor(private facade: BookmarksFacadeService, private dnd: DragAndDropService) {
+    dnd.init();
   }
 
   ngOnInit() {

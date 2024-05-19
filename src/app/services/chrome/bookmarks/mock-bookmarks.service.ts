@@ -22,63 +22,6 @@ export class MockBookmarksService extends BookmarksService {
   constructor() {
       super();
 
-      this.bookmarksTree = [
-          {
-              id: '0',
-              title: 'Root',
-              unmodifiable: 'managed',
-              children: [
-                {
-                    id: '1',
-                    index: 0,
-                    parentId: '0',
-                    title: 'Bookmarks Toolbar',
-                    unmodifiable: 'managed',
-                    children: [
-                        {
-                            id: '3',
-                            index: 0,
-                            parentId: '1',
-                            url: "http://seznam.cz",
-                            title: "Seznam - najdu tam co neznám"
-                        }
-                    ]
-                },
-                {
-                    id: '2',
-                    index: 1,
-                    parentId: '0',
-                    title: 'Other Bookmarks',
-                    unmodifiable: 'managed',
-                    children: [
-                        {
-                            id: '4',
-                            index: 0,
-                            parentId: '2',
-                            url: "http://google.com",
-                            title: "Google - search"
-                        },
-                        {
-                            id: '5',
-                            index: 1,
-                            parentId: '2',
-                            title: "E-shopy",
-                            children: [
-                                {
-                                    id: '6',
-                                    index: 0,
-                                    parentId: '5',
-                                    url: "http://alza.cz",
-                                    title: "Alza.cz - The annoying green alien"
-                                }
-                            ]
-                        },
-                    ]
-                },
-              ]
-          },
-      ];
-
       let root = this.addDirectory('0', 'root', null, 'managed');
       let toolbarBookmarks = this.addDirectory('1', 'Bookmarks Toolbar', root, 'managed');
       let otherBookmarks = this.addDirectory('2', 'Other Bookmarks', root, 'managed');
@@ -240,6 +183,21 @@ export class MockBookmarksService extends BookmarksService {
           let index = oldParent.children?.indexOf(bookmark) ?? -1;
           oldParent.children?.splice(index, 1);
           newParent.children?.push(bookmark);
+
+          oldParent.children = [ ...(oldParent?.children ?? []) ];
+          newParent.children = [ ...(newParent?.children ?? []) ];
+
+          const moveInfo: chrome.bookmarks.BookmarkMoveInfo = {
+            oldIndex: index,
+            index: index,
+            oldParentId: oldParent.id,
+            parentId: newParent.id,
+          };
+
+          (this.onMovedEvent$ as Subject<chrome.bookmarks.BookmarkMovedEvent>).next({
+            id: id,
+            moveInfo
+          } as any);
 
           return resolve(bookmark);
       });

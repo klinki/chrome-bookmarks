@@ -1,4 +1,4 @@
-import { Component, OnInit, Input } from '@angular/core';
+import {Component, OnInit, Input, HostBinding} from '@angular/core';
 import { SelectionService } from '../../services';
 import {BookmarkDirectory} from "./tree-view.component";
 import {NgForOf} from "@angular/common";
@@ -21,6 +21,14 @@ export class TreeItemComponent implements OnInit {
   @Input() selectedItem: any = null;
   @Input() menu: any;
   @Input() menuComponent?: FolderMenuComponent;
+
+  @HostBinding('attr.itemId')
+  get itemId() {
+    return this.dir?.id;
+  }
+
+  @HostBinding('attr.draggable')
+  draggable = true;
 
   constructor(private bookmarkService: SelectionService) {
   }
@@ -60,7 +68,7 @@ export class TreeItemComponent implements OnInit {
       if ((directory?.children?.length ?? 0) > 0) {
         const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {
             return arr[index].hasOwnProperty('children') && prev;
-        }, true);
+        }, true) ?? false;
 
         return hasSubDirectories;
       }

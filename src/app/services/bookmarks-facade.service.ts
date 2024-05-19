@@ -1,8 +1,9 @@
-import {Injectable} from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BookmarksProviderService} from "./bookmarks-provider.service";
-import {BehaviorSubject, combineLatest, debounceTime, map, mergeMap, of, tap} from "rxjs";
+import {BehaviorSubject, combineLatest, debounceTime, map, merge, mergeMap, of, startWith, switchMap, tap} from "rxjs";
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
 import {SelectionService} from "./selection.service";
+import {toSignal} from "@angular/core/rxjs-interop";
 
 @Injectable()
 export class BookmarksFacadeService {
@@ -10,7 +11,28 @@ export class BookmarksFacadeService {
   public selectedBookmarkIds$ = this.selectionService.onSelectionChanged$;
 
   public directories$ = fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
-  public items$ = this.searchTerm$.asObservable().pipe(
+
+  public onBookmarksUpdated$ = merge(
+      this.bookmarkProviderService.onMovedEvent$,
+      this.bookmarkProviderService.onChangedEvent$,
+
+  ).pipe(
+    tap(ev => {
+      console.log(ev);
+      console.log('updated');
+    }),
+  );
+
+  public items$ = this.onBookmarksUpdated$.pipe(
+    startWith(null),
+    // debounceTime(1),
+    switchMap(x => this.itemsWithSearch$),
+    tap(items => {
+      this.selectionService.items = items;
+    })
+  );
+
+  public itemsWithSearch$ = this.searchTerm$.asObservable().pipe(
     debounceTime(1000),
     mergeMap(searchTerm => {
       if (searchTerm === '') {
@@ -26,9 +48,6 @@ export class BookmarksFacadeService {
       }
 
       return fromPromise(this.bookmarkProviderService.search(searchTerm));
-    }),
-    tap(items => {
-      this.selectionService.items = items;
     })
   );
 
@@ -58,4 +77,12 @@ export class BookmarksFacadeService {
     this.selectionService.clearSelection();
     this.searchTerm$.next(searchTerm ?? '');
   }
+}
+
+export function injectSelection() {
+  return toSignal(inject(BookmarksFacadeService).selectedBookmarks$, { initialValue: [] });
+}
+
+export function injectDisplayedItems() {
+  return toSignal(inject(BookmarksFacadeService).items$, { initialValue: [] });
 }

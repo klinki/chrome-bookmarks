@@ -1,5 +1,8 @@
-import { Injectable } from '@angular/core';
+import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
+import {BookmarksFacadeService} from "./bookmarks-facade.service";
+import {BookmarksService} from "./chrome";
+import {toSignal} from "@angular/core/rxjs-interop";
 
 @Injectable()
 export class SelectionService {
@@ -36,9 +39,9 @@ export class SelectionService {
   }
 
   public select(bookmark: chrome.bookmarks.BookmarkTreeNode, config: {
-    clear: boolean,
-    range: boolean,
-    toggle: boolean
+    clear?: boolean,
+    range?: boolean,
+    toggle?: boolean
   }) {
     let newItems = new Set<string>();
 
@@ -101,4 +104,13 @@ export class SelectionService {
     this.selectAllActive = true;
     this.selectionChanged.next(this.selection);
   }
+}
+
+export function injectSelectItemCallback() {
+  const service = inject(SelectionService);
+  return (item: chrome.bookmarks.BookmarkTreeNode) => service.select(item, { clear: true });
+}
+
+export function injectSelectedFolderSignal() {
+  return toSignal(inject(SelectionService).selectedDirectory$);
 }

@@ -9,12 +9,13 @@
     </th>
   </tr>
   </thead>
-  <tbody [dragula]='"bookmarks"'>
+  <tbody>
     <tr *ngFor="let item of items"
         (dblclick)="itemDoubleClick(item)"
         (click)="itemClick($event, item)"
         [attr.selected]="isSelected(item) ? true : null"
-    >
+        [attr.itemId]="item.id"
+        draggable="true">
       <td *ngFor="let column of displayedColumns">
         @if (column.name === 'title') {
           @if (!item.children) {
