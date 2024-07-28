@@ -8,7 +8,7 @@ import {FormsModule} from "@angular/forms";
   imports: [
     FormsModule
   ],
-  styleUrls: ['search-box.component.css']
+  styleUrls: ['search-box.component.scss']
 })
 export class SearchBoxComponent implements OnInit {
   @Input()

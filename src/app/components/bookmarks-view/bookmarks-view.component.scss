@@ -9,14 +9,6 @@
     "tree-view main";
 }
 
-.top-toolbar {
-  display: flex;
-  flex-flow: row;
-  justify-content: space-between;
-  grid-area: header;
-  margin: 0 15px;
-}
-
 .tree-view {
   grid-area: tree-view;
   overflow-y: auto;
@@ -33,3 +25,4 @@ app-search-box {
   margin-top: auto;
   margin-bottom: auto;
 }
+
