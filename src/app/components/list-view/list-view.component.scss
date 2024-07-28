@@ -76,3 +76,9 @@ tr:hover {
 
 }
 
+table td {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 150px;
+  white-space: nowrap;
+}

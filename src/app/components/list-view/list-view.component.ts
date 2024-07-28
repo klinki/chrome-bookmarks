@@ -41,14 +41,19 @@ export class ListViewComponent implements OnInit, OnChanges {
     },
     {
       title: 'Date added',
-      name: 'date'
+      name: 'dateAdded'
+    },
+    {
+      title: 'Last Used',
+      name: 'dateLastUsed'
     }
   ];
 
   displayedColumns = [
     this.availableColumns[0],
     this.availableColumns[1],
-    this.availableColumns[2]
+    this.availableColumns[2],
+    this.availableColumns[3]
   ];
 
   constructor(private selectionService: SelectionService) {
