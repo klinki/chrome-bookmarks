@@ -2,6 +2,7 @@ import {Component, OnInit, Input, OnChanges, SimpleChanges, HostListener} from '
 import {DragulaModule, DragulaService} from "ng2-dragula";
 import {NgForOf, NgIf} from "@angular/common";
 import {SelectionService} from "../../services";
+import {OrderByPipe} from "../../pipes/order-by.pipe";
 
 @Component({
   standalone: true,
@@ -12,6 +13,7 @@ import {SelectionService} from "../../services";
     DragulaModule,
     NgForOf,
     NgIf,
+    OrderByPipe,
   ],
   viewProviders: [DragulaService]
 })
@@ -69,34 +71,17 @@ export class ListViewComponent implements OnInit, OnChanges {
   }
 
   orderBy(column: string) {
-    const columnKey = column as keyof chrome.bookmarks.BookmarkTreeNode;
-
     if (!this.orderProperties || column !== this.orderProperties.column) {
       this.orderProperties = {
         column: column,
         asc: true
       };
     } else {
-      this.orderProperties.asc = !this.orderProperties.asc;
+      this.orderProperties = {
+        ...this.orderProperties,
+        asc: !this.orderProperties.asc
+      };
     }
-
-    let order = this.orderProperties.asc ? 1 : -1;
-
-    this.items?.sort((a, b) => {
-      if (a.url && b.url) {
-        if ((a[columnKey] ?? 0) > (b[columnKey] ?? 0)) {
-          return order;
-        } else if ((a[columnKey] ?? 0) < (b[columnKey] ?? 0)) {
-          return -order;
-        } else {
-          return 0;
-        }
-      } else if (a.url) {
-        return order;
-      } else {
-        return -order;
-      }
-    });
   }
 
   getColumnValue(item: chrome.bookmarks.BookmarkTreeNode, column: string): string | number | undefined | chrome.bookmarks.BookmarkTreeNode[] {
