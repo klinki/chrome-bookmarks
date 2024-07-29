@@ -1,7 +1,5 @@
 import {inject, Injectable} from '@angular/core';
 import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {BookmarksFacadeService} from "./bookmarks-facade.service";
-import {BookmarksService} from "./chrome";
 import {toSignal} from "@angular/core/rxjs-interop";
 
 @Injectable()

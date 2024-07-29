@@ -1,7 +1,7 @@
 import {inject, Injectable} from '@angular/core';
 import { BookmarksService } from './chrome';
 import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {map, Observable} from "rxjs";
+import {map} from "rxjs";
 import {toSignal} from "@angular/core/rxjs-interop";
 
 @Injectable()
