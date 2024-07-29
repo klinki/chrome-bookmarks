@@ -1,4 +1,5 @@
-# chrome-bookmarks
+# GEBOOM (Good Enough Bookmark Manager)
+
 Planned features for this extension:
 * Table with name, address, added date with sorting
 * Search (possibly keep current functionality)
