@@ -1,30 +1,47 @@
-import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
-
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-bookmark-detail',
   standalone: true,
-  imports: [],
+  imports: [
+    FormsModule,
+    ReactiveFormsModule
+  ],
   templateUrl: './bookmark-detail.component.html',
   styleUrl: './bookmark-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BookmarkDetailComponent {
+  public selection = input<chrome.bookmarks.BookmarkTreeNode[] | null>([]);
 
-  @Input()
-  public selection: chrome.bookmarks.BookmarkTreeNode[] | null = [];
+  public isFolder = computed(() => {
+    const sel = this.selection() ?? [];
+    return sel.length > 0 && sel[0].url === undefined;
+  });
 
-  public get onlyBookmarksSelected() {
-    return !this.selection?.some(bookmark => {
-      return (bookmark.children?.length ?? 0) > 0;
-    });
-  }
+  public singleItemSelected = computed(() => {
+    return (this.selection() ?? []).length === 1;
+  });
 
-  public get singleItemSelected() {
-    return this.selection?.length == 1;
-  }
+  public singleBookmarkSelected = computed(() => {
+    return this.singleItemSelected() && !this.isFolder();
+  });
 
-  public get mixedSelection() {
-    return !this.singleItemSelected && !this.onlyBookmarksSelected;
-  }
+  public singleFolderSelected = computed(() => {
+    return this.singleItemSelected() && this.isFolder();
+  });
+
+  public multipleItemsSelected = computed(() => {
+    return (this.selection() ?? []).length > 1;
+  });
+
+  public onlyBookmarksSelected = computed(() => {
+    const sel = this.selection() ?? [];
+    return this.multipleItemsSelected() && !sel.some(bookmark => (bookmark.children?.length ?? 0) > 0);
+  });
+
+  public mixedSelection = computed(() => {
+    return this.multipleItemsSelected() && !this.onlyBookmarksSelected();
+  });
 }
