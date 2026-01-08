@@ -3,9 +3,9 @@
     <tr>
       @for (column of displayedColumns; track column) {
         <th (click)="orderBy(column.name)">
-          @if (orderProperties.column == column.name) {
+          @if (orderProperties().column == column.name) {
             <span>
-              <span>{{ orderProperties.asc ? 'ASC' : 'DESC' }}</span>
+              <span>{{ orderProperties().asc ? 'ASC' : 'DESC' }}</span>
             </span>
           }
           {{column.title}}
@@ -14,7 +14,7 @@
     </tr>
   </thead>
   <tbody>
-    @for (item of (items | orderBy: orderProperties); track item) {
+    @for (item of (items() | orderBy: orderProperties()); track item) {
       <tr
         (dblclick)="itemDoubleClick(item)"
         (click)="itemClick($event, item)"

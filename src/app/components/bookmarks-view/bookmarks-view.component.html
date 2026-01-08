@@ -3,15 +3,15 @@
   <app-search-box (searchTermChange)="search($event)"></app-search-box>
   <div class="tree-view">
     <app-tree-view
-      [directories]="directories$ | async"
+      [directories]="directories()"
     >
     </app-tree-view>
   </div>
   <div class="main-view">
     <app-list-view
-      [items]="items$ | async"
-      [selectedItems]="(selectedItems$ | async)!"
+      [items]="items()"
+      [selectedItems]="selectedBookmarkIds()"
     ></app-list-view>
-    <app-bookmark-detail [selection]="selectedBookmarks$ | async"></app-bookmark-detail>
+    <app-bookmark-detail [selection]="selectedBookmarks()"></app-bookmark-detail>
   </div>
 </div>
