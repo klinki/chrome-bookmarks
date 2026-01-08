@@ -44,6 +44,7 @@
     "@angular/compiler-cli": "21.0.7",
     "@nx/angular": "22.3.3",
     "@nx/workspace": "22.3.3",
+    "@playwright/test": "^1.57.0",
     "@schematics/angular": "21.0.5",
     "@types/jasmine": "5.1.13",
     "jasmine-core": "5.13.0",
