@@ -26,7 +26,7 @@
     "@angular/platform-browser": "21.0.7",
     "@angular/platform-browser-dynamic": "21.0.7",
     "@angular/router": "21.0.7",
-    "@ngrx/signals": "^17.2.0",
+    "@ngrx/signals": "21.0.1",
     "@ngx-nova/material-extensions-table-virtual-scroll": "^2.0.2",
     "@types/chrome": "^0.0.246",
     "chrome-types": "^0.1.231",
@@ -34,7 +34,7 @@
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "0.16.0",
-    "@ngrx/operators": "^17.2.0"
+    "@ngrx/operators": "21.0.1"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "21.0.5",
@@ -42,7 +42,6 @@
     "@angular-devkit/schematics": "21.0.5",
     "@angular/cli": "21.0.5",
     "@angular/compiler-cli": "21.0.7",
-    "@ngrx/operators": "18.0.1",
     "@nx/angular": "22.3.3",
     "@nx/workspace": "22.3.3",
     "@schematics/angular": "21.0.5",

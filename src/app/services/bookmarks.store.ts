@@ -69,7 +69,7 @@ const initialState: BookmarksPageState = {
 };
 
 export const BookmarksStore = signalStore(
-  { providedIn: 'root' },
+  { providedIn: 'root', protectedState: false },
   withState(initialState),
   withComputed(({search, nodes, selectedFolder}) => ({
     isShowingSearch: computed(() => search.results() != null),
