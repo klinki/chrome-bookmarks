@@ -5,7 +5,7 @@
   [attr.may-have-children]="hasSubDirectories(dir) ? true : null"
   [attr.selected]="isSelected ? true : null"
   [attr.expanded]="expanded(dir) ? true : null"
->
+  >
   <div class="tree-row"
     [cdkContextMenuTriggerFor]="menu"
     [cdkContextMenuTriggerData]="dir"
@@ -14,16 +14,18 @@
     [attr.may-have-children]="hasSubDirectories(dir) ? true : null"
     [style.-webkit-padding-start]="(level * 20) + 'px'"
     [attr.selected]="isSelected ? true : null"
-   >
+    >
     <span class="expand-icon" (click)="toggle(dir)"></span>
     <span class="tree-label">{{dir.title}}</span>
   </div>
   <div class="tree-children" [attr.expanded]="expanded(dir) ? true : null">
-      <app-tree-item *ngFor="let child of dir.children"
-         [dir]="child"
-         [level]="level + 1"
-         [selectedItem]="selectedItem"
-      >
+    @for (child of dir.children; track child) {
+      <app-tree-item
+        [dir]="child"
+        [level]="level + 1"
+        [selectedItem]="selectedItem"
+        >
       </app-tree-item>
+    }
   </div>
 </div>

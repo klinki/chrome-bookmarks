@@ -1,11 +1,12 @@
 <div id="tree-container">
-  <app-tree-item
-    *ngFor="let dir of directories"
-    [dir]="dir"
-    [level]="0"
-    [selectedItem]="(selectedDirectory$ | async)"
-    [menu]="rightClickMenu.menu.menu"
-    [menuComponent]="rightClickMenu"
-  ></app-tree-item>
+  @for (dir of directories; track dir) {
+    <app-tree-item
+      [dir]="dir"
+      [level]="0"
+      [selectedItem]="(selectedDirectory$ | async)"
+      [menu]="rightClickMenu.menu.menu"
+      [menuComponent]="rightClickMenu"
+    ></app-tree-item>
+  }
 </div>
 <app-folder-menu #rightClickMenu [folder]="selectedDirectory$ | async"></app-folder-menu>

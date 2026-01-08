@@ -1,5 +1,5 @@
 import {Component, HostListener, Input, SimpleChanges, ViewChild} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 import {MatTableDataSource, MatTableModule} from "@angular/material/table";
 import {MatSort, MatSortModule} from "@angular/material/sort";
 import {SelectionService} from "../../services";
@@ -14,14 +14,12 @@ import {NoopAnimationsModule} from "@angular/platform-browser/animations";
   selector: 'app-list-view-mat-table',
   standalone: true,
   imports: [
-    CommonModule,
     CdkTableFixedSizeVirtualScroll,
     CdkTableVirtualScrollDataHandler,
     CdkTableVirtualScrollable,
     MatSortModule,
-    MatTableModule,
-//    NoopAnimationsModule,
-  ],
+    MatTableModule
+],
   templateUrl: './list-view-mat-table.component.html',
   styleUrl: './list-view-mat-table.component.scss'
 })

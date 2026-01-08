@@ -1,31 +1,39 @@
 <table>
   <thead>
-  <tr>
-    <th *ngFor="let column of displayedColumns" (click)="orderBy(column.name)">
-      <span *ngIf="orderProperties.column == column.name">
-        <span>{{ orderProperties.asc ? 'ASC' : 'DESC' }}</span>
-      </span>
-      {{column.title}}
-    </th>
-  </tr>
+    <tr>
+      @for (column of displayedColumns; track column) {
+        <th (click)="orderBy(column.name)">
+          @if (orderProperties.column == column.name) {
+            <span>
+              <span>{{ orderProperties.asc ? 'ASC' : 'DESC' }}</span>
+            </span>
+          }
+          {{column.title}}
+        </th>
+      }
+    </tr>
   </thead>
   <tbody>
-    <tr *ngFor="let item of (items | orderBy: orderProperties)"
+    @for (item of (items | orderBy: orderProperties); track item) {
+      <tr
         (dblclick)="itemDoubleClick(item)"
         (click)="itemClick($event, item)"
         [attr.selected]="isSelected(item) ? true : null"
         [attr.itemId]="item.id"
         draggable="true">
-      <td *ngFor="let column of displayedColumns">
-        @if (column.name === 'title') {
-          @if (!item.children) {
-            <img alt="" [src]="getFavicon(item)" />
-          } @else {
-            <span class="tree-label"></span>
-          }
+        @for (column of displayedColumns; track column) {
+          <td>
+            @if (column.name === 'title') {
+              @if (!item.children) {
+                <img alt="" [src]="getFavicon(item)" />
+              } @else {
+                <span class="tree-label"></span>
+              }
+            }
+            {{getColumnValue(item, column.name)}}
+          </td>
         }
-        {{getColumnValue(item, column.name)}}
-      </td>
-    </tr>
+      </tr>
+    }
   </tbody>
 </table>

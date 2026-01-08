@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { SelectionService } from '../../services';
 import {TreeItemComponent} from "./tree-item.component";
-import {AsyncPipe, NgForOf} from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import {FolderMenuComponent} from "../menus/folder-menu/folder-menu.component";
 
 export type BookmarkDirectory = any;
@@ -13,10 +13,9 @@ export type BookmarkDirectory = any;
   styleUrls: ['./tree-view.component.scss'],
   imports: [
     TreeItemComponent,
-    NgForOf,
     AsyncPipe,
     FolderMenuComponent
-  ]
+]
 })
 export class TreeViewComponent implements OnInit {
   @Input() directories: BookmarkDirectory[]|null = [];

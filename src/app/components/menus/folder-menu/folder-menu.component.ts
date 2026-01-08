@@ -1,5 +1,5 @@
 import {ChangeDetectorRef, Component, Inject, Input, SimpleChanges, ViewChild} from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 import {ContextMenuComponent} from "../context-menu/context-menu.component";
 import {ContextMenuGroupDirective} from "../context-menu/context-menu-group.component";
 import {ContextMenuItemComponent} from "../context-menu/context-menu-item.component";
@@ -9,7 +9,7 @@ import {Router} from "@angular/router";
 @Component({
   selector: 'app-folder-menu',
   standalone: true,
-  imports: [CommonModule, ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],
+  imports: [ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],
   templateUrl: './folder-menu.component.html',
   styleUrl: './folder-menu.component.scss'
 })

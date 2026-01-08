@@ -1,10 +1,10 @@
 import {ChangeDetectionStrategy, Component, Input} from '@angular/core';
-import {CommonModule} from '@angular/common';
+
 
 @Component({
   selector: 'app-bookmark-detail',
   standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './bookmark-detail.component.html',
   styleUrl: './bookmark-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

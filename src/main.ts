@@ -1,6 +1,6 @@
 import { FormsModule } from "@angular/forms";
 import { BrowserModule, bootstrapApplication } from "@angular/platform-browser";
-import { enableProdMode, importProvidersFrom } from "@angular/core";
+import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from "@angular/core";
 
 import {AppComponent} from "./app";
 import {DragulaModule} from "ng2-dragula";
@@ -14,6 +14,7 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
     providers: [
+      provideZoneChangeDetection(),
       importProvidersFrom(BrowserModule, FormsModule, DragulaModule.forRoot()),
       provideNoopAnimations()
     ]

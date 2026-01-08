@@ -1,7 +1,7 @@
 import {Component, OnInit, Input, HostBinding} from '@angular/core';
 import { SelectionService } from '../../services';
 import {BookmarkDirectory} from "./tree-view.component";
-import {NgForOf} from "@angular/common";
+
 import {CdkContextMenuTrigger} from "@angular/cdk/menu";
 import {FolderMenuComponent} from "../menus/folder-menu/folder-menu.component";
 
@@ -9,10 +9,9 @@ import {FolderMenuComponent} from "../menus/folder-menu/folder-menu.component";
   standalone: true,
   selector: 'app-tree-item',
   imports: [
-    NgForOf,
     CdkContextMenuTrigger,
     FolderMenuComponent
-  ],
+],
   templateUrl: './tree-item.component.html'
 })
 export class TreeItemComponent implements OnInit {

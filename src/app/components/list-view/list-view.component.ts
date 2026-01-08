@@ -1,6 +1,6 @@
 import {Component, OnInit, Input, OnChanges, SimpleChanges, HostListener} from '@angular/core';
 import {DragulaModule, DragulaService} from "ng2-dragula";
-import {NgForOf, NgIf} from "@angular/common";
+
 import {SelectionService} from "../../services";
 import {OrderByPipe} from "../../pipes/order-by.pipe";
 
@@ -11,10 +11,8 @@ import {OrderByPipe} from "../../pipes/order-by.pipe";
   styleUrls: ['list-view.component.scss'],
   imports: [
     DragulaModule,
-    NgForOf,
-    NgIf,
-    OrderByPipe,
-  ],
+    OrderByPipe
+],
   viewProviders: [DragulaService]
 })
 export class ListViewComponent implements OnInit, OnChanges {
