@@ -38,7 +38,8 @@ export class BookmarkDetailComponent {
 
   public onlyBookmarksSelected = computed(() => {
     const sel = this.selection() ?? [];
-    return this.multipleItemsSelected() && !sel.some(bookmark => (bookmark.children?.length ?? 0) > 0);
+    // If none of the selected items are folders (url is undefined means folder)
+    return this.multipleItemsSelected() && !sel.some(item => item.url === undefined);
   });
 
   public mixedSelection = computed(() => {
