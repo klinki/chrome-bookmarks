@@ -30,6 +30,7 @@ export class BookmarksFacadeService {
       console.log(ev);
       console.log('updated');
     }),
+    startWith(null),
   );
 
   private debouncedSearchTerm$ = toObservable(this.searchTerm).pipe(
@@ -41,7 +42,11 @@ export class BookmarksFacadeService {
   public items = toSignal(
     combineLatest([
       this.onBookmarksUpdated$,
-      toObservable(this.selectionService.selectedDirectory),
+      toObservable(this.selectionService.selectedDirectory).pipe(
+        tap(value => {
+          console.log('directory changed', value);
+        })
+      ),
       this.debouncedSearchTerm$
     ]).pipe(
       switchMap(([_, directory, searchTerm]) => {
