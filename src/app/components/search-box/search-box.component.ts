@@ -1,5 +1,5 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
-import {FormsModule} from "@angular/forms";
+import { Component, EventEmitter, input, OnInit, Output, signal } from '@angular/core';
+import { FormsModule } from "@angular/forms";
 
 @Component({
   standalone: true,
@@ -11,18 +11,17 @@ import {FormsModule} from "@angular/forms";
   styleUrls: ['search-box.component.scss']
 })
 export class SearchBoxComponent implements OnInit {
-  @Input()
-  searchTerm: string = '';
+  public searchTerm = signal('');
 
   @Output()
-  searchTermChange = new EventEmitter<string>();
+  public searchTermChange = new EventEmitter<string>();
 
-  constructor() {}
+  constructor() { }
 
   ngOnInit() {
   }
 
-  search() {
-    this.searchTermChange.emit(this.searchTerm);
+  public search() {
+    this.searchTermChange.emit(this.searchTerm());
   }
 }

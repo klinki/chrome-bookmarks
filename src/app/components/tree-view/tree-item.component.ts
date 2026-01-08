@@ -1,29 +1,27 @@
-import {Component, OnInit, Input, HostBinding} from '@angular/core';
+import { Component, OnInit, input, HostBinding, computed } from '@angular/core';
 import { SelectionService } from '../../services';
-import {BookmarkDirectory} from "./tree-view.component";
+import { BookmarkDirectory } from "./tree-view.component";
 
-import {CdkContextMenuTrigger} from "@angular/cdk/menu";
-import {FolderMenuComponent} from "../menus/folder-menu/folder-menu.component";
+import { CdkContextMenuTrigger } from "@angular/cdk/menu";
 
 @Component({
   standalone: true,
   selector: 'app-tree-item',
   imports: [
-    CdkContextMenuTrigger,
-    FolderMenuComponent
-],
+    CdkContextMenuTrigger
+  ],
   templateUrl: './tree-item.component.html'
 })
 export class TreeItemComponent implements OnInit {
-  @Input() dir: any;
-  @Input() level: number = 0;
-  @Input() selectedItem: any = null;
-  @Input() menu: any;
-  @Input() menuComponent?: FolderMenuComponent;
+  public dir = input<any>();
+  public level = input<number>(0);
+  public selectedItem = input<any>(null);
+  public menu = input<any>();
+  public menuComponent = input<any>();
 
   @HostBinding('attr.itemId')
   get itemId() {
-    return this.dir?.id;
+    return this.dir()?.id;
   }
 
   @HostBinding('attr.draggable')
@@ -32,9 +30,9 @@ export class TreeItemComponent implements OnInit {
   constructor(private bookmarkService: SelectionService) {
   }
 
-  get isSelected() {
-    return this.selectedItem?.id === this.dir?.id;
-  }
+  public isSelected = computed(() => {
+    return this.selectedItem()?.id === this.dir()?.id;
+  });
 
   ngOnInit() {
   }
@@ -56,22 +54,23 @@ export class TreeItemComponent implements OnInit {
   }
 
   open(directory: BookmarkDirectory) {
-    if (this.menuComponent != null) {
-      this.menuComponent.folder = directory;
+    const component = this.menuComponent();
+    if (component != null) {
+      component.folder = directory;
     }
     console.log(directory);
     this.bookmarkService.selectDirectory(directory);
   }
 
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
-      if ((directory?.children?.length ?? 0) > 0) {
-        const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {
-            return arr[index].hasOwnProperty('children') && prev;
-        }, true) ?? false;
+    if ((directory?.children?.length ?? 0) > 0) {
+      const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {
+        return (arr[index] as any).hasOwnProperty('children') && prev;
+      }, true) ?? false;
 
-        return hasSubDirectories;
-      }
+      return hasSubDirectories;
+    }
 
-      return false;
+    return false;
   }
 }

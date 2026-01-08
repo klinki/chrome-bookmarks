@@ -1,10 +1,10 @@
-import {ChangeDetectorRef, Component, Inject, Input, SimpleChanges, ViewChild} from '@angular/core';
+import { ChangeDetectorRef, Component, input, SimpleChanges, ViewChild } from '@angular/core';
 
-import {ContextMenuComponent} from "../context-menu/context-menu.component";
-import {ContextMenuGroupDirective} from "../context-menu/context-menu-group.component";
-import {ContextMenuItemComponent} from "../context-menu/context-menu-item.component";
+import { ContextMenuComponent } from "../context-menu/context-menu.component";
+import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.component";
+import { ContextMenuItemComponent } from "../context-menu/context-menu-item.component";
 import { Icons } from 'src/app/shared/icons';
-import {Router} from "@angular/router";
+import { Router } from "@angular/router";
 
 @Component({
   selector: 'app-folder-menu',
@@ -16,8 +16,7 @@ import {Router} from "@angular/router";
 export class FolderMenuComponent {
   Icons = Icons;
 
-  @Input()
-  folder!: any|null;
+  public folder = input<any | null>(null);
 
   @ViewChild('menu', { static: true })
   menu!: ContextMenuComponent;
@@ -25,11 +24,10 @@ export class FolderMenuComponent {
   constructor(
     private cdr: ChangeDetectorRef,
     private router: Router
-) { }
+  ) { }
 
   ngOnInit(): void {
     console.log(this.folder);
-
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -58,15 +56,6 @@ export class FolderMenuComponent {
   }
 
   private getUrl() {
-    return this.folder?.url;
-
-    const urlTree = this.router.createUrlTree(['conversation-detail'], {
-      queryParams: {
-        conversationId: 1
-      },
-    });
-
-    const url = this.router.serializeUrl(urlTree);
-    return `/#` + url;
+    return this.folder()?.url;
   }
 }

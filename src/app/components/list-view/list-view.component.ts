@@ -1,8 +1,8 @@
-import {Component, OnInit, Input, OnChanges, SimpleChanges, HostListener} from '@angular/core';
-import {DragulaModule, DragulaService} from "ng2-dragula";
+import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed } from '@angular/core';
+import { DragulaModule, DragulaService } from "ng2-dragula";
 
-import {SelectionService} from "../../services";
-import {OrderByPipe} from "../../pipes/order-by.pipe";
+import { SelectionService } from "../../services";
+import { OrderByPipe } from "../../pipes/order-by.pipe";
 
 @Component({
   standalone: true,
@@ -12,23 +12,21 @@ import {OrderByPipe} from "../../pipes/order-by.pipe";
   imports: [
     DragulaModule,
     OrderByPipe
-],
+  ],
   viewProviders: [DragulaService]
 })
 export class ListViewComponent implements OnInit, OnChanges {
-  @Input() items: chrome.bookmarks.BookmarkTreeNode[]|null = [];
+  public items = input<chrome.bookmarks.BookmarkTreeNode[] | null>([]);
+  public columns = input<string[]>([]);
+  public selectedColumns = input<string[]>([]);
+  public selectedItems = input<Set<string>>(new Set());
 
-  @Input() columns: string[] = [];
-  @Input() selectedColumns: string[] = [];
-
-  @Input() selectedItems: Set<string> = new Set();
-
-  orderProperties = {
+  public orderProperties = signal({
     column: '',
     asc: true
-  };
+  });
 
-  availableColumns = [
+  public availableColumns = [
     {
       title: 'Title',
       name: 'title'
@@ -47,55 +45,52 @@ export class ListViewComponent implements OnInit, OnChanges {
     }
   ];
 
-  displayedColumns = [
+  public displayedColumns = [
     this.availableColumns[0],
     this.availableColumns[1],
     this.availableColumns[2],
     this.availableColumns[3]
   ];
 
-  constructor(private selectionService: SelectionService) {
+  constructor(protected selectionService: SelectionService) { }
 
-  }
-
-  isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
-    if (this.selectionService.selectAllActive) {
-      return !this.selectedItems.has(item.id);
+  public isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
+    if (this.selectionService.selectAllActive()) {
+      return !this.selectedItems().has(item.id);
     }
 
-    return this.selectedItems.has(item.id);
+    return this.selectedItems().has(item.id);
   }
 
-  ngOnInit() {
-  }
-
+  ngOnInit() { }
   ngOnChanges(changes: SimpleChanges): void {
     console.log(changes);
   }
 
-  orderBy(column: string) {
-    if (!this.orderProperties || column !== this.orderProperties.column) {
-      this.orderProperties = {
+  public orderBy(column: string) {
+    const current = this.orderProperties();
+    if (!current || column !== current.column) {
+      this.orderProperties.set({
         column: column,
         asc: true
-      };
+      });
     } else {
-      this.orderProperties = {
-        ...this.orderProperties,
-        asc: !this.orderProperties.asc
-      };
+      this.orderProperties.set({
+        ...current,
+        asc: !current.asc
+      });
     }
   }
 
-  getColumnValue(item: chrome.bookmarks.BookmarkTreeNode, column: string): string | number | undefined | chrome.bookmarks.BookmarkTreeNode[] {
-    return item[column as keyof chrome.bookmarks.BookmarkTreeNode];
+  public getColumnValue(item: chrome.bookmarks.BookmarkTreeNode, column: string): string | number | undefined | chrome.bookmarks.BookmarkTreeNode[] {
+    return (item as any)[column];
   }
 
-  itemClick(e: MouseEvent, item: chrome.bookmarks.BookmarkTreeNode) {
+  public itemClick(e: MouseEvent, item: chrome.bookmarks.BookmarkTreeNode) {
     // Ignore double clicks so that Ctrl double-clicking an item won't deselect
     // the item before opening.
     if (e.detail !== 2) {
-      const isMac = false;
+      const isMac = false; // Could be improved with platform check
       const addKey = isMac ? e.metaKey : e.ctrlKey;
 
       this.selectionService.select(item, {
@@ -112,7 +107,7 @@ export class ListViewComponent implements OnInit, OnChanges {
     e.preventDefault();
   }
 
-  itemDoubleClick(item: chrome.bookmarks.BookmarkTreeNode) {
+  public itemDoubleClick(item: chrome.bookmarks.BookmarkTreeNode) {
     if ((item?.children?.length ?? 0) === 0 && item.url != null) {
       window.open(item.url, '_blank');
     } else {
@@ -121,24 +116,27 @@ export class ListViewComponent implements OnInit, OnChanges {
   }
 
   // https://developer.chrome.com/docs/extensions/how-to/ui/favicons
-  getFavicon(item: chrome.bookmarks.BookmarkTreeNode) {
+  public getFavicon(item: chrome.bookmarks.BookmarkTreeNode) {
     if (item?.url != null) {
-      const url = new URL(chrome?.runtime?.getURL("/_favicon/") ?? 'https://www.google.com');
-      url.searchParams.set("pageUrl", item.url);
-      url.searchParams.set("size", "16");
-      return url.toString();
+      try {
+        const url = new URL(chrome?.runtime?.getURL("/_favicon/") ?? 'https://www.google.com/s2/favicons');
+        url.searchParams.set("pageUrl", item.url);
+        url.searchParams.set("size", "16");
+        return url.toString();
+      } catch (e) {
+        return '';
+      }
     }
-
     return '';
   }
 
   @HostListener('window:keydown', ['$event'])
-  onKeyup(event: KeyboardEvent) {
-    if ((event.target as HTMLElement).localName == 'input') {
+  public onKeyup(event: KeyboardEvent) {
+    if ((event.target as HTMLElement).localName === 'input') {
       return true;
     }
 
-    if (event.ctrlKey && event.key == 'a') {
+    if (event.ctrlKey && event.key === 'a') {
       event.preventDefault();
       event.stopPropagation();
       this.selectionService.selectAll();

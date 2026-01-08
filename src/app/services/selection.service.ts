@@ -1,6 +1,6 @@
-import {inject, Injectable} from '@angular/core';
-import {BehaviorSubject, Observable, Subject} from 'rxjs';
-import {toSignal} from "@angular/core/rxjs-interop";
+import { Injectable, signal } from '@angular/core';
+import { inject } from '@angular/core';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable()
 export class SelectionService {
@@ -12,25 +12,30 @@ export class SelectionService {
   /**
    * Directory selected in left tree view
    */
-  public selectedDirectory$ = new BehaviorSubject<chrome.bookmarks.BookmarkTreeNode|null>(null);
+  private _selectedDirectory = signal<chrome.bookmarks.BookmarkTreeNode | null>(null);
+  public selectedDirectory = this._selectedDirectory.asReadonly();
 
   protected search = {
     term: '',
     result: []
   };
 
-  private selection = new Set<string>();
-  private lastSelectedItem: chrome.bookmarks.BookmarkTreeNode|null = null;
+  private _selection = signal<Set<string>>(new Set());
+  public selection = this._selection.asReadonly();
 
-  public selectAllActive = false;
+  private lastSelectedItem: chrome.bookmarks.BookmarkTreeNode | null = null;
 
-  private _items: chrome.bookmarks.BookmarkTreeNode[] = [];
+  public selectAllActive = signal(false);
+
+  private _items = signal<chrome.bookmarks.BookmarkTreeNode[]>([]);
+  public itemsSignal = this._items.asReadonly();
 
   public get items() {
-    return this._items;
+    return this._items();
   }
+
   public set items(items: chrome.bookmarks.BookmarkTreeNode[]) {
-    this._items = items ?? [];
+    this._items.set(items ?? []);
   }
 
   constructor() {
@@ -44,21 +49,22 @@ export class SelectionService {
     let newItems = new Set<string>();
 
     if (!config.clear) {
-      newItems = new Set(this.selection);
+      newItems = new Set(this._selection());
     } else {
-      this.selectAllActive = false;
+      this.selectAllActive.set(false);
     }
 
     if (config.range && this.lastSelectedItem != null) {
+      const items = this._items();
       const range = [
-        this.items.indexOf(this.lastSelectedItem),
-        this.items.indexOf(bookmark),
+        items.indexOf(this.lastSelectedItem),
+        items.indexOf(bookmark),
       ];
 
       const selectedRangeFrom = Math.min(...range);
       const selectedRangeTo = Math.max(...range);
 
-      const selectedIds = this.items.slice(selectedRangeFrom, selectedRangeTo + 1)
+      const selectedIds = items.slice(selectedRangeFrom, selectedRangeTo + 1)
         .map(x => x.id);
 
       newItems = new Set(selectedIds);
@@ -70,37 +76,36 @@ export class SelectionService {
       }
     }
 
-    this.selection = newItems;
-    this.selectionChanged.next(this.selection);
+    this._selection.set(newItems);
 
     if (!config.range) {
-      this.lastSelectedItem = bookmark
+      this.lastSelectedItem = bookmark;
     }
   }
 
   public selectDirectory(bookmark: chrome.bookmarks.BookmarkTreeNode) {
     console.log('sel directory');
-    this.selectedDirectory$.next(bookmark);
+    this._selectedDirectory.set(bookmark);
     this.clearSelection(true);
   }
 
-  public getSelectedBookmark() {
+   public getSelectedBookmark() {
     return this.selectedBookmark;
   }
 
   public clearSelection(sendEvent: boolean = true) {
-    this.selectAllActive = false;
-    this.selection.clear();
+    this.selectAllActive.set(false);
+    this._selection.set(new Set());
 
     if (sendEvent) {
-      this.selectionChanged.next(this.selection);
+      this.selectionChanged.next(this._selection());
     }
   }
 
   public selectAll() {
     this.clearSelection(false);
-    this.selectAllActive = true;
-    this.selectionChanged.next(this.selection);
+    this.selectAllActive.set(true);
+    this._selection.set(new Set()); // In "selectAllActive" mode, selection set might be used for exclusions if needed, but for now we keep it empty or full depending on logic
   }
 }
 
@@ -110,5 +115,5 @@ export function injectSelectItemCallback() {
 }
 
 export function injectSelectedFolderSignal() {
-  return toSignal(inject(SelectionService).selectedDirectory$);
+  return inject(SelectionService).selectedDirectory;
 }
