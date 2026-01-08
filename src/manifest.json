@@ -4,15 +4,25 @@
   "description": "A browser action with a popup dump of all bookmarks, including search, add, edit and delete.",
   "permissions": [
     "bookmarks",
-    "favicon"
+    "favicon",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://localhost/*"
   ],
   "options_page": "index.html",
   "manifest_version": 3,
   "web_accessible_resources": [
     {
-      "resources": ["_favicon/*"],
-      "matches": ["<all_urls>"],
-      "extension_ids": ["*"]
+      "resources": [
+        "_favicon/*"
+      ],
+      "matches": [
+        "<all_urls>"
+      ],
+      "extension_ids": [
+        "*"
+      ]
     }
   ]
 }

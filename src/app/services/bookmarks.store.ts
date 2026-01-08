@@ -35,18 +35,44 @@ export interface SearchState {
 
 export type FolderOpenState = Map<string, boolean>;
 
+export interface AiConfig {
+  baseUrl: string;
+  apiKey: string;
+  model: string;
+}
+
 export interface PreferencesState {
   canEdit: boolean;
   incognitoAvailability: IncognitoAvailability;
+  aiConfig: AiConfig;
+}
+
+export interface CategorizationProgress {
+  total: number;
+  processed: number;
+  isProcessing: boolean;
+  isPaused: boolean;
+  isCancelled: boolean;
+  currentBatch: string;
+}
+
+export interface CategorizationProgress {
+  total: number;
+  processed: number;
+  isProcessing: boolean;
+  isPaused: boolean;
+  isCancelled: boolean;
+  currentBatch: string;
 }
 
 export interface BookmarksPageState {
   nodes: NodeMap;
-  selectedFolder: string|null;
+  selectedFolder: string | null;
   folderOpenState: FolderOpenState;
   prefs: PreferencesState;
   search: SearchState;
   selection: SelectionState;
+  progress: CategorizationProgress;
 }
 
 const initialState: BookmarksPageState = {
@@ -56,6 +82,11 @@ const initialState: BookmarksPageState = {
   prefs: {
     canEdit: true,
     incognitoAvailability: IncognitoAvailability.ENABLED,
+    aiConfig: {
+      baseUrl: 'http://localhost:11434/v1',
+      apiKey: '',
+      model: 'llama3:8b'
+    }
   },
   search: {
     results: null,
@@ -65,8 +96,18 @@ const initialState: BookmarksPageState = {
   selection: {
     anchor: null,
     items: new Set(),
+  },
+  progress: {
+    total: 0,
+    processed: 0,
+    isProcessing: false,
+    isPaused: false,
+    isCancelled: false,
+    currentBatch: ''
   }
 };
+
+const STORAGE_KEY_AI_CONFIG = 'aiConfig';
 
 export const BookmarksStore = signalStore(
   { providedIn: 'root', protectedState: false },
@@ -101,6 +142,27 @@ export const BookmarksStore = signalStore(
         }
       }));
     },
+    updateAiConfig(config: Partial<AiConfig>): void {
+      patchState(store, (state) => {
+        const newConfig = {
+          ...state.prefs.aiConfig,
+          ...config
+        };
+
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.set({ [STORAGE_KEY_AI_CONFIG]: newConfig });
+        } else {
+          localStorage.setItem(STORAGE_KEY_AI_CONFIG, JSON.stringify(newConfig));
+        }
+
+        return {
+          prefs: {
+            ...state.prefs,
+            aiConfig: newConfig
+          }
+        };
+      });
+    },
     loadBySearchQuery: rxMethod<string>(
       pipe(
         debounceTime(300),
@@ -109,19 +171,73 @@ export const BookmarksStore = signalStore(
         switchMap((query) => {
           return fromPromise(provider.search(query)).pipe(
             tapResponse({
-              next: (searchResults) => patchState(store, { search: {
-                ...store.search(),
-                results: searchResults.map(x => x.id)
-              } }),
+              next: (searchResults) => patchState(store, {
+                search: {
+                  ...store.search(),
+                  results: searchResults.map(x => x.id)
+                }
+              }),
               error: console.error,
-              finalize: () => patchState(store, { search: {
-                ...store.search(),
+              finalize: () => patchState(store, {
+                search: {
+                  ...store.search(),
                   inProgress: false,
-                } } )
+                }
+              })
             }),
           );
         })
       )
     ),
+    updateProgress(progress: Partial<CategorizationProgress>): void {
+      patchState(store, (state) => ({
+        progress: {
+          ...state.progress,
+          ...progress
+        }
+      }));
+    },
+    togglePause(): void {
+      patchState(store, (state) => ({
+        progress: {
+          ...state.progress,
+          isPaused: !state.progress.isPaused
+        }
+      }));
+    },
+    cancelCategorization(): void {
+      patchState(store, (state) => ({
+        progress: {
+          ...state.progress,
+          isCancelled: true,
+          isProcessing: false
+        }
+      }));
+    },
+    resetProgress(): void {
+      patchState(store, (state) => ({
+        progress: initialState.progress
+      }));
+    }
   })),
+  withHooks({
+    onInit(store) {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.get([STORAGE_KEY_AI_CONFIG], (result) => {
+          if (result[STORAGE_KEY_AI_CONFIG]) {
+            store.updateAiConfig(result[STORAGE_KEY_AI_CONFIG]);
+          }
+        });
+      } else {
+        const saved = localStorage.getItem(STORAGE_KEY_AI_CONFIG);
+        if (saved) {
+          try {
+            store.updateAiConfig(JSON.parse(saved));
+          } catch (e) {
+            console.error('Failed to parse AI config from localStorage', e);
+          }
+        }
+      }
+    }
+  })
 );

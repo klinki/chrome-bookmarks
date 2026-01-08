@@ -1,0 +1,64 @@
+<div class="settings-container">
+    <div *ngIf="progress().isProcessing || progress().isPaused" class="progress-bar-container">
+        <div class="progress-info">
+            <span>{{ progress().currentBatch }}</span>
+            <span>{{ progress().processed }} / {{ progress().total }}</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="(progress().processed / progress().total) * 100"></div>
+        </div>
+        <div class="progress-controls">
+            <button class="control-btn pause-btn" (click)="togglePause()">
+                {{ progress().isPaused ? 'Resume' : 'Pause' }}
+            </button>
+            <button class="control-btn cancel-btn" (click)="cancelCategorization()">
+                Cancel
+            </button>
+        </div>
+    </div>
+    <div class="header">
+        <a routerLink="/" class="back-link">← Back to Bookmarks</a>
+        <h2>AI Categorization Settings</h2>
+    </div>
+
+    <section class="config-section">
+        <h3>LLM Configuration</h3>
+        <form [formGroup]="configForm" (ngSubmit)="saveConfig()">
+            <div class="form-group">
+                <label for="baseUrl">Base URL (OpenAI compatible)</label>
+                <input id="baseUrl" type="text" formControlName="baseUrl" placeholder="http://localhost:11434/v1">
+            </div>
+            <div class="form-group">
+                <label for="apiKey">API Key (if required)</label>
+                <input id="apiKey" type="password" formControlName="apiKey" placeholder="Leave empty for local LLM">
+            </div>
+            <div class="form-group">
+                <label for="model">Model Name</label>
+                <input id="model" type="text" formControlName="model" placeholder="llama3:8b">
+            </div>
+            <button type="submit" [disabled]="!configForm.dirty">Save Configuration</button>
+        </form>
+    </section>
+
+    <section class="tags-section">
+        <div class="section-header">
+            <h3>Available Tags Pool</h3>
+            <button class="batch-btn" (click)="categorizeAllBookmarks()" [disabled]="progress().isProcessing">
+                {{ progress().isProcessing ? 'Processing...' : 'Categorize All Bookmarks' }}
+            </button>
+        </div>
+        <p class="hint">These tags will be suggested to the AI for categorization.</p>
+
+        <div class="tag-input-group">
+            <input #tagInput type="text" placeholder="Add new tag..." (keyup.enter)="addTag(tagInput)">
+            <button (click)="addTag(tagInput)">Add</button>
+        </div>
+
+        <div class="tags-list">
+            <div *ngFor="let tag of availableTags()" class="tag-item">
+                <span>{{ tag }}</span>
+                <button class="remove-tag" (click)="removeTag(tag)">×</button>
+            </div>
+        </div>
+    </section>
+</div>

@@ -1,9 +1,7 @@
 import { Component } from '@angular/core';
-import { BookmarksProviderService, SelectionService } from './services';
-import { BookmarksServiceProvider } from './shared/providers';
 import { BookmarksViewComponent } from "./components";
-import {BookmarksFacadeService} from "./services/bookmarks-facade.service";
-import {DragAndDropService} from "./services/drag-and-drop.service";
+
+import { RouterModule } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -11,15 +9,9 @@ import {DragAndDropService} from "./services/drag-and-drop.service";
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.css'],
   imports: [
+    RouterModule,
     BookmarksViewComponent,
   ],
-  providers: [
-    BookmarksServiceProvider,
-    BookmarksProviderService,
-    SelectionService,
-    BookmarksFacadeService,
-    DragAndDropService,
-  ]
 })
 export class AppComponent {
   constructor() {

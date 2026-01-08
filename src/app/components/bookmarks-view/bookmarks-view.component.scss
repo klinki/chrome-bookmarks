@@ -1,3 +1,39 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h1 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .settings-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    color: #666;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    text-decoration: none;
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    &:hover {
+      background-color: #f0f0f0;
+      color: #333;
+      transform: rotate(90deg);
+    }
+  }
+}
+
 .container {
   height: 100%;
   display: grid;
@@ -25,4 +61,3 @@ app-search-box {
   margin-top: auto;
   margin-bottom: auto;
 }
-

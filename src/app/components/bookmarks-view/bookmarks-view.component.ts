@@ -6,11 +6,16 @@ import { BookmarkDetailComponent } from "../bookmark-detail/bookmark-detail.comp
 import { BookmarksFacadeService } from "../../services/bookmarks-facade.service";
 import { DragAndDropService } from "../../services/drag-and-drop.service";
 
+import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+
 @Component({
   standalone: true,
   selector: 'app-bookmarks-view',
   templateUrl: 'bookmarks-view.component.html',
   imports: [
+    CommonModule,
+    RouterModule,
     SearchBoxComponent,
     TreeViewComponent,
     ListViewComponent,
@@ -32,7 +37,7 @@ export class BookmarksViewComponent implements OnInit {
   ngOnInit() {
   }
 
-  public search(searchTerm: string|null) {
+  public search(searchTerm: string | null) {
     this.facade.search(searchTerm);
   }
 }

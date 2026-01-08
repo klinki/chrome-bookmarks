@@ -9,6 +9,24 @@
       <label>URL</label>
       <input type="text" [value]="selection()![0].url" name="url" />
     </div>
+    <div class="tags-section">
+      <label>Tags</label>
+      <div class="tags-list">
+        <div *ngFor="let tag of currentTags()" class="tag-chip">
+          {{ tag }}
+          <button (click)="removeTag(tag)">×</button>
+        </div>
+      </div>
+      <div class="tag-input">
+        <input #newTag type="text" placeholder="Add tag..." (keyup.enter)="addTag(newTag)">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
+        {{ isCategorizing() ? 'Categorizing...' : 'AI Categorize' }}
+      </button>
+    </div>
   </div>
 } @else if (singleFolderSelected()) {
   <div class="detail-info">
@@ -18,8 +36,13 @@
   </div>
 } @else if (onlyBookmarksSelected()) {
   <div class="selection-info">
-    <p>Selected {{selection()?.length}} bookmarks</p>
     <strong>TODO: Batch tag form</strong>
+    <p>Selected {{selection()?.length}} bookmarks</p>
+    <div class="actions">
+      <button class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
+        {{ isCategorizing() ? 'AI Categorize All' : 'AI Categorize All' }}
+      </button>
+    </div>
   </div>
 } @else if (mixedSelection()) {
   <div class="selection-info">
