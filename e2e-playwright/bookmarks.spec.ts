@@ -1,42 +1,52 @@
 import { test, expect } from '@playwright/test';
 
-const MOCK_BOOKMARKS = [
-    {
-        id: '0',
-        title: 'root',
-        children: [
-            {
-                id: '1',
-                title: 'Bookmarks Bar',
-                expanded: true,
-                children: [
-                    {
-                        id: '10',
-                        title: 'Folder A',
-                        expanded: true,
-                        children: [
-                            {
-                                id: '101',
-                                title: 'Bookmark A1',
-                                url: 'https://example.com/a1'
-                            }
-                        ]
-                    },
-                    {
-                        id: '11',
-                        title: 'Bookmark B',
-                        url: 'https://example.com/b'
-                    }
-                ]
-            },
-            {
-                id: '2',
-                title: 'Other Bookmarks',
-                children: []
-            }
-        ]
+function addDirectory(id: string, title: string, parent: chrome.bookmarks.BookmarkTreeNode | null, managed?: string) {
+    let directory: chrome.bookmarks.BookmarkTreeNode = {
+        id: id,
+        title: title,
+        parentId: undefined,
+        index: undefined,
+        children: []
+    };
+
+    if (parent != null) {
+        directory.parentId = parent.id;
+        directory.index = parent?.children?.length ?? undefined;
+        parent?.children?.push(directory);
     }
-];
+
+    addBookmark(directory);
+
+    return directory;
+}
+
+function addUrl(id: string, title: string, url: string, directory: chrome.bookmarks.BookmarkTreeNode) {
+    let bookmark = {
+        id: id,
+        title: title,
+        url: url,
+        parentId: directory.id,
+        index: directory?.children?.length
+    };
+    directory?.children?.push(bookmark);
+    addBookmark(bookmark);
+
+    return bookmark;
+}
+
+function addBookmark(bookmark: chrome.bookmarks.BookmarkTreeNode) {
+    // Object.freeze(bookmark);
+    MOCK_BOOKMARKS[bookmark.id] = bookmark;
+}
+
+const MOCK_BOOKMARKS: { [id: string]: chrome.bookmarks.BookmarkTreeNode } = {};
+
+const root = addDirectory('0', 'root', null);
+const bookmarksBar = addDirectory('1', 'Bookmarks Bar', root);
+const otherBookmarks = addDirectory('2', 'Other Bookmarks', root);
+addUrl('10', 'Folder A', 'https://example.com/a', bookmarksBar);
+addUrl('11', 'Bookmark B', 'https://example.com/b', bookmarksBar);
+addUrl('101', 'Bookmark A1', 'https://example.com/a1', otherBookmarks);
 
 test.beforeEach(async ({ page }) => {
     // Mock chrome API before each test
