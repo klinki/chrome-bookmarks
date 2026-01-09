@@ -1,4 +1,4 @@
-import { Component, OnInit, input, inject } from '@angular/core';
+import { Component, OnInit, input, inject, effect } from '@angular/core';
 import { SelectionService } from '../../services';
 import { TreeItemComponent } from "./tree-item.component";
 import { FolderMenuComponent } from "../menus/folder-menu/folder-menu.component";
@@ -22,7 +22,36 @@ export class TreeViewComponent implements OnInit {
 
   public selectedDirectory = this.selectionService.selectedDirectory;
 
+  constructor() {
+    effect(() => {
+      const selectedDir = this.selectedDirectory();
+      const directories = this.directories();
+
+      if (selectedDir && directories) {
+        this.expandToNode(directories, selectedDir.id);
+      }
+    });
+  }
+
   ngOnInit() {
+  }
+
+  private expandToNode(nodes: BookmarkDirectory[], targetId: string): boolean {
+    for (const node of nodes) {
+      if (node.id === targetId) {
+        node.expanded = true;
+        return true;
+      }
+
+      if (node.children && node.children.length > 0) {
+        const found = this.expandToNode(node.children, targetId);
+        if (found) {
+          node.expanded = true;
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   toggle(directory: BookmarkDirectory) {
