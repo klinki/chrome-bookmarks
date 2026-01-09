@@ -1,7 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, resource, computed, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BookmarksStore } from '../../services/bookmarks.store';
 import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
@@ -10,7 +10,7 @@ import { BookmarksProviderService } from '../../services/bookmarks-provider.serv
 @Component({
   selector: 'app-ai-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './ai-settings.component.html',
   styleUrl: './ai-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,6 +24,41 @@ export class AiSettingsComponent {
 
   public availableTags = this.tagsService.availableTags;
   public progress = this.store.progress;
+
+  // Model Discovery State using Signals
+  public showDiscoveryModal = signal(false);
+  public discoveryProvider = signal('Ollama');
+  public discoveryUrl = signal('http://localhost:11434');
+  public selectedDiscoveredModel = signal('');
+
+  // Trigger for discovery resource
+  private discoveryTrigger = signal<number>(0);
+
+  // Discovery Resource
+  public discoveryResource = resource({
+    loader: async () => {
+      const trigger = this.discoveryTrigger();
+      const showModal = this.showDiscoveryModal();
+
+      if (trigger === 0 || !showModal) {
+        return [];
+      }
+
+      // We use untracked for provider and url so they don't trigger new requests automatically when changed in the form.
+      // New request only happens when 'discoveryTrigger' increments (button click).
+      const provider = untracked(() => this.discoveryProvider());
+      const url = untracked(() => this.discoveryUrl());
+
+      if (provider === 'Ollama') {
+        return await this.aiService.getOllamaModels(url);
+      }
+      return [];
+    }
+  });
+
+  public discoveredModels = computed(() => this.discoveryResource.value() ?? []);
+  public isDiscovering = this.discoveryResource.isLoading;
+  public discoveryError = computed(() => this.discoveryResource.error() ? 'Failed to discover models' : '');
 
   public configForm = this.fb.group({
     baseUrl: [this.store.prefs.aiConfig().baseUrl],
@@ -61,5 +96,38 @@ export class AiSettingsComponent {
 
   public removeTag(tag: string) {
     this.tagsService.removeAvailableTag(tag);
+  }
+
+  public openDiscovery() {
+    this.showDiscoveryModal.set(true);
+  }
+
+  public closeDiscovery() {
+    this.showDiscoveryModal.set(false);
+    this.discoveryTrigger.set(0);
+  }
+
+  public onProviderChange(provider: string) {
+    this.discoveryProvider.set(provider);
+    if (provider === 'Ollama') {
+      this.discoveryUrl.set('http://localhost:11434');
+    }
+  }
+
+  public async discoverModels() {
+    this.discoveryTrigger.update(v => v + 1);
+    this.discoveryResource.reload();
+  }
+
+  public confirmDiscovery() {
+    const selectedModel = this.selectedDiscoveredModel();
+    if (selectedModel) {
+      this.configForm.patchValue({
+        baseUrl: this.discoveryProvider() === 'Ollama' ? `${this.discoveryUrl()}/v1` : this.discoveryUrl(),
+        model: selectedModel
+      });
+      this.configForm.markAsDirty();
+      this.closeDiscovery();
+    }
   }
 }

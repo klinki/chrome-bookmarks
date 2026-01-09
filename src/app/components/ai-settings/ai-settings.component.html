@@ -22,7 +22,10 @@
     </div>
 
     <section class="config-section">
-        <h3>LLM Configuration</h3>
+        <div class="section-header">
+            <h3>LLM Configuration</h3>
+            <button class="discovery-trigger-btn" (click)="openDiscovery()">Discover local models</button>
+        </div>
         <form [formGroup]="configForm" (ngSubmit)="saveConfig()">
             <div class="form-group">
                 <label for="baseUrl">Base URL (OpenAI compatible)</label>
@@ -61,4 +64,51 @@
             </div>
         </div>
     </section>
+
+    <!-- Model Discovery Modal -->
+    <div *ngIf="showDiscoveryModal()" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Discover Local Models</h3>
+                <button class="close-btn" (click)="closeDiscovery()">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Provider</label>
+                    <select [ngModel]="discoveryProvider()" (ngModelChange)="onProviderChange($event)">
+                        <option value="Ollama">Ollama</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Base URL</label>
+                    <input type="text" [ngModel]="discoveryUrl()" (ngModelChange)="discoveryUrl.set($event)"
+                        placeholder="http://localhost:11434">
+                </div>
+
+                <button class="action-btn" (click)="discoverModels()" [disabled]="isDiscovering()">
+                    {{ isDiscovering() ? 'Discovering...' : 'Discover models' }}
+                </button>
+
+                <div *ngIf="discoveryError()" class="error-msg">
+                    {{ discoveryError() }}
+                </div>
+
+                <div *ngIf="discoveredModels().length > 0" class="form-group results-group">
+                    <label>Available Models</label>
+                    <select [ngModel]="selectedDiscoveredModel()" (ngModelChange)="selectedDiscoveredModel.set($event)">
+                        <option *ngFor="let model of discoveredModels()" [value]="model">{{ model }}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="secondary-btn" (click)="closeDiscovery()">Cancel</button>
+                <button class="primary-btn" (click)="confirmDiscovery()" [disabled]="!selectedDiscoveredModel()">
+                    Confirm Selection
+                </button>
+            </div>
+        </div>
+    </div>
 </div>

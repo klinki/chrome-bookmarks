@@ -140,6 +140,21 @@ Example Output:
         }
     }
 
+    public async getOllamaModels(baseUrl: string): Promise<string[]> {
+        // Ollama usually listens on /api/tags for model list
+        // If baseUrl is http://localhost:11434/v1, we need to adjust it to http://localhost:11434/api/tags
+        const url = new URL(baseUrl);
+        const tagsUrl = `${url.protocol}//${url.host}/api/tags`;
+
+        const response = await fetch(tagsUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch Ollama models: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.models.map((m: any) => m.name);
+    }
+
     private flattenBookmarks(nodes: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
         let results: chrome.bookmarks.BookmarkTreeNode[] = [];
         for (const node of nodes) {
