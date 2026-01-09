@@ -52,9 +52,9 @@
 
 .main-view {
   grid-area: main;
-  overflow-y: auto;
   display: grid;
-  grid-template-rows: 1fr 100px;
+  grid-template-rows: 1fr auto;
+  overflow: hidden;
 }
 
 app-search-box {

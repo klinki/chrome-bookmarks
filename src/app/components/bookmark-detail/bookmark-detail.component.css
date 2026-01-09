@@ -4,7 +4,6 @@
 .no-selection {
   padding: 16px;
   border-left: 1px solid #ddd;
-  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 20px;
