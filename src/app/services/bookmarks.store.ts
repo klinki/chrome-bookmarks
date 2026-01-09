@@ -56,15 +56,6 @@ export interface CategorizationProgress {
   currentBatch: string;
 }
 
-export interface CategorizationProgress {
-  total: number;
-  processed: number;
-  isProcessing: boolean;
-  isPaused: boolean;
-  isCancelled: boolean;
-  currentBatch: string;
-}
-
 export interface BookmarksPageState {
   nodes: NodeMap;
   selectedFolder: string | null;
