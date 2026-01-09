@@ -51,6 +51,8 @@ export class AiSettingsComponent {
 
       if (provider === 'Ollama') {
         return await this.aiService.getOllamaModels(url);
+      } else if (provider === 'LM Studio') {
+        return await this.aiService.getLMStudioModels(url);
       }
       return [];
     }
@@ -111,6 +113,8 @@ export class AiSettingsComponent {
     this.discoveryProvider.set(provider);
     if (provider === 'Ollama') {
       this.discoveryUrl.set('http://localhost:11434');
+    } else if (provider === 'LM Studio') {
+      this.discoveryUrl.set('http://localhost:1234');
     }
   }
 
@@ -122,8 +126,15 @@ export class AiSettingsComponent {
   public confirmDiscovery() {
     const selectedModel = this.selectedDiscoveredModel();
     if (selectedModel) {
+      const provider = this.discoveryProvider();
+      const url = this.discoveryUrl();
+
+      // For LM Studio, the base URL is already correct (http://localhost:1234)
+      // For Ollama, we need to append /v1
+      const baseUrl = provider === 'Ollama' ? `${url}/v1` : url;
+
       this.configForm.patchValue({
-        baseUrl: this.discoveryProvider() === 'Ollama' ? `${this.discoveryUrl()}/v1` : this.discoveryUrl(),
+        baseUrl: baseUrl,
         model: selectedModel
       });
       this.configForm.markAsDirty();

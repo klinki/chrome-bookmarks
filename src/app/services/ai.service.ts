@@ -155,6 +155,20 @@ Example Output:
         return data.models.map((m: any) => m.name);
     }
 
+    public async getLMStudioModels(baseUrl: string): Promise<string[]> {
+        // LM Studio uses OpenAI-compatible endpoint at /v1/models
+        const url = new URL(baseUrl);
+        const modelsUrl = `${url.protocol}//${url.host}/v1/models`;
+
+        const response = await fetch(modelsUrl);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch LM Studio models: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.data.map((m: any) => m.id);
+    }
+
     private flattenBookmarks(nodes: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
         let results: chrome.bookmarks.BookmarkTreeNode[] = [];
         for (const node of nodes) {
