@@ -76,16 +76,15 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label>Provider</label>
-                    <select [ngModel]="discoveryProvider()" (ngModelChange)="onProviderChange($event)">
-                        <option value="Ollama">Ollama</option>
-                        <option value="LM Studio">LM Studio</option>
+                    <select [ngModel]="selectedProvider()" (ngModelChange)="onProviderChange($event)"
+                        [compareWith]="compareProviders">
+                        <option *ngFor="let provider of providers" [ngValue]="provider">{{ provider.name }}</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label>Base URL</label>
-                    <input type="text" [ngModel]="discoveryUrl()" (ngModelChange)="discoveryUrl.set($event)"
-                        placeholder="http://localhost:11434">
+                    <input type="text" [value]="selectedProvider().discoveryUrl" readonly>
                 </div>
 
                 <button class="action-btn" (click)="discoverModels()" [disabled]="isDiscovering()">

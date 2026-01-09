@@ -2,12 +2,31 @@ import { inject, Injectable } from '@angular/core';
 import { BookmarksStore } from './bookmarks.store';
 import { TagsService } from './tags.service';
 
+export interface AiProvider {
+    name: string;
+    discoveryUrl: string;
+    completionUrl: string;
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class AiService {
     private store = inject(BookmarksStore);
     private tagsService = inject(TagsService);
+
+    public readonly providers: AiProvider[] = [
+        {
+            name: 'Ollama',
+            discoveryUrl: 'http://localhost:11434',
+            completionUrl: 'http://localhost:11434/v1'
+        },
+        {
+            name: 'LM Studio',
+            discoveryUrl: 'http://localhost:1234',
+            completionUrl: 'http://localhost:1234'
+        }
+    ];
 
     public async suggestTags(bookmarks: chrome.bookmarks.BookmarkTreeNode[], availableTags: string[]): Promise<Record<string, string[]>> {
         const config = this.store.prefs.aiConfig();
@@ -167,6 +186,15 @@ Example Output:
 
         const data = await response.json();
         return data.data.map((m: any) => m.id);
+    }
+
+    public async discoverProviderModels(provider: AiProvider): Promise<string[]> {
+        if (provider.name === 'Ollama') {
+            return await this.getOllamaModels(provider.discoveryUrl);
+        } else if (provider.name === 'LM Studio') {
+            return await this.getLMStudioModels(provider.discoveryUrl);
+        }
+        return [];
     }
 
     private flattenBookmarks(nodes: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {

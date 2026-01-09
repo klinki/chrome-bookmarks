@@ -4,7 +4,7 @@ import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { BookmarksStore } from '../../services/bookmarks.store';
 import { TagsService } from '../../services/tags.service';
-import { AiService } from '../../services/ai.service';
+import { AiService, AiProvider } from '../../services/ai.service';
 import { BookmarksProviderService } from '../../services/bookmarks-provider.service';
 
 @Component({
@@ -24,11 +24,11 @@ export class AiSettingsComponent {
 
   public availableTags = this.tagsService.availableTags;
   public progress = this.store.progress;
+  public providers = this.aiService.providers;
 
   // Model Discovery State using Signals
   public showDiscoveryModal = signal(false);
-  public discoveryProvider = signal('Ollama');
-  public discoveryUrl = signal('http://localhost:11434');
+  public selectedProvider = signal<AiProvider>(this.aiService.providers[0]);
   public selectedDiscoveredModel = signal('');
 
   // Trigger for discovery resource
@@ -44,17 +44,11 @@ export class AiSettingsComponent {
         return [];
       }
 
-      // We use untracked for provider and url so they don't trigger new requests automatically when changed in the form.
+      // We use untracked for provider so it doesn't trigger new requests automatically when changed in the form.
       // New request only happens when 'discoveryTrigger' increments (button click).
-      const provider = untracked(() => this.discoveryProvider());
-      const url = untracked(() => this.discoveryUrl());
+      const provider = untracked(() => this.selectedProvider());
 
-      if (provider === 'Ollama') {
-        return await this.aiService.getOllamaModels(url);
-      } else if (provider === 'LM Studio') {
-        return await this.aiService.getLMStudioModels(url);
-      }
-      return [];
+      return await this.aiService.discoverProviderModels(provider);
     }
   });
 
@@ -109,13 +103,8 @@ export class AiSettingsComponent {
     this.discoveryTrigger.set(0);
   }
 
-  public onProviderChange(provider: string) {
-    this.discoveryProvider.set(provider);
-    if (provider === 'Ollama') {
-      this.discoveryUrl.set('http://localhost:11434');
-    } else if (provider === 'LM Studio') {
-      this.discoveryUrl.set('http://localhost:1234');
-    }
+  public onProviderChange(provider: AiProvider) {
+    this.selectedProvider.set(provider);
   }
 
   public async discoverModels() {
@@ -126,19 +115,18 @@ export class AiSettingsComponent {
   public confirmDiscovery() {
     const selectedModel = this.selectedDiscoveredModel();
     if (selectedModel) {
-      const provider = this.discoveryProvider();
-      const url = this.discoveryUrl();
-
-      // For LM Studio, the base URL is already correct (http://localhost:1234)
-      // For Ollama, we need to append /v1
-      const baseUrl = provider === 'Ollama' ? `${url}/v1` : url;
+      const provider = this.selectedProvider();
 
       this.configForm.patchValue({
-        baseUrl: baseUrl,
+        baseUrl: provider.completionUrl,
         model: selectedModel
       });
       this.configForm.markAsDirty();
       this.closeDiscovery();
     }
+  }
+
+  public compareProviders(p1: AiProvider, p2: AiProvider): boolean {
+    return p1 && p2 ? p1.name === p2.name : p1 === p2;
   }
 }
