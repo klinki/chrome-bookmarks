@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed } from '@angular/core';
+import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject } from '@angular/core';
 import { DragulaModule, DragulaService } from "ng2-dragula";
 
 import { SelectionService } from "../../services";
@@ -52,7 +52,7 @@ export class ListViewComponent implements OnInit, OnChanges {
     this.availableColumns[3]
   ];
 
-  constructor(protected selectionService: SelectionService) { }
+  protected selectionService = inject(SelectionService);
 
   public isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
     if (this.selectionService.selectAllActive()) {

@@ -1,4 +1,4 @@
-import { Component, OnInit, input, HostBinding, computed } from '@angular/core';
+import { Component, OnInit, input, HostBinding, computed, inject } from '@angular/core';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
 
@@ -13,6 +13,8 @@ import { CdkContextMenuTrigger } from "@angular/cdk/menu";
   templateUrl: './tree-item.component.html'
 })
 export class TreeItemComponent implements OnInit {
+  private bookmarkService: SelectionService = inject(SelectionService);
+
   public dir = input<any>();
   public level = input<number>(0);
   public selectedItem = input<any>(null);
@@ -26,9 +28,6 @@ export class TreeItemComponent implements OnInit {
 
   @HostBinding('attr.draggable')
   draggable = true;
-
-  constructor(private bookmarkService: SelectionService) {
-  }
 
   public isSelected = computed(() => {
     return this.selectedItem()?.id === this.dir()?.id;

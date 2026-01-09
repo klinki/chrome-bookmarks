@@ -1,4 +1,4 @@
-import { Component, OnInit, input } from '@angular/core';
+import { Component, OnInit, input, inject } from '@angular/core';
 import { SelectionService } from '../../services';
 import { TreeItemComponent } from "./tree-item.component";
 import { FolderMenuComponent } from "../menus/folder-menu/folder-menu.component";
@@ -16,12 +16,11 @@ export type BookmarkDirectory = any;
   ]
 })
 export class TreeViewComponent implements OnInit {
+  private selectionService = inject(SelectionService);
+
   public directories = input<BookmarkDirectory[] | null>([]);
 
   public selectedDirectory = this.selectionService.selectedDirectory;
-
-  constructor(private selectionService: SelectionService) {
-  }
 
   ngOnInit() {
   }

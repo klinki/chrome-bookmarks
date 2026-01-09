@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, input, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, input, SimpleChanges, ViewChild } from '@angular/core';
 
 import { ContextMenuComponent } from "../context-menu/context-menu.component";
 import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.component";
@@ -21,10 +21,8 @@ export class FolderMenuComponent {
   @ViewChild('menu', { static: true })
   menu!: ContextMenuComponent;
 
-  constructor(
-    private cdr: ChangeDetectorRef,
-    private router: Router
-  ) { }
+  private cdr = inject(ChangeDetectorRef);
+  private router = inject(Router);
 
   ngOnInit(): void {
     console.log(this.folder);
