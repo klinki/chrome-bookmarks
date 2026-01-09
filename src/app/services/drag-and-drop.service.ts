@@ -35,6 +35,8 @@ export class DragAndDropService {
   selectItemCallback = injectSelectItemCallback();
   moveMultipleCallback = injectMoveMultipleBookmarksCallback();
 
+  private tagsService = inject(TagsService);
+
   constructor() {
     fromEvent<Event>(document, 'dragstart').pipe(
       tap(event => console.log(event)),
@@ -173,10 +175,20 @@ export class DragAndDropService {
       }
 
       const dropIds = this.dragInfo.dragData?.elements.map((x: chrome.bookmarks.BookmarkTreeNode) => x.id) ?? [];
+
+      // Handle dropping on Tag
+      if (dropInfo.parentId.startsWith('TAG_')) {
+        const tagName = dropInfo.parentId.replace('TAG_', '');
+        dropIds.forEach(id => {
+          this.tagsService.addTagToBookmark(id, tagName);
+        });
+        // Do not move bookmarks
+      } else {
       await this.moveMultipleCallback(dropIds, {
         parentId: dropInfo.parentId,
         index: index
       });
+      }
 
       // BookmarkManagerApiProxyImpl.getInstance()
       //   .drop(dropInfo.parentId, index)
@@ -252,6 +264,15 @@ export class DragAndDropService {
     }
 
     const node = this.getBookmarkNode(dropDestination.element);
+
+    // Virtual Nodes handling
+    if (node.id.startsWith('TAG_')) {
+      return {
+        index: -1,
+        parentId: node.id
+      };
+    }
+
     const position = dropDestination.position;
     let index = -1;
     let parentId = node.id;
@@ -370,6 +391,21 @@ export class DragAndDropService {
       itemId = this.selectedFolder()!.id;
     }
 
+    // Virtual Node Check for Tags
+    if (itemId.startsWith('TAG_')) {
+      // Can only drop ON tags. Cannot reorder tags (yet).
+      // Only allow dropping bookmarks, not folders, onto tags.
+      if (dragInfo.isDraggingFolders()) {
+        return DropPosition.NONE;
+      }
+      return DropPosition.ON;
+    }
+
+    // Virtual Node Check for Roots
+    if (itemId === 'ROOT_ALL' || itemId === 'ROOT_TAGS') {
+      return DropPosition.NONE;
+    }
+
     if (!canReorderChildren(nodesMap, itemId)) {
       return DropPosition.NONE;
     }
@@ -399,6 +435,11 @@ export class DragAndDropService {
 
     // We cannot drop between Bookmarks bar and Other bookmarks.
     if (this.getBookmarkNode(overElement).parentId === ROOT_NODE_ID) {
+      return DropPosition.NONE;
+    }
+
+    // Virtual Node Check - cannot sort tags or root nodes
+    if (overElementItemId?.startsWith('TAG_') || overElementItemId?.startsWith('ROOT_')) {
       return DropPosition.NONE;
     }
 
@@ -449,8 +490,15 @@ export class DragAndDropService {
         && nodesMap[selectedFolder.id]!.children!.length === 0;
     }
 
+    const node = this.getBookmarkNode(overElement);
+
+    // Support virtual Tag folders
+    if (node.id.startsWith('TAG_')) {
+      return true;
+    }
+
     // We can only drop on a folder.
-    if (this.getBookmarkNode(overElement).url) {
+    if (node.url) {
       return false;
     }
 
@@ -467,6 +515,23 @@ export class DragAndDropService {
 
     if (itemId == null) {
       console.error('Unexpected null value');
+    }
+
+    // Virtual Node Mocking
+    if (itemId.startsWith('TAG_')) {
+      return {
+        id: itemId,
+        title: itemId.replace('TAG_', ''),
+        children: [],
+        // No parenId
+      } as unknown as chrome.bookmarks.BookmarkTreeNode;
+    }
+    if (itemId === 'ROOT_ALL' || itemId === 'ROOT_TAGS') {
+      return {
+        id: itemId,
+        title: itemId,
+        children: [],
+      } as unknown as chrome.bookmarks.BookmarkTreeNode;
     }
 
     const nodesMap = this.bookmarksMap()!;

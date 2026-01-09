@@ -10,14 +10,11 @@ export class BookmarksFacadeService {
   private bookmarkProviderService = inject(BookmarksProviderService);
   private selectionService = inject(SelectionService);
 
+  private tagsService = inject(TagsService);
+
+
   // Signals
   public searchTerm = signal<string>('');
-
-  public directories = toSignal(
-    fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot()),
-    { initialValue: [] }
-  );
-
   public selectedBookmarkIds = this.selectionService.selection;
 
   public onBookmarksUpdated$ = merge(
@@ -31,6 +28,43 @@ export class BookmarksFacadeService {
       console.log('updated');
     }),
     startWith(null),
+    shareReplay(1)
+  );
+
+  public directories = toSignal(
+    combineLatest([
+      this.onBookmarksUpdated$.pipe(
+        switchMap(() => fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot()))
+      ),
+      toObservable(this.tagsService.availableTags)
+    ]).pipe(
+      map(([tree, tags]) => {
+        const _tree = tree as chrome.bookmarks.BookmarkTreeNode[];
+        const _tags = tags as string[];
+
+        return [
+          {
+            id: 'ROOT_TAGS',
+            title: 'Tags',
+            children: _tags.map(tag => ({
+              id: 'TAG_' + tag,
+              title: tag,
+              url: undefined,
+              children: [],
+              expanded: false
+            })),
+            expanded: true
+          },
+          {
+            id: 'ROOT_ALL',
+            title: 'All Bookmarks',
+            children: _tree,
+            expanded: true
+          }
+        ];
+      })
+    ),
+    { initialValue: [] as any[] }
   );
 
   private debouncedSearchTerm$ = toObservable(this.searchTerm).pipe(
@@ -47,15 +81,47 @@ export class BookmarksFacadeService {
           console.log('directory changed', value);
         })
       ),
-      this.debouncedSearchTerm$
+      this.debouncedSearchTerm$,
+      toObservable(this.tagsService.bookmarkTags)
     ]).pipe(
-      switchMap(([_, directory, searchTerm]) => {
+      switchMap(([_, directory, searchTerm, bookmarkTags]) => {
         if (searchTerm !== '') {
           return fromPromise(this.bookmarkProviderService.search(searchTerm));
         }
         if (directory == null) {
           return of([]);
         }
+
+        // Handle Virtual Nodes
+        if (directory.id === 'ROOT_ALL') {
+          // Show root children (Bookmarks Bar, Other Bookmarks, etc)
+          return fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
+        }
+
+        if (directory.id === 'ROOT_TAGS') {
+          return of([]);
+        }
+
+        if (directory.id.startsWith('TAG_')) {
+          const tagName = directory.title;
+          // Fetch fresh bookmarks to ensure we have the latest state
+          return fromPromise(this.bookmarkProviderService.getBookmarks()).pipe(
+            map(tree => {
+              const allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
+              const stack = [...tree];
+              while (stack.length) {
+                const node = stack.pop()!;
+                if (node.url) allBookmarks.push(node);
+                if (node.children) stack.push(...node.children);
+              }
+              return allBookmarks.filter(b => {
+                const tags = this.tagsService.getTagsForBookmark(b.id);
+                return tags.includes(tagName);
+              });
+            })
+          );
+        }
+
         return fromPromise(this.bookmarkProviderService.getChildren(directory.id));
       }),
       tap(items => {
