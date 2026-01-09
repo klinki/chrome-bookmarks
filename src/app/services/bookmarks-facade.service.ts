@@ -1,5 +1,6 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { BookmarksProviderService } from "./bookmarks-provider.service";
+import { TagsService } from "./tags.service";
 import { combineLatest, debounceTime, distinctUntilChanged, map, merge, mergeMap, of, shareReplay, startWith, switchMap, tap } from "rxjs";
 import { fromPromise } from "rxjs/internal/observable/innerFrom";
 import { SelectionService } from "./selection.service";
@@ -82,11 +83,51 @@ export class BookmarksFacadeService {
         })
       ),
       this.debouncedSearchTerm$,
-      toObservable(this.tagsService.bookmarkTags)
+      toObservable(this.tagsService.bookmarkTags),
+      toObservable(this.tagsService.availableTags)
     ]).pipe(
-      switchMap(([_, directory, searchTerm, bookmarkTags]) => {
+      switchMap(([_, directory, searchTerm, bookmarkTags, availableTags]) => {
         if (searchTerm !== '') {
-          return fromPromise(this.bookmarkProviderService.search(searchTerm));
+          return combineLatest([
+            fromPromise(this.bookmarkProviderService.search(searchTerm)),
+            fromPromise(this.bookmarkProviderService.getBookmarks()), // Need all bookmarks to find tagged ones
+          ]).pipe(
+            map(([searchResults, allBookmarksTree]) => {
+              // 1. Standard Search Results
+              const results = [...searchResults];
+
+              // 2. Tag Search Results
+              const normalizedSearchTerm = searchTerm.toLowerCase();
+              const matchingTags = availableTags.filter(tag =>
+                tag.toLowerCase().includes(normalizedSearchTerm)
+              );
+
+              if (matchingTags.length > 0) {
+                // Flatten the tree to search by ID
+                // TODO: optimization - maybe maintain a map or just iterate better?
+                // reusing logic from previous steps or creating a helper might be good but for now inline is fine
+                const allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
+                const stack = [...allBookmarksTree];
+                while (stack.length) {
+                  const node = stack.pop()!;
+                  if (node.url) allBookmarks.push(node);
+                  if (node.children) stack.push(...node.children);
+                }
+
+                const tagMatches = allBookmarks.filter(b => {
+                  const tags = this.tagsService.getTagsForBookmark(b.id);
+                  return tags.some(t => matchingTags.includes(t));
+                });
+
+                results.push(...tagMatches);
+              }
+
+              // 3. Deduplicate
+              const uniqueResults = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
+              results.forEach(b => uniqueResults.set(b.id, b));
+              return Array.from(uniqueResults.values());
+            })
+          );
         }
         if (directory == null) {
           return of([]);
