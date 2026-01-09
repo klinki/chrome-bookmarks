@@ -50,28 +50,22 @@ tr:hover {
 }
 
 ::ng-deep {
-  --interactive-color: red;
+  --interactive-color: #2196F3; // Material Blue
 
-  .drag-above::before {
-    top: 0;
-    transform: translateY(-50%);
+  .drag-above>td {
+    box-shadow: inset 0 2px 0 #2196F3 !important;
+    /* Top line */
   }
 
-  .drag-above::before, .drag-below::after {
-    background-clip: padding-box;
-    background-color: var(--interactive-color);
-    border: 3px solid var(--interactive-color);
-    border-bottom-color: transparent;
-    border-radius: 0;
-    border-top-color: transparent;
-    box-sizing: border-box;
-    content: '';
-    display: block;
-    height: 8px;
-    left: 0;
-    position: absolute;
-    right: 0;
-    z-index: 1;
+  .drag-below>td {
+    box-shadow: inset 0 -2px 0 #2196F3 !important;
+    /* Bottom line */
+  }
+
+  .drag-on>td {
+    background-color: rgba(33, 150, 243, 0.1) !important;
+    outline: 2px solid #2196F3 !important;
+    outline-offset: -2px;
   }
 
 }
