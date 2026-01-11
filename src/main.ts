@@ -3,7 +3,7 @@ import { BrowserModule, bootstrapApplication } from "@angular/platform-browser";
 import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from "@angular/core";
 import { AppComponent } from "./app";
 import { DragulaModule } from "ng2-dragula";
-import { environment } from "./environments/environment.dev";
+import { environment } from "./environments/environment";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { provideRouter, withHashLocation } from "@angular/router";
 
@@ -30,4 +30,4 @@ bootstrapApplication(AppComponent, {
     DragAndDropService,
   ]
 })
-.catch(err => console.error(err));
+  .catch(err => console.error(err));
