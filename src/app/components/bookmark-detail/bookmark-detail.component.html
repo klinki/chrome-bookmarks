@@ -36,11 +36,29 @@
   </div>
 } @else if (onlyBookmarksSelected()) {
   <div class="selection-info">
-    <strong>TODO: Batch tag form</strong>
-    <p>Selected {{selection()?.length}} bookmarks</p>
+  <div class="header">
+    <strong>Selected {{selection()?.length}} bookmarks</strong>
+  </div>
+
+  <div class="tags-section">
+    <label>Common Tags (assigned to all selected)</label>
+    <div class="tags-list">
+      <div *ngFor="let tag of currentTags()" class="tag-chip">
+        {{ tag }}
+        <button (click)="removeTag(tag)" title="Remove tag from all selected">×</button>
+      </div>
+      <div *ngIf="currentTags().length === 0" class="no-tags">
+        No common tags
+      </div>
+    </div>
+    <div class="tag-input">
+      <input #newBatchTag type="text" placeholder="Add tag to all selected..." (keyup.enter)="addTag(newBatchTag)">
+    </div>
+  </div>
+
     <div class="actions">
       <button class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
-        {{ isCategorizing() ? 'AI Categorize All' : 'AI Categorize All' }}
+      {{ isCategorizing() ? 'AI Categorizing...' : 'AI Categorize All' }}
       </button>
     </div>
   </div>

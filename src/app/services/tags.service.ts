@@ -80,9 +80,48 @@ export class TagsService {
         }
     }
 
+    public addTagToBookmarks(bookmarkIds: string[], tag: string) {
+        const current = { ...this.bookmarkTags() };
+        let changed = false;
+
+        bookmarkIds.forEach(id => {
+            const tags = current[id] || [];
+            if (!tags.includes(tag)) {
+                current[id] = [...tags, tag];
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            this.saveBookmarkTags(current);
+        }
+    }
+
     public removeTagFromBookmark(bookmarkId: string, tag: string) {
         const tags = this.getTagsForBookmark(bookmarkId);
         this.setTagsForBookmark(bookmarkId, tags.filter(t => t !== tag));
+    }
+
+    public removeTagFromBookmarks(bookmarkIds: string[], tag: string) {
+        const current = { ...this.bookmarkTags() };
+        let changed = false;
+
+        bookmarkIds.forEach(id => {
+            const tags = current[id];
+            if (tags && tags.includes(tag)) {
+                const newTags = tags.filter(t => t !== tag);
+                if (newTags.length === 0) {
+                    delete current[id];
+                } else {
+                    current[id] = newTags;
+                }
+                changed = true;
+            }
+        });
+
+        if (changed) {
+            this.saveBookmarkTags(current);
+        }
     }
 
     public setAvailableTags(tags: string[]) {

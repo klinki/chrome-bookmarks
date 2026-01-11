@@ -28,7 +28,15 @@ export class BookmarkDetailComponent {
     if (sel.length === 1) {
       return this.tagsService.getTagsForBookmark(sel[0].id);
     }
-    // For multiple items, we could show common tags or just return empty
+
+    // For multiple items, return intersection of tags
+    if (sel.length > 1) {
+      const firstTags = this.tagsService.getTagsForBookmark(sel[0].id);
+      return firstTags.filter(tag =>
+        sel.every(item => this.tagsService.getTagsForBookmark(item.id).includes(tag))
+      );
+    }
+
     return [];
   });
 
@@ -92,14 +100,20 @@ export class BookmarkDetailComponent {
     const sel = this.selection() ?? [];
     if (sel.length === 1) {
       this.tagsService.removeTagFromBookmark(sel[0].id, tag);
+    } else if (sel.length > 1) {
+      this.tagsService.removeTagFromBookmarks(sel.map(b => b.id), tag);
     }
   }
 
   public addTag(input: HTMLInputElement) {
     const val = input.value.trim();
     const sel = this.selection() ?? [];
-    if (val && sel.length === 1) {
+    if (val) {
+      if (sel.length === 1) {
       this.tagsService.addTagToBookmark(sel[0].id, val);
+      } else if (sel.length > 1) {
+        this.tagsService.addTagToBookmarks(sel.map(b => b.id), val);
+      }
       this.tagsService.addAvailableTag(val);
       input.value = '';
     }
