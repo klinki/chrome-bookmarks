@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject } from '@angular/core';
 import { DragulaModule, DragulaService } from "ng2-dragula";
 
-import { SelectionService } from "../../services";
+import { SelectionService, BookmarksFacadeService } from "../../services";
 import { OrderByPipe } from "../../pipes/order-by.pipe";
 
 @Component({
@@ -53,6 +53,7 @@ export class ListViewComponent implements OnInit, OnChanges {
   ];
 
   protected selectionService = inject(SelectionService);
+  protected bookmarksFacade = inject(BookmarksFacadeService);
 
   public isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
     if (this.selectionService.selectAllActive()) {
@@ -142,7 +143,20 @@ export class ListViewComponent implements OnInit, OnChanges {
       this.selectionService.selectAll();
       return false;
     } else if (event.key == 'Delete') {
+      const selectedIds = this.selectionService.selection();
+      const items = this.items() || [];
+      const selectedBookmarks = items.filter(i => selectedIds.has(i.id));
 
+      if (selectedBookmarks.length > 0) {
+        const count = selectedBookmarks.length;
+        const message = count === 1
+          ? `Are you sure you want to delete "${selectedBookmarks[0].title}"?`
+          : `Are you sure you want to delete ${count} items?`;
+
+        if (confirm(message)) {
+          this.bookmarksFacade.deleteBookmarks(selectedBookmarks);
+        }
+      }
     }
     console.log('keyup..', event);
 

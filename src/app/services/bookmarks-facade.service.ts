@@ -198,6 +198,17 @@ export class BookmarksFacadeService {
     this.selectionService.clearSelection();
     this.searchTerm.set(searchTerm ?? '');
   }
+
+  public async deleteBookmarks(bookmarks: chrome.bookmarks.BookmarkTreeNode[]) {
+    for (const bookmark of bookmarks) {
+      if (bookmark.url) {
+        await this.bookmarkProviderService.remove(bookmark.id);
+      } else {
+        await this.bookmarkProviderService.removeTree(bookmark.id);
+      }
+    }
+    this.selectionService.clearSelection();
+  }
 }
 
 export function injectSelection() {

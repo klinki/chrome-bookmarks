@@ -66,6 +66,14 @@ export class BookmarksProviderService {
     return this.bookmarksService.move(id, destination);
   }
 
+  public remove(id: string) {
+    return this.bookmarksService.remove(id);
+  }
+
+  public removeTree(id: string) {
+    return this.bookmarksService.removeTree(id);
+  }
+
   public moveMultiple(ids: string[], destination: chrome.bookmarks.BookmarkDestinationArg) {
     const promises = ids.map(x => this.move(x, destination));
     return Promise.all(promises);
