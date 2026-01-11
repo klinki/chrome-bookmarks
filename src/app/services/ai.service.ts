@@ -52,13 +52,7 @@ ${JSON.stringify(bookmarksData, null, 2)}
 Instructions:
 1. For each bookmark, choose one or more tags from the "Available Tags" list that best describe the bookmark.
 2. If none of the available tags are suitable, you can suggest NEW tags if you think they are very relevant, but try to stick to the available ones if possible.
-3. Return the result ONLY as a valid JSON object where the keys are the bookmark IDs and the values are arrays of strings (tags). Do not include any other text or explanation.
-
-Example Output:
-{
-  "123": ["Programming", "Angular"],
-  "456": ["News", "Science"]
-}
+3. Return the result as a JSON object with a "results" property containing a list of objects, where each object has "id" and "tags" fields.
 `;
 
         const response = await fetch(`${config.baseUrl}/chat/completions`, {
@@ -80,7 +74,35 @@ Example Output:
                     }
                 ],
                 temperature: 0.1,
-                response_format: { type: "json_object" }
+                response_format: {
+                    type: "json_schema",
+                    json_schema: {
+                        name: "categorization_response",
+                        strict: true,
+                        schema: {
+                            type: "object",
+                            properties: {
+                                results: {
+                                    type: "array",
+                                    items: {
+                                        type: "object",
+                                        properties: {
+                                            id: { type: "string" },
+                                            tags: {
+                                                type: "array",
+                                                items: { type: "string" }
+                                            }
+                                        },
+                                        required: ["id", "tags"],
+                                        additionalProperties: false
+                                    }
+                                }
+                            },
+                            required: ["results"],
+                            additionalProperties: false
+                        }
+                    }
+                }
             })
         });
 
@@ -93,7 +115,16 @@ Example Output:
         const content = result.choices[0].message.content;
 
         try {
-            return JSON.parse(content);
+            const parsed = JSON.parse(content);
+            const output: Record<string, string[]> = {};
+            if (parsed && Array.isArray(parsed.results)) {
+                for (const item of parsed.results) {
+                    if (item.id && Array.isArray(item.tags)) {
+                        output[item.id] = item.tags;
+                    }
+                }
+            }
+            return output;
         } catch (e) {
             console.error('Failed to parse AI response:', content);
             throw new Error('AI returned invalid JSON');
