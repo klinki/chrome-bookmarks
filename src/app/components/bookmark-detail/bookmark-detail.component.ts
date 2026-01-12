@@ -110,7 +110,7 @@ export class BookmarkDetailComponent {
     const sel = this.selection() ?? [];
     if (val) {
       if (sel.length === 1) {
-      this.tagsService.addTagToBookmark(sel[0].id, val);
+        this.tagsService.addTagToBookmark(sel[0].id, val);
       } else if (sel.length > 1) {
         this.tagsService.addTagToBookmarks(sel.map(b => b.id), val);
       }

@@ -42,7 +42,7 @@ export class ListViewComponent implements OnInit, OnChanges {
     {
       title: 'Last Used',
       name: 'dateLastUsed'
-},
+    },
     {
       title: 'Tags',
       name: 'tags'
