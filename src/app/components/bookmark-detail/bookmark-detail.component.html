@@ -1,34 +1,40 @@
 @if (singleBookmarkSelected()) {
   <div class="detail-form">
     <h3>Bookmark Details</h3>
-    <div class="field">
-      <label>Title</label>
-      <input type="text" [value]="selection()![0].title" name="title" />
-    </div>
-    <div class="field">
-      <label>URL</label>
-      <input type="text" [value]="selection()![0].url" name="url" />
-    </div>
-    <div class="tags-section">
-      <label>Tags</label>
-      <div class="tags-list">
-        <div *ngFor="let tag of currentTags()" class="tag-chip">
-          {{ tag }}
-          <button (click)="removeTag(tag)">×</button>
+    <form [formGroup]="editForm" (ngSubmit)="saveChanges()">
+      <div class="field">
+        <label>Title</label>
+        <input type="text" formControlName="title" name="title" />
+      </div>
+      <div class="field">
+        <label>URL</label>
+        <input type="text" formControlName="url" name="url" />
+      </div>
+      <div class="tags-section">
+        <label>Tags</label>
+        <div class="tags-list">
+          <div *ngFor="let tag of currentTags()" class="tag-chip">
+            {{ tag }}
+            <button type="button" (click)="removeTag(tag)">×</button>
+          </div>
+        </div>
+        <div class="tag-input">
+          <input #newTag type="text" placeholder="Add tag..." (keyup.enter)="addTag(newTag)">
         </div>
       </div>
-      <div class="tag-input">
-        <input #newTag type="text" placeholder="Add tag..." (keyup.enter)="addTag(newTag)">
-      </div>
-    </div>
 
-    <div class="actions">
-      <button class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
-        {{ isCategorizing() ? 'Categorizing...' : 'AI Categorize' }}
-      </button>
-    </div>
+      <div class="actions">
+        <button type="submit" class="save-btn" [disabled]="isSaving() || editForm.pristine">
+          {{ isSaving() ? 'Saving...' : 'Save' }}
+        </button>
+        <button type="button" class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
+          {{ isCategorizing() ? 'Categorizing...' : 'AI Categorize' }}
+        </button>
+      </div>
+    </form>
   </div>
-} @else if (singleFolderSelected()) {
+}
+ @else if (singleFolderSelected()) {
   <div class="detail-info">
     <h3>Folder Details</h3>
     <strong>Name: {{ selection()![0].title }}</strong>

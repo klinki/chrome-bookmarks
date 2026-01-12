@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, effect } from '@angular/core';
+import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
+import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
 
 @Component({
   selector: 'app-bookmark-detail',
@@ -19,9 +20,50 @@ import { AiService } from '../../services/ai.service';
 export class BookmarkDetailComponent {
   private tagsService = inject(TagsService);
   private aiService = inject(AiService);
+  private bookmarksFacade = inject(BookmarksFacadeService);
+  private fb = inject(FormBuilder);
 
   public selection = input<chrome.bookmarks.BookmarkTreeNode[] | null>([]);
   public isCategorizing = signal(false);
+  public isSaving = signal(false);
+
+  public editForm = this.fb.group({
+    title: [''],
+    url: ['']
+  });
+
+  constructor() {
+    // Update form when selection changes
+    effect(() => {
+      const sel = this.selection();
+      if (sel && sel.length === 1) {
+        this.editForm.patchValue({
+          title: sel[0].title,
+          url: sel[0].url ?? ''
+        });
+        this.editForm.markAsPristine();
+      }
+    });
+  }
+
+  public async saveChanges() {
+    const sel = this.selection();
+    if (!sel || sel.length !== 1) return;
+
+    this.isSaving.set(true);
+    try {
+      await this.bookmarksFacade.updateBookmark(sel[0].id, {
+        title: this.editForm.value.title ?? undefined,
+        url: this.editForm.value.url ?? undefined
+      });
+      this.editForm.markAsPristine();
+    } catch (e) {
+      console.error('Failed to save bookmark:', e);
+      alert('Failed to save bookmark. Check console for details.');
+    } finally {
+      this.isSaving.set(false);
+    }
+  }
 
   public currentTags = computed(() => {
     const sel = this.selection() ?? [];

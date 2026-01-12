@@ -269,6 +269,10 @@ export class BookmarksFacadeService {
     }
     this.selectionService.clearSelection();
   }
+
+  public async updateBookmark(id: string, changes: { title?: string; url?: string }) {
+    return await this.bookmarkProviderService.update(id, changes);
+  }
 }
 
 export function injectSelection() {

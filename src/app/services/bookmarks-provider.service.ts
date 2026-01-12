@@ -78,6 +78,10 @@ export class BookmarksProviderService {
     const promises = ids.map(x => this.move(x, destination));
     return Promise.all(promises);
   }
+
+  public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg) {
+    return this.bookmarksService.update(id, changes);
+  }
 }
 
 export function injectAllBookmarksMap() {
