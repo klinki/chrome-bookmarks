@@ -252,3 +252,63 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
         document.head.appendChild(style);
     }, { rootNodeArg: rootNode, mockMapArg: mockMap, initialStorageArg: initialStorage });
 }
+
+/**
+ * Mock AI API endpoints for E2E testing.
+ * Intercepts:
+ * - POST /chat/completions - Returns mock categorization results
+ * - GET /api/tags - Returns mock Ollama model list
+ * - GET /v1/models - Returns mock LM Studio model list
+ */
+export async function setupAiMock(page: any, mockTags: Record<string, string[]> = {}) {
+    // Mock AI categorization endpoint
+    await page.route('**/chat/completions', async (route: any) => {
+        const requestData = JSON.parse(route.request().postData() || '{}');
+        
+        // Extract bookmark IDs from the prompt if possible, or use provided mockTags
+        const results = Object.keys(mockTags).length > 0 
+            ? Object.entries(mockTags).map(([id, tags]) => ({ id, tags }))
+            : [{ id: '101', tags: ['technology', 'programming'] }];
+
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                choices: [{
+                    message: {
+                        content: JSON.stringify({ results })
+                    }
+                }]
+            })
+        });
+    });
+
+    // Mock Ollama model discovery
+    await page.route('**/api/tags', async (route: any) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                models: [
+                    { name: 'llama3:latest' },
+                    { name: 'codellama:7b' },
+                    { name: 'mistral:latest' }
+                ]
+            })
+        });
+    });
+
+    // Mock LM Studio model discovery
+    await page.route('**/v1/models', async (route: any) => {
+        await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+                data: [
+                    { id: 'lmstudio-community/Meta-Llama-3.1' },
+                    { id: 'lmstudio-community/Mistral-7B' }
+                ]
+            })
+        });
+    });
+}
