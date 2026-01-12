@@ -1,12 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { getMockData, setupChromeMock } from './e2e-utils';
+import { AppPage } from './app.po';
 
 const { root, MOCK_BOOKMARKS_MAP } = getMockData();
 
 test.beforeEach(async ({ page }) => {
     page.on('console', msg => console.log('BROWSER:', msg.text()));
     await setupChromeMock(page, root, MOCK_BOOKMARKS_MAP);
-    await page.goto('/');
+    const appPage = new AppPage(page);
+    await appPage.navigate();
 });
 
 /**

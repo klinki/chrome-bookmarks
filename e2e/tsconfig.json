@@ -5,13 +5,13 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "mapRoot": "",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "noEmitOnError": true,
     "noImplicitAny": false,
     "rootDir": ".",
     "sourceMap": true,
     "sourceRoot": "/",
-    "target": "es5"
+    "target": "es2020"
   }
 }
