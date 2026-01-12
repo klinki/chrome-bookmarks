@@ -1,4 +1,4 @@
-import {ContentChildren, Directive, EventEmitter, Input, OnInit, Output, QueryList} from '@angular/core';
+import {ContentChildren, Directive, EventEmitter, forwardRef, Input, OnInit, Output, QueryList} from '@angular/core';
 import {ContextMenuGroupDirective} from "./context-menu-group.component";
 
 @Directive({
@@ -24,7 +24,7 @@ export class ContextMenuItemComponent implements OnInit {
   @Input()
   iconColor: string|null = null;
 
-  @ContentChildren(ContextMenuGroupDirective)
+  @ContentChildren(forwardRef(() => ContextMenuGroupDirective))
   menuGroups!: QueryList<ContextMenuGroupDirective>;
 
   @Output()

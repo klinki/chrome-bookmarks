@@ -1,4 +1,4 @@
-import {ContentChildren, Directive, OnInit, QueryList} from '@angular/core';
+import {ContentChildren, Directive, forwardRef, OnInit, QueryList} from '@angular/core';
 import {ContextMenuItemComponent} from "./context-menu-item.component";
 
 @Directive({
@@ -6,7 +6,7 @@ import {ContextMenuItemComponent} from "./context-menu-item.component";
   standalone: true
 })
 export class ContextMenuGroupDirective implements OnInit {
-  @ContentChildren(ContextMenuItemComponent)
+  @ContentChildren(forwardRef(() => ContextMenuItemComponent))
   groupItems!: QueryList<ContextMenuItemComponent>;
 
   get visibleMenuItems(): ContextMenuItemComponent[] {
