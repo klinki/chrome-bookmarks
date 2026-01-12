@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject } from '@angular/core';
 import { DragulaModule, DragulaService } from "ng2-dragula";
 
-import { SelectionService, BookmarksFacadeService } from "../../services";
+import { SelectionService, BookmarksFacadeService, TagsService } from "../../services";
 import { OrderByPipe } from "../../pipes/order-by.pipe";
 
 @Component({
@@ -42,18 +42,24 @@ export class ListViewComponent implements OnInit, OnChanges {
     {
       title: 'Last Used',
       name: 'dateLastUsed'
+},
+    {
+      title: 'Tags',
+      name: 'tags'
     }
   ];
 
   public displayedColumns = [
     this.availableColumns[0],
     this.availableColumns[1],
+    this.availableColumns[4], // Tags
     this.availableColumns[2],
     this.availableColumns[3]
   ];
 
   protected selectionService = inject(SelectionService);
   protected bookmarksFacade = inject(BookmarksFacadeService);
+  protected tagsService = inject(TagsService);
 
   public isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
     if (this.selectionService.selectAllActive()) {
@@ -84,7 +90,18 @@ export class ListViewComponent implements OnInit, OnChanges {
   }
 
   public getColumnValue(item: chrome.bookmarks.BookmarkTreeNode, column: string): string | number | undefined | chrome.bookmarks.BookmarkTreeNode[] {
-    return (item as any)[column];
+    const value = (item as any)[column];
+    if (column === 'tags') {
+      const tags = this.tagsService.getTagsForBookmark(item.id);
+      return tags.join(', ');
+    }
+    if (column === 'dateAdded' || column === 'dateLastUsed') {
+      if (!value) return '';
+      const date = new Date(value);
+      // Format: d.M.yyyy H:mm
+      return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+    }
+    return value;
   }
 
   public itemClick(e: MouseEvent, item: chrome.bookmarks.BookmarkTreeNode) {
