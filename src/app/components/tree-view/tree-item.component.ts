@@ -36,7 +36,8 @@ export class TreeItemComponent implements OnInit {
   ngOnInit() {
   }
 
-  toggle(directory: BookmarkDirectory) {
+  toggle(event: MouseEvent, directory: BookmarkDirectory) {
+    event.stopPropagation();
     if (directory.children.length === 0)
       return;
 

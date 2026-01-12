@@ -10,12 +10,12 @@
     [cdkContextMenuTriggerFor]="menu()"
     [cdkContextMenuTriggerData]="dir()"
     (click)="open(dir())"
-    (dblclick)="toggle(dir())"
+    (dblclick)="toggle($event, dir())"
     [attr.may-have-children]="hasSubDirectories(dir()) ? true : null"
     [style.-webkit-padding-start]="(level() * 20) + 'px'"
     [attr.selected]="isSelected() ? true : null"
     >
-    <span class="expand-icon" (click)="toggle(dir())"></span>
+    <span class="expand-icon" (click)="toggle($event, dir())"></span>
     <span class="tree-label">{{dir().title}}</span>
   </div>
   <div class="tree-children" [attr.expanded]="expanded(dir()) ? true : null">
