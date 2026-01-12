@@ -76,10 +76,71 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
             console.log('E2E: Starting mock injection');
             (window as any).isE2E = true;
 
-            // Provide data for MockBookmarksService
-            (window as any).e2eBookmarks = {
-                root: rootNodeArg,
-                map: mockMapArg
+            const findNode = (node: any, targetId: string): any => {
+                if (node.id === targetId) return node;
+                if (node.children) {
+                    for (const child of node.children) {
+                        const found = findNode(child, targetId);
+                        if (found) return found;
+                    }
+                }
+                return null;
+            };
+
+            const recursiveSearch = (node: any, query: string, results: any[]) => {
+                const queryString = query.toLowerCase();
+                if (node.id !== '0' && ((node.title && node.title.toLowerCase().includes(queryString)) || (node.url && node.url.toLowerCase().includes(queryString)))) {
+                    results.push(node);
+                }
+                if (node.children) {
+                    for (const child of node.children) {
+                        recursiveSearch(child, query, results);
+                    }
+                }
+            };
+
+            const listeners: any = {
+                onCreated: [],
+                onRemoved: [],
+                onChanged: [],
+                onMoved: [],
+            };
+
+            const moveNode = (id: string, destination: { parentId: string, index?: number }) => {
+                const node = findNode(rootNodeArg, id);
+                if (!node) return;
+
+                const oldParentId = node.parentId;
+                const oldParent = findNode(rootNodeArg, oldParentId);
+                let oldIndex = 0;
+                if (oldParent && oldParent.children) {
+                    oldIndex = oldParent.children.findIndex((c: any) => c.id === id);
+                    if (oldIndex !== -1) {
+                        oldParent.children.splice(oldIndex, 1);
+                    }
+                }
+
+                const newParent = findNode(rootNodeArg, destination.parentId);
+                if (newParent) {
+                    if (!newParent.children) newParent.children = [];
+                    node.parentId = destination.parentId;
+                    if (destination.index !== undefined) {
+                        newParent.children.splice(destination.index, 0, node);
+                    } else {
+                        newParent.children.push(node);
+                    }
+
+                    newParent.children.forEach((c: any, i: number) => { c.index = i; });
+
+                    const moveInfo = {
+                        parentId: destination.parentId,
+                        index: destination.index ?? newParent.children.length - 1,
+                        oldParentId: oldParentId,
+                        oldIndex: oldIndex
+                    };
+
+                    listeners.onMoved.forEach((l: any) => l(id, moveInfo));
+                }
             };
 
             let storageData = { ...initialStorageArg };
@@ -108,19 +169,74 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                     }
                 },
                 bookmarks: {
-                   // We don't need real implementations here because we are using MockBookmarksService
-                   // but we provide the subjects/listeners just in case something checks them
-                   onCreated: { addListener: () => {}, removeListener: () => {} },
-                   onRemoved: { addListener: () => {}, removeListener: () => {} },
-                   onChanged: { addListener: () => {}, removeListener: () => {} },
-                   onMoved: { addListener: () => {}, removeListener: () => {} },
-                   onChildrenReordered: { addListener: () => {}, removeListener: () => {} },
-                   onImportBegan: { addListener: () => {}, removeListener: () => {} },
-                   onImportEnded: { addListener: () => {}, removeListener: () => {} },
+                    getTree: (callback: any) => {
+                        callback([JSON.parse(JSON.stringify(rootNodeArg))]);
+                    },
+                    getChildren: (id: string, callback: any) => {
+                        const node = findNode(rootNodeArg, id);
+                        callback(JSON.parse(JSON.stringify(node?.children || [])));
+                    },
+                    get: (idOrIds: string|string[], callback: any) => {
+                        const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+                        const results = ids.map(id => findNode(rootNodeArg, id)).filter(n => !!n);
+                        callback(JSON.parse(JSON.stringify(results)));
+                    },
+                    search: (query: any, callback: any) => {
+                        const results: any[] = [];
+                        const queryString = typeof query === 'string' ? query : (query.query || query.title || query.url || '');
+                        if (queryString) {
+                            recursiveSearch(rootNodeArg, queryString, results);
+                        }
+                        callback(JSON.parse(JSON.stringify(results)));
+                    },
+                    move: (id: string, destination: any, callback?: any) => {
+                        moveNode(id, destination);
+                        if (callback) callback(JSON.parse(JSON.stringify(findNode(rootNodeArg, id))));
+                    },
+                    update: (id: string, changes: any, callback?: any) => {
+                        const node = findNode(rootNodeArg, id);
+                        if (node) {
+                            Object.assign(node, changes);
+                            listeners.onChanged.forEach((l: any) => l(id, changes));
+                        }
+                        if (callback) callback(JSON.parse(JSON.stringify(node)));
+                    },
+                    remove: (id: string, callback?: any) => {
+                        const node = findNode(rootNodeArg, id);
+                        if (node) {
+                            const parent = findNode(rootNodeArg, node.parentId);
+                            if (parent && parent.children) {
+                                const index = parent.children.findIndex((c: any) => c.id === id);
+                                if (index !== -1) {
+                                    parent.children.splice(index, 1);
+                                    listeners.onRemoved.forEach((l: any) => l(id, { parentId: node.parentId, index }));
+                                }
+                            }
+                        }
+                        if (callback) callback();
+                    },
+                    onCreated: { addListener: (l: any) => listeners.onCreated.push(l), removeListener: () => {} },
+                    onRemoved: { addListener: (l: any) => listeners.onRemoved.push(l), removeListener: () => {} },
+                    onChanged: { addListener: (l: any) => listeners.onChanged.push(l), removeListener: () => {} },
+                    onMoved: { addListener: (l: any) => listeners.onMoved.push(l), removeListener: () => {} },
+                    onChildrenReordered: { addListener: () => {}, removeListener: () => {} },
+                    onImportBegan: { addListener: () => {}, removeListener: () => {} },
+                    onImportEnded: { addListener: () => {}, removeListener: () => {} },
                 }
             };
 
-            (window as any).chrome = chromeMock;
+            try {
+                Object.defineProperty(window, 'chrome', {
+                    configurable: true,
+                    enumerable: true,
+                    value: chromeMock,
+                    writable: true
+                });
+            } catch (e) {
+                console.warn('E2E: Failed to redefine chrome, using property assignment', e);
+                (window as any).chrome = chromeMock;
+            }
+            
             console.log('E2E: Mock injection complete');
         } catch (e) {
             console.error('E2E: Mock injection failed', e);
