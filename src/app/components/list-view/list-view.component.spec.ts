@@ -1,11 +1,49 @@
-/* tslint:disable:no-unused-variable */
-
-
-import {ListViewComponent} from "./list-view.component";
+import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ListViewComponent } from './list-view.component';
+import { SelectionService } from '../../services/selection.service';
+import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
+import { TagsService } from '../../services/tags.service';
+import { signal } from '@angular/core';
 
 describe('Component: ListView', () => {
+  let component: ListViewComponent;
+  let fixture: ComponentFixture<ListViewComponent>;
+
+  const mockSelectionService = {
+    selection: signal(new Set()),
+    selectAllActive: signal(false),
+    select: jasmine.createSpy('select'),
+    clearSelection: jasmine.createSpy('clearSelection'),
+    selectAll: jasmine.createSpy('selectAll'),
+    items: [],
+    itemsSignal: signal([]) 
+  };
+
+  const mockBookmarksFacade = {
+    items: signal([])
+  };
+
+  const mockTagsService = {};
+
+  beforeEach(waitForAsync(() => {
+    TestBed.configureTestingModule({
+      imports: [ListViewComponent],
+      providers: [
+        { provide: SelectionService, useValue: mockSelectionService },
+        { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
+        { provide: TagsService, useValue: mockTagsService }
+      ]
+    })
+    .compileComponents();
+  }));
+
+  beforeEach(() => {
+    fixture = TestBed.createComponent(ListViewComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
   it('should create an instance', () => {
-    let component = new ListViewComponent(null!);
     expect(component).toBeTruthy();
   });
 });

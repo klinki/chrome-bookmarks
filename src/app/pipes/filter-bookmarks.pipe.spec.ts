@@ -1,13 +1,18 @@
 /* tslint:disable:no-unused-variable */
 
 import {
-  async, inject, TestBed
+  waitForAsync, inject, TestBed
 } from '@angular/core/testing';
 import { FilterBookmarksPipe } from './filter-bookmarks.pipe';
 
-describe('Pipe: FilterBookmarks', () => {
-  it('create an instance', () => {
-    let pipe = new FilterBookmarksPipe();
-    expect(pipe).toBeTruthy();
+describe('FilterBookmarks Pipe', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [FilterBookmarksPipe]
+    });
   });
+
+  it('should create an instance', inject([FilterBookmarksPipe], (pipe: FilterBookmarksPipe) => {
+    expect(pipe).toBeTruthy();
+  }));
 });

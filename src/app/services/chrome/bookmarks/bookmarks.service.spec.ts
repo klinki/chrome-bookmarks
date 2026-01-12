@@ -1,17 +1,15 @@
 /* tslint:disable:no-unused-variable */
 
-import {
-  async, inject, TestBed
-} from '@angular/core/testing';
+import { waitForAsync, inject, TestBed } from '@angular/core/testing';
 import { BookmarksService } from './bookmarks.service';
 
 describe('Bookmarks Service', () => {
   beforeEach(() => {
-     TestBed.configureTestingModule([BookmarksService]);
+    TestBed.configureTestingModule({ providers: [BookmarksService] });
    });
 
   it('should ...',
-      inject([BookmarksService], (service: BookmarksService) => {
-    expect(service).toBeTruthy();
-  }));
+    waitForAsync(inject([BookmarksService], (service: BookmarksService) => {
+      expect(service).toBeTruthy();
+    })));
 });

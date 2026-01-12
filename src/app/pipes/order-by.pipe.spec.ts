@@ -1,13 +1,18 @@
 /* tslint:disable:no-unused-variable */
 
 import {
-  async, inject, TestBed
+  waitForAsync, inject, TestBed
 } from '@angular/core/testing';
 import { OrderByPipe } from './order-by.pipe';
 
-describe('Pipe: OrderBy', () => {
-  it('create an instance', () => {
-    let pipe = new OrderByPipe();
-    expect(pipe).toBeTruthy();
+describe('OrderBy Pipe', () => {
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [OrderByPipe]
+    });
   });
+
+  it('should create an instance', inject([OrderByPipe], (pipe: OrderByPipe) => {
+    expect(pipe).toBeTruthy();
+  }));
 });
