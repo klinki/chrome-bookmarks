@@ -8,6 +8,7 @@ import {injectDisplayedItems, injectSelection} from "./bookmarks-facade.service"
 import {injectSelectedFolderSignal, injectSelectItemCallback} from "./selection.service";
 import {injectAllBookmarksMap, injectMoveMultipleBookmarksCallback} from "./bookmarks-provider.service";
 import {Debouncer} from "../utils/debouncer";
+import {TagsService} from "./tags.service";
 
 interface NormalizedDragData {
   elements: chrome.bookmarks.BookmarkTreeNode[];
@@ -405,9 +406,13 @@ export class DragAndDropService {
       return DropPosition.ON;
     }
 
-    // Virtual Node Check for Roots
-    if (itemId === 'ROOT_ALL' || itemId === 'ROOT_TAGS') {
+    // Virtual Node Check for Roots and Servers
+    if (itemId === 'ROOT_ALL' || itemId === 'ROOT_TAGS' || itemId.startsWith('SERVER_')) {
       return DropPosition.NONE;
+    }
+
+    if (!nodesMap[itemId]) {
+        return DropPosition.NONE;
     }
 
     if (!canReorderChildren(nodesMap, itemId)) {
@@ -442,8 +447,8 @@ export class DragAndDropService {
       return DropPosition.NONE;
     }
 
-    // Virtual Node Check - cannot sort tags or root nodes
-    if (overElementItemId?.startsWith('TAG_') || overElementItemId?.startsWith('ROOT_')) {
+    // Virtual Node Check - cannot sort tags or root nodes or servers
+    if (overElementItemId?.startsWith('TAG_') || overElementItemId?.startsWith('ROOT_') || overElementItemId?.startsWith('SERVER_')) {
       return DropPosition.NONE;
     }
 
