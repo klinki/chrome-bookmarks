@@ -203,6 +203,7 @@ export class DragAndDropService {
   }
 
   private onDragOver(e: Event) {
+    try {
     this.dropDestination = null;
 
     // Allow normal DND on text inputs.
@@ -236,6 +237,9 @@ export class DragAndDropService {
 
     this.autoExpander!.update(e, overElement, this.dropDestination.position);
     this.dropIndicator!.update(this.dropDestination);
+    } catch (err) {
+      console.error('onDragOver error', err);
+    }
   }
 
   private onDragEnd(e: Event) {
