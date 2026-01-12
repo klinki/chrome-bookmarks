@@ -3,10 +3,9 @@
     <tr>
       @for (column of displayedColumns; track column) {
         <th (click)="orderBy(column.name)">
-        <span [style.visibility]="orderProperties().column == column.name ? 'visible' : 'hidden'">
-          {{ orderProperties().asc ? '▲' : '▼' }}
-            </span>
-          }
+          <span [style.visibility]="orderProperties().column == column.name ? 'visible' : 'hidden'">
+            {{ orderProperties().asc ? '▲' : '▼' }}
+          </span>
           {{column.title}}
         </th>
       }

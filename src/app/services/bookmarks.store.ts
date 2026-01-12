@@ -1,4 +1,4 @@
-﻿import {patchState, signalStore, withComputed, withMethods, withState} from '@ngrx/signals';
+﻿import {patchState, signalStore, withComputed, withMethods, withHooks, withState} from '@ngrx/signals';
 import {IncognitoAvailability} from "./constants";
 import {NodeMap} from "./types";
 import {computed, inject} from "@angular/core";
@@ -232,3 +232,4 @@ export const BookmarksStore = signalStore(
     }
   })
 );
+
