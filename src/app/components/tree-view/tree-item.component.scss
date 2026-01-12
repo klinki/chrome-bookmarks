@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  user-select: none;
+}
+
+:host.drag-on .tree-row {
+  background-color: rgba(33, 150, 243, 0.1);
+  outline: 2px solid #2196F3;
+  outline-offset: -2px;
+}
+
+:host.drag-above {
+  box-shadow: inset 0 2px 0 #2196F3 !important;
+}
+
+:host.drag-below {
+  box-shadow: inset 0 -2px 0 #2196F3 !important;
+}

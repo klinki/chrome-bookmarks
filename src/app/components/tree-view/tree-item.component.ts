@@ -11,12 +11,7 @@ import { CdkContextMenuTrigger } from "@angular/cdk/menu";
     CdkContextMenuTrigger
   ],
   templateUrl: './tree-item.component.html',
-  styles: [`
-    :host {
-      display: block;
-      user-select: none;
-    }
-  `]
+  styleUrls: ['./tree-item.component.scss']
 })
 export class TreeItemComponent implements OnInit {
   private bookmarkService: SelectionService = inject(SelectionService);
