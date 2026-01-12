@@ -76,7 +76,7 @@ export class ListViewMatTableComponent {
   }
 
   isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
-    if (this.selectionService.selectAllActive) {
+    if (this.selectionService.selectAllActive()) {
       return !this.selectedItems.has(item.id);
     }
 
