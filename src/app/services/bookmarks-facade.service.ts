@@ -37,11 +37,43 @@ export class BookmarksFacadeService {
       this.onBookmarksUpdated$.pipe(
         switchMap(() => fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot()))
       ),
+      this.onBookmarksUpdated$.pipe(
+        switchMap(() => fromPromise(this.bookmarkProviderService.getBookmarks()))
+      ),
       toObservable(this.tagsService.availableTags)
     ]).pipe(
-      map(([tree, tags]) => {
+      map(([tree, allBookmarksTree, tags]) => {
         const _tree = tree as chrome.bookmarks.BookmarkTreeNode[];
         const _tags = tags as string[];
+
+        // Calculate Top 20 Servers
+        const hostnames: Record<string, number> = {};
+        const stack = [...allBookmarksTree];
+        while (stack.length) {
+          const node = stack.pop()!;
+          if (node.url) {
+            try {
+              const hostname = new URL(node.url).hostname;
+              hostnames[hostname] = (hostnames[hostname] || 0) + 1;
+            } catch (e) {
+              // Ignore invalid URLs
+            }
+          }
+          if (node.children) {
+            stack.push(...node.children);
+          }
+        }
+
+        const topServers = Object.entries(hostnames)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 20)
+          .map(([hostname, count]) => ({
+            id: 'SERVER_' + hostname,
+            title: hostname, // No count in title as per requirement, but could be added
+            url: undefined,
+            children: [],
+            expanded: false
+          }));
 
         return [
           {
@@ -54,6 +86,12 @@ export class BookmarksFacadeService {
               children: [],
               expanded: false
             })),
+            expanded: true
+          },
+          {
+            id: 'ROOT_SERVERS',
+            title: 'Servers (Top 20)',
+            children: topServers,
             expanded: true
           },
           {
@@ -139,7 +177,7 @@ export class BookmarksFacadeService {
           return fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
         }
 
-        if (directory.id === 'ROOT_TAGS') {
+        if (directory.id === 'ROOT_TAGS' || directory.id === 'ROOT_SERVERS') {
           return of([]);
         }
 
@@ -159,6 +197,28 @@ export class BookmarksFacadeService {
                 const tags = this.tagsService.getTagsForBookmark(b.id);
                 return tags.includes(tagName);
               });
+            })
+          );
+        }
+
+        if (directory.id.startsWith('SERVER_')) {
+          const hostname = directory.title;
+          return fromPromise(this.bookmarkProviderService.getBookmarks()).pipe(
+            map(tree => {
+              const allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
+              const stack = [...tree];
+              while (stack.length) {
+                const node = stack.pop()!;
+                if (node.url) {
+                  try {
+                    if (new URL(node.url).hostname === hostname) {
+                      allBookmarks.push(node);
+                    }
+                  } catch (e) { }
+                }
+                if (node.children) stack.push(...node.children);
+              }
+              return allBookmarks;
             })
           );
         }
