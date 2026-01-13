@@ -65,6 +65,10 @@ export class TreeItemComponent implements OnInit {
     this.bookmarkService.selectDirectory(directory);
   }
 
+  onRightClick(event: MouseEvent, directory: BookmarkDirectory) {
+    this.bookmarkService.selectDirectory(directory);
+  }
+
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
     if ((directory?.children?.length ?? 0) > 0) {
       const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {

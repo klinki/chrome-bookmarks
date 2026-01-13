@@ -10,6 +10,7 @@
     [cdkContextMenuTriggerFor]="menu()"
     [cdkContextMenuTriggerData]="directory()"
     (click)="open(directory())"
+    (contextmenu)="onRightClick($event, directory())"
     (dblclick)="toggle($event, directory())"
     [attr.may-have-children]="hasSubDirectories(directory()) ? true : null"
     [style.-webkit-padding-start]="(level() * 20) + 'px'"
@@ -25,6 +26,8 @@
         [directory]="child"
         [level]="level() + 1"
         [selectedItem]="selectedItem()"
+        [menu]="menu()"
+        [menuComponent]="menuComponent()"
         >
       </app-tree-item>
     }
