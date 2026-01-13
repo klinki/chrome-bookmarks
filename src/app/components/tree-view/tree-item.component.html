@@ -1,27 +1,28 @@
 <div
   class="tree-item"
   role="treeitem"
-  [attr.has-children]="hasSubDirectories(dir()) ? true : null"
-  [attr.may-have-children]="hasSubDirectories(dir()) ? true : null"
+  [attr.has-children]="hasSubDirectories(directory()) ? true : null"
+  [attr.may-have-children]="hasSubDirectories(directory()) ? true : null"
   [attr.selected]="isSelected() ? true : null"
-  [attr.expanded]="expanded(dir()) ? true : null"
+  [attr.expanded]="expanded(directory()) ? true : null"
   >
   <div class="tree-row"
     [cdkContextMenuTriggerFor]="menu()"
-    [cdkContextMenuTriggerData]="dir()"
-    (click)="open(dir())"
-    (dblclick)="toggle($event, dir())"
-    [attr.may-have-children]="hasSubDirectories(dir()) ? true : null"
+    [cdkContextMenuTriggerData]="directory()"
+    (click)="open(directory())"
+    (dblclick)="toggle($event, directory())"
+    [attr.may-have-children]="hasSubDirectories(directory()) ? true : null"
     [style.-webkit-padding-start]="(level() * 20) + 'px'"
     [attr.selected]="isSelected() ? true : null"
     >
-    <span class="expand-icon" (click)="toggle($event, dir())"></span>
-    <span class="tree-label">{{dir().title}}</span>
+    <span class="expand-icon" (click)="toggle($event, directory())"></span>
+    <mat-icon class="tree-icon">{{getIcon(directory())}}</mat-icon>
+    <span class="tree-label">{{directory().title}}</span>
   </div>
-  <div class="tree-children" [attr.expanded]="expanded(dir()) ? true : null">
-    @for (child of dir().children; track child) {
+  <div class="tree-children" [attr.expanded]="expanded(directory()) ? true : null">
+    @for (child of directory().children; track child) {
       <app-tree-item
-        [dir]="child"
+        [directory]="child"
         [level]="level() + 1"
         [selectedItem]="selectedItem()"
         >

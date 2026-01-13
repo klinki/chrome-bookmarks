@@ -1,7 +1,7 @@
 <div id="tree-container">
   @for (dir of directories(); track dir) {
     <app-tree-item
-      [dir]="dir"
+      [directory]="dir"
       [level]="0"
       [selectedItem]="selectedDirectory()"
       [menu]="rightClickMenu.menu.menu"

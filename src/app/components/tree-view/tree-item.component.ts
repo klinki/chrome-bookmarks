@@ -1,4 +1,5 @@
 import { Component, OnInit, input, HostBinding, computed, inject } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
 
@@ -8,7 +9,8 @@ import { CdkContextMenuTrigger } from "@angular/cdk/menu";
   standalone: true,
   selector: 'app-tree-item',
   imports: [
-    CdkContextMenuTrigger
+    CdkContextMenuTrigger,
+    MatIconModule
   ],
   templateUrl: './tree-item.component.html',
   styleUrls: ['./tree-item.component.scss']
@@ -16,7 +18,7 @@ import { CdkContextMenuTrigger } from "@angular/cdk/menu";
 export class TreeItemComponent implements OnInit {
   private bookmarkService: SelectionService = inject(SelectionService);
 
-  public dir = input<any>();
+  public directory = input<any>();
   public level = input<number>(0);
   public selectedItem = input<any>(null);
   public menu = input<any>();
@@ -24,14 +26,14 @@ export class TreeItemComponent implements OnInit {
 
   @HostBinding('attr.itemId')
   get itemId() {
-    return this.dir()?.id;
+    return this.directory()?.id;
   }
 
   @HostBinding('attr.draggable')
   draggable = true;
 
   public isSelected = computed(() => {
-    return this.selectedItem()?.id === this.dir()?.id;
+    return this.selectedItem()?.id === this.directory()?.id;
   });
 
   ngOnInit() {
@@ -73,5 +75,20 @@ export class TreeItemComponent implements OnInit {
     }
 
     return false;
+  }
+
+  getIcon(directory: any): string {
+    if (directory.id?.startsWith('TAG_') || directory.id === 'ROOT_TAGS') {
+      return 'label';
+    }
+    if (directory.id?.startsWith('SERVER_') || directory.id === 'ROOT_SERVERS') {
+      return 'dns'; // or public, storage
+    }
+    // Default folder icons
+    if (directory.id === 'ROOT_ALL') {
+      return 'bookmarks';
+    }
+
+    return directory.expanded ? 'folder_open' : 'folder';
   }
 }

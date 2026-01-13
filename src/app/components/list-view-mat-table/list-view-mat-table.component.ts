@@ -2,6 +2,7 @@ import {Component, HostListener, Input, SimpleChanges, ViewChild} from '@angular
 
 import {MatTableDataSource, MatTableModule} from "@angular/material/table";
 import {MatSort, MatSortModule} from "@angular/material/sort";
+import {MatIconModule} from "@angular/material/icon";
 import {SelectionService} from "../../services";
 import {
   CdkTableFixedSizeVirtualScroll,
@@ -18,7 +19,9 @@ import {NoopAnimationsModule} from "@angular/platform-browser/animations";
     CdkTableVirtualScrollDataHandler,
     CdkTableVirtualScrollable,
     MatSortModule,
-    MatTableModule
+    MatSortModule,
+    MatTableModule,
+    MatIconModule
 ],
   templateUrl: './list-view-mat-table.component.html',
   styleUrl: './list-view-mat-table.component.scss'
@@ -163,6 +166,20 @@ export class ListViewMatTableComponent {
       return url.toString();
     }
 
+    return '';
+  }
+
+  getIcon(element: chrome.bookmarks.BookmarkTreeNode): string {
+    const isFolder = !element.url;
+    if (isFolder) {
+       if (element.id?.startsWith('TAG_') || element.id === 'ROOT_TAGS') {
+        return 'label';
+      }
+      if (element.id?.startsWith('SERVER_') || element.id === 'ROOT_SERVERS') {
+        return 'dns';
+      }
+      return 'folder';
+    }
     return '';
   }
 

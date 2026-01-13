@@ -2,7 +2,11 @@
   <ng-container matColumnDef="title">
     <mat-header-cell *matHeaderCellDef mat-sort-header>Title</mat-header-cell>
     <mat-cell *matCellDef="let element">
-      <img alt="" [src]="getFavicon(element)" />
+      @if (element.url) {
+        <img alt="" [src]="getFavicon(element)" />
+      } @else {
+        <mat-icon class="list-icon">{{getIcon(element)}}</mat-icon>
+      }
       {{element.title}}
     </mat-cell>
   </ng-container>
