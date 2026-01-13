@@ -17,6 +17,8 @@ if (environment.production) {
   enableProdMode();
 }
 
+console.log('isE2E:', (window as any).isE2E);
+
 bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection(),
