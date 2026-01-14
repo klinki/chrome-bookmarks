@@ -1,4 +1,4 @@
-import { Component, OnInit, input, HostBinding, computed, inject } from '@angular/core';
+import { Component, OnInit, input, Input, HostBinding, computed, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
@@ -18,23 +18,23 @@ import { CdkContextMenuTrigger } from "@angular/cdk/menu";
 export class TreeItemComponent implements OnInit {
   private bookmarkService: SelectionService = inject(SelectionService);
 
-  public directory = input<any>();
-  public level = input<number>(0);
-  public selectedItem = input<any>(null);
-  public menu = input<any>();
-  public menuComponent = input<any>();
+  @Input() public directory: any;
+  @Input() public level: number = 0;
+  @Input() public selectedItem: any = null;
+  @Input() public menu: any;
+  @Input() public menuComponent: any;
 
   @HostBinding('attr.itemId')
   get itemId() {
-    return this.directory()?.id;
+    return this.directory?.id;
   }
 
   @HostBinding('attr.draggable')
   draggable = true;
 
-  public isSelected = computed(() => {
-    return this.selectedItem()?.id === this.directory()?.id;
-  });
+  public isSelected() {
+    return this.selectedItem?.id === this.directory?.id;
+  }
 
   ngOnInit() {
   }
@@ -57,7 +57,7 @@ export class TreeItemComponent implements OnInit {
   }
 
   open(directory: BookmarkDirectory) {
-    const component = this.menuComponent();
+    const component = this.menuComponent;
     if (component != null) {
       component.folder = directory;
     }
