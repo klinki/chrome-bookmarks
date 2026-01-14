@@ -24,7 +24,7 @@ test.beforeEach(async ({ page }) => {
  */
 async function expandFolder(page: any, title: string) {
     const treeView = page.locator('app-tree-view');
-    const row = treeView.locator('.tree-row').filter({ hasText: title }).first();
+    const row = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: new RegExp(`^${title}$`) }) }).first();
     const isExpanded = await row.evaluate(el => el.parentElement?.getAttribute('expanded') === 'true');
     if (!isExpanded) {
         await row.locator('.expand-icon').click();
@@ -36,7 +36,7 @@ async function expandFolder(page: any, title: string) {
  */
 async function selectTreeFolder(page: any, title: string) {
     const treeView = page.locator('app-tree-view');
-    const row = treeView.locator('.tree-row').filter({ hasText: title }).first();
+    const row = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: new RegExp(`^${title}$`) }) }).first();
     await row.click();
 }
 
@@ -48,7 +48,7 @@ test('Move Bookmark to Folder in Tree View', async ({ page }) => {
     const bookmark = listView.getByText('Bookmark B1', { exact: true });
     await expect(bookmark).toBeVisible();
 
-    const targetFolder = page.locator('app-tree-view').locator('.tree-row').filter({ hasText: 'Other Bookmarks' }).first();
+    const targetFolder = page.locator('app-tree-view').locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: /^Other Bookmarks$/ }) }).first();
     await expect(targetFolder).toBeVisible();
 
     await bookmark.dragTo(targetFolder);
@@ -90,7 +90,7 @@ test('Move Bookmark to Tag in Tree View', async ({ page }) => {
     const bookmark = listView.getByText('Bookmark B1', { exact: true });
 
     await expandFolder(page, 'Tags');
-    const targetTag = page.locator('app-tree-view').locator('.tree-row').filter({ hasText: 'test-tag' }).first();
+    const targetTag = page.locator('app-tree-view').locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: /^test-tag$/ }) }).first();
     await expect(targetTag).toBeVisible();
 
     await bookmark.dragTo(targetTag);

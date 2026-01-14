@@ -19,7 +19,7 @@ test.beforeEach(async ({ page }) => {
 
 test('Context menu works on top-level folder', async ({ page }) => {
     const treeView = page.locator('app-tree-view');
-    const row = treeView.locator('.tree-row').filter({ hasText: 'Bookmarks Bar' }).first();
+    const row = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: /^Bookmarks Bar$/ }) }).first();
 
     // Right click
     await row.click({ button: 'right' });
@@ -52,11 +52,11 @@ test('Context menu works on nested folder', async ({ page }) => {
     const treeView = page.locator('app-tree-view');
 
     // Expand Bookmarks Bar
-    const rootRow = treeView.locator('.tree-row').filter({ hasText: 'Bookmarks Bar' }).first();
+    const rootRow = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: /^Bookmarks Bar$/ }) }).first();
     await rootRow.locator('.expand-icon').click();
 
     // Find nested folder "Only Subfolders"
-    const nestedRow = treeView.locator('.tree-row').filter({ hasText: 'Only Subfolders' }).first();
+    const nestedRow = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: /^Only Subfolders$/ }) }).first();
     await expect(nestedRow).toBeVisible();
 
     // Right click on nested folder

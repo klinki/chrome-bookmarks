@@ -12,7 +12,7 @@ test.beforeEach(async ({ page }) => {
 
 async function expandFolder(page: any, title: string) {
     const treeView = page.locator('app-tree-view');
-    const row = treeView.locator('.tree-row').filter({ hasText: title }).first();
+    const row = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: new RegExp(`^${title}$`) }) }).first();
     const isExpanded = await row.evaluate((el: Element) => el.parentElement?.getAttribute('expanded') === 'true');
     if (!isExpanded) {
         await row.locator('.expand-icon').click();
@@ -21,7 +21,7 @@ async function expandFolder(page: any, title: string) {
 
 async function selectTreeFolder(page: any, title: string) {
     const treeView = page.locator('app-tree-view');
-    const row = treeView.locator('.tree-row').filter({ hasText: title }).first();
+    const row = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: new RegExp(`^${title}$`) }) }).first();
     await row.click();
 }
 
