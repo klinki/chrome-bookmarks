@@ -12,7 +12,7 @@
     </tr>
   </thead>
   <tbody>
-    @for (item of (items() | orderBy: orderProperties()); track item) {
+    @for (item of (items() | orderBy: orderProperties()); track item.id) {
       <tr
         (dblclick)="itemDoubleClick(item)"
         (click)="itemClick($event, item)"

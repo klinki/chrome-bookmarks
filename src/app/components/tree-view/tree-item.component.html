@@ -7,9 +7,10 @@
   [attr.expanded]="expanded(directory()) ? true : null"
   >
   <div class="tree-row"
-    [cdkContextMenuTriggerFor]="menu()"
+    [cdkContextMenuTriggerFor]="menu || null"
     [cdkContextMenuTriggerData]="directory()"
     (click)="open(directory())"
+    (contextmenu)="onRightClick($event, directory())"
     (dblclick)="toggle($event, directory())"
     [attr.may-have-children]="hasSubDirectories(directory()) ? true : null"
     [style.-webkit-padding-start]="(level() * 20) + 'px'"
@@ -20,11 +21,13 @@
     <span class="tree-label">{{directory().title}}</span>
   </div>
   <div class="tree-children" [attr.expanded]="expanded(directory()) ? true : null">
-    @for (child of directory().children; track child) {
+    @for (child of directory().children; track child.id) {
       <app-tree-item
         [directory]="child"
         [level]="level() + 1"
         [selectedItem]="selectedItem()"
+        [menu]="menu"
+        [menuComponent]="menuComponent"
         >
       </app-tree-item>
     }

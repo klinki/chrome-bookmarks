@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, inject, input, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, Input, SimpleChanges, ViewChild } from '@angular/core';
 
 import { ContextMenuComponent } from "../context-menu/context-menu.component";
 import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.component";
@@ -16,7 +16,7 @@ import { Router } from "@angular/router";
 export class FolderMenuComponent {
   Icons = Icons;
 
-  public folder = input<any | null>(null);
+  @Input() public folder: any | null = null;
 
   @ViewChild('menu', { static: true })
   menu!: ContextMenuComponent;
@@ -54,6 +54,6 @@ export class FolderMenuComponent {
   }
 
   private getUrl() {
-    return this.folder()?.url;
+    return this.folder?.url;
   }
 }

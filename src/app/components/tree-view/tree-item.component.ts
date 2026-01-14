@@ -1,4 +1,4 @@
-import { Component, OnInit, input, HostBinding, computed, inject } from '@angular/core';
+import { Component, OnInit, input, Input, HostBinding, computed, inject } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
@@ -21,8 +21,8 @@ export class TreeItemComponent implements OnInit {
   public directory = input<any>();
   public level = input<number>(0);
   public selectedItem = input<any>(null);
-  public menu = input<any>();
-  public menuComponent = input<any>();
+  @Input() public menu: any;
+  @Input() public menuComponent: any;
 
   @HostBinding('attr.itemId')
   get itemId() {
@@ -57,11 +57,15 @@ export class TreeItemComponent implements OnInit {
   }
 
   open(directory: BookmarkDirectory) {
-    const component = this.menuComponent();
+    const component = this.menuComponent;
     if (component != null) {
       component.folder = directory;
     }
     console.log(directory);
+    this.bookmarkService.selectDirectory(directory);
+  }
+
+  onRightClick(event: MouseEvent, directory: BookmarkDirectory) {
     this.bookmarkService.selectDirectory(directory);
   }
 

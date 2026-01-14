@@ -1,12 +1,12 @@
+<app-folder-menu #rightClickMenu [folder]="selectedDirectory()"></app-folder-menu>
 <div id="tree-container">
-  @for (dir of directories(); track dir) {
+  @for (dir of directories(); track dir.id) {
     <app-tree-item
       [directory]="dir"
       [level]="0"
       [selectedItem]="selectedDirectory()"
-      [menu]="rightClickMenu.menu.menu"
+      [menu]="rightClickMenu.menu?.menu"
       [menuComponent]="rightClickMenu"
     ></app-tree-item>
   }
 </div>
-<app-folder-menu #rightClickMenu [folder]="selectedDirectory()"></app-folder-menu>

@@ -1,7 +1,7 @@
 <ng-template #menu>
   <div cdkMenu class="submenu" [ngClass]="menuClasses" [ngStyle]="menuStyles">
-    @for (group of menuGroupsInput; track group; let first = $first; let last = $last) {
-      @for (item of group.visibleMenuItems; track item) {
+    @for (group of menuGroupsInput; track $index; let first = $first; let last = $last) {
+      @for (item of group.visibleMenuItems; track $index) {
         @if (item.hasChildren) {
           @if (menuComponent.menu; as subMenu) {
             <a class="item" [attr.toggled]="item.toggled ? 'true' : null"
