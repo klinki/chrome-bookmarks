@@ -18,23 +18,23 @@ import { CdkContextMenuTrigger } from "@angular/cdk/menu";
 export class TreeItemComponent implements OnInit {
   private bookmarkService: SelectionService = inject(SelectionService);
 
-  @Input() public directory: any;
-  @Input() public level: number = 0;
-  @Input() public selectedItem: any = null;
+  public directory = input<any>();
+  public level = input<number>(0);
+  public selectedItem = input<any>(null);
   @Input() public menu: any;
   @Input() public menuComponent: any;
 
   @HostBinding('attr.itemId')
   get itemId() {
-    return this.directory?.id;
+    return this.directory()?.id;
   }
 
   @HostBinding('attr.draggable')
   draggable = true;
 
-  public isSelected() {
-    return this.selectedItem?.id === this.directory?.id;
-  }
+  public isSelected = computed(() => {
+    return this.selectedItem()?.id === this.directory()?.id;
+  });
 
   ngOnInit() {
   }
