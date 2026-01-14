@@ -5,6 +5,7 @@ import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.co
 import { ContextMenuItemComponent } from "../context-menu/context-menu-item.component";
 import { Icons } from 'src/app/shared/icons';
 import { Router } from "@angular/router";
+import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.service";
 
 @Component({
   selector: 'app-folder-menu',
@@ -21,11 +22,12 @@ export class FolderMenuComponent {
   @ViewChild('menu', { static: true })
   menu!: ContextMenuComponent;
 
+  private bookmarksService = inject(BookmarksService);
+
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
 
   ngOnInit(): void {
-    console.log(this.folder);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -46,11 +48,25 @@ export class FolderMenuComponent {
   }
 
   createNewFolder() {
-
+     const name = prompt("Enter folder name");
+     if (name) {
+         this.bookmarksService.create({
+             parentId: this.folder.id,
+             title: name
+         });
+     }
   }
 
   createNewBookmark() {
-
+     const name = prompt("Enter bookmark name");
+     const url = prompt("Enter bookmark URL", "https://");
+     if (name && url) {
+         this.bookmarksService.create({
+             parentId: this.folder.id,
+             title: name,
+             url: url
+         });
+     }
   }
 
   private getUrl() {

@@ -270,4 +270,5 @@
   bright_state = "\uea0c",
   night_state = "\uea0d",
   contacts = "\uea0e",
+  delete = "\uea0f",
 }

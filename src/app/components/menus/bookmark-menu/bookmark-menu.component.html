@@ -2,5 +2,7 @@
   <app-context-menu-group>
     <app-context-menu-item label="Open in new Tab" [icon]="Icons.popup" (activate)="openInNewTab()"></app-context-menu-item>
     <app-context-menu-item label="Open in new Window" [icon]="Icons.popup" (activate)="openInNewWindow()"></app-context-menu-item>
+    <hr />
+    <app-context-menu-item label="Delete" [icon]="Icons.delete" (activate)="delete()"></app-context-menu-item>
   </app-context-menu-group>
 </app-context-menu>

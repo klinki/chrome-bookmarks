@@ -1,8 +1,10 @@
 import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject } from '@angular/core';
 import { DragulaModule, DragulaService } from "ng2-dragula";
+import {CdkContextMenuTrigger} from "@angular/cdk/menu";
 
 import { SelectionService, BookmarksFacadeService, TagsService } from "../../services";
 import { OrderByPipe } from "../../pipes/order-by.pipe";
+import { BookmarkMenuComponent } from '../menus/bookmark-menu/bookmark-menu.component';
 
 @Component({
   standalone: true,
@@ -11,7 +13,9 @@ import { OrderByPipe } from "../../pipes/order-by.pipe";
   styleUrls: ['list-view.component.scss'],
   imports: [
     DragulaModule,
-    OrderByPipe
+    OrderByPipe,
+    CdkContextMenuTrigger,
+    BookmarkMenuComponent
   ],
   viewProviders: [DragulaService]
 })
@@ -20,6 +24,8 @@ export class ListViewComponent implements OnInit, OnChanges {
   public columns = input<string[]>([]);
   public selectedColumns = input<string[]>([]);
   public selectedItems = input<Set<string>>(new Set());
+  
+  public contextMenuBookmark: chrome.bookmarks.BookmarkTreeNode | null = null;
 
   public orderProperties = signal({
     column: '',
