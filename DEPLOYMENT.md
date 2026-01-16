@@ -1,85 +1,92 @@
 # Deployment Strategy for PR Previews
 
-This document outlines the strategy for deploying Pull Request previews to a subdomain on a Linux server (e.g., Ubuntu) using Caddy web server.
+This document outlines the strategy for deploying Pull Request previews to a subdomain on a Linux server (e.g., Ubuntu) using Caddy web server with On-Demand TLS.
 
-## Subdomain Feasibility
+## Domain Structure
 
-The proposed structure `pr-23.project.main-domain.com` is **completely feasible**.
+Previews will be available at: `{pr-number}.{project}.github.klinki.cz`
 
-*   **DNS:** You will need an `A` record for `*.project.main-domain.com` pointing to your server's IP address.
-*   **SSL/TLS:** Standard wildcard certificates (e.g., for `*.main-domain.com`) do **not** cover multi-level subdomains like `pr-23.project.main-domain.com`. You have two options:
-    1.  **Wildcard Certificate for the Subdomain:** Obtain a wildcard certificate specifically for `*.project.main-domain.com`.
-    2.  **On-Demand TLS (Caddy):** Configure Caddy to automatically issue certificates for each new subdomain as it's accessed. This is the easiest method but requires careful configuration to avoid hitting Let's Encrypt rate limits.
+Example: `pr-23.bookmarks.github.klinki.cz`
 
 ## Server Setup
 
 ### 1. Prerequisites
 *   A server (VM) running Ubuntu (or any Linux distro).
+*   **Node.js** installed (required for the validation script).
 *   **Caddy** installed. [Official Install Guide](https://caddyserver.com/docs/install#debian-ubuntu-raspbian).
-*   Domain DNS configured as mentioned above.
+*   **PM2** (optional but recommended) to keep the ask script running. `npm install -g pm2`.
 
-### 2. Caddy Configuration (`/etc/caddy/Caddyfile`)
+### 2. File Setup
+Upload the contents of the `.server/` directory to your server (e.g., to `/home/user/server-config/` or directly to `/etc/caddy/` if preferred).
 
-This configuration dynamically maps subdomains to directories in `/var/www/`.
+*   `ask-script.js`: Validates if a subdomain corresponds to an existing deployment folder.
+*   `Caddyfile`: The Caddy configuration.
+
+### 3. Ask Script (Validation Service)
+This script prevents Caddy from issuing certificates for non-existent PRs (preventing abuse).
+
+1.  Move `ask-script.js` to a permanent location.
+2.  Install dependencies (if any - currently uses standard library).
+3.  Run it:
+    ```bash
+    node ask-script.js
+    ```
+    *Recommended: Use PM2 to keep it running in background:*
+    ```bash
+    pm2 start ask-script.js --name "caddy-ask"
+    ```
+    The script runs on port **5555**.
+
+### 4. Caddy Configuration
+Replace the default Caddyfile content (usually at `/etc/caddy/Caddyfile`) with the content of `.server/Caddyfile`.
 
 ```caddy
 {
-    # Optional: On-Demand TLS configuration
-    # If you don't have a wildcard cert for *.project.main-domain.com, uncomment this.
-    # on_demand_tls {
-    #     ask http://localhost:5555/check # strictly recommended to prevent abuse
-    #     interval 2m
-    #     burst 5
-    # }
+    on_demand_tls {
+        ask http://localhost:5555/check
+        interval 2m
+        burst 5
+    }
 }
 
-# Replace 'project.main-domain.com' with your actual domain base
-*.project.main-domain.com {
-    # If using On-Demand TLS
-    # tls {
-    #     on_demand
-    # }
-
-    # Map the subdomain to a directory
-    # For domain 'pr-23.project.main-domain.com':
-    # labels.0 = com
-    # labels.1 = main-domain
-    # labels.2 = project
-    # labels.3 = pr-23
-    root * /var/www/{labels.3}
-
-    # Enable file server
+*.*.github.klinki.cz {
+    tls {
+        on_demand
+    }
+    root * /var/www/{labels.3}/{labels.4}
     file_server
-
-    # SPA Fallback (for Angular)
     try_files {path} /index.html
 }
 ```
 
+Reload Caddy:
+```bash
+sudo systemctl reload caddy
+```
+
 ## GitHub Actions Integration
 
-A workflow file `.github/workflows/preview.yaml` has been created to automate deployment.
+The workflow `.github/workflows/preview.yaml` handles deployment.
 
 ### Required Secrets
 
-To enable the deployment, you must add the following **Repository Secrets** in GitHub (`Settings` -> `Secrets and variables` -> `Actions`):
+Add these to GitHub Repository Secrets:
 
 | Secret Name | Description |
 | :--- | :--- |
-| `SSH_HOST` | The public IP address or hostname of your server. |
-| `SSH_USER` | The SSH username (e.g., `root`, `ubuntu`, `caddy`). |
-| `SSH_PRIVATE_KEY` | The private SSH key to authenticate with the server. |
+| `SSH_HOST` | Server IP or hostname. |
+| `SSH_USER` | SSH username. **Must have write access to `/var/www/`**. |
+| `SSH_PRIVATE_KEY` | Private SSH key. |
 
-**Important:**
-*   The `SSH_USER` must have write permissions to `/var/www/`.
-*   The public key corresponding to `SSH_PRIVATE_KEY` must be added to `~/.ssh/authorized_keys` on the server for `SSH_USER`.
-*   The server's host key should be known or verification disabled (the workflow uses `StrictHostKeyChecking=no` for simplicity, but for higher security, add `SSH_KNOWN_HOSTS`).
+### Folder Structure
+The workflow deploys to: `/var/www/<project-name>/pr-<number>/`
+Example: `/var/www/bookmarks/pr-23/`
 
-### Workflow Behavior
+Ensure the `SSH_USER` has permissions to create directories in `/var/www/`.
+```bash
+sudo chown -R $USER:www-data /var/www
+sudo chmod -R 775 /var/www
+```
 
-1.  **On PR Open/Update:**
-    *   Builds the Angular application (`production` configuration).
-    *   Creates a directory `/var/www/pr-<number>` on the server.
-    *   Copies the build artifacts to that directory.
-2.  **On PR Close:**
-    *   Deletes the directory `/var/www/pr-<number>` from the server.
+### Notifications
+The workflow will automatically post a comment on the Pull Request with the link to the deployed preview.
