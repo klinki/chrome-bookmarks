@@ -28,35 +28,33 @@ jobs:
         run: pnpm run build:dev
         #npx nx build bookmarks --configuration=production
 
-      - name: Install SSH Key
-        uses: shimataro/ssh-key-action@v2
+      - name: Prepare Server
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          PR_NUMBER: ${{ github.event.number }}
         with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSWORD }}
-          known_hosts: unnecessary
-          if_key_exists: replace
+          envs: PR_NUMBER
+          script: |
+            PROJECT_NAME="bookmarks"
+            PR_ID="pr-${PR_NUMBER}"
+            TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+            mkdir -p $TARGET_DIR
+            rm -rf $TARGET_DIR/*
 
-      - name: Deploy to Server
-        env:
-            PR_NUMBER: ${{ github.event.number }}
-            SSH_HOST: ${{ secrets.SSH_HOST }}
-            SSH_USER: ${{ secrets.SSH_USER }}
-        run: |
-          # Define variables
-          PROJECT_NAME="bookmarks"
-          PR_ID="pr-${PR_NUMBER}"
-          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-
-          echo "Deploying to $TARGET_DIR on $SSH_HOST..."
-
-          # Create directory (including project parent dir)
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "mkdir -p $TARGET_DIR"
-
-          # Clean directory
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "rm -rf $TARGET_DIR/*"
-
-          # Copy files
-          scp -o StrictHostKeyChecking=no -r dist/bookmarks/* $SSH_USER@$SSH_HOST:$TARGET_DIR
+      - name: Copy Files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSWORD }}
+          source: "dist/bookmarks/*"
+          target: "/var/www/bookmarks/pr-${{ github.event.number }}"
+          strip_components: 2
 
       - name: Comment on PR
         uses: actions/github-script@v6
@@ -78,23 +76,18 @@ jobs:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - name: Install SSH Key
-        uses: shimataro/ssh-key-action@v2
+      - name: Remove Deployment
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          PR_NUMBER: ${{ github.event.number }}
         with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_PASSWORD }}
-          known_hosts: unnecessary
-          if_key_exists: replace
-
-      - name: Remove Deployment
-        env:
-            PR_NUMBER: ${{ github.event.number }}
-            SSH_HOST: ${{ secrets.SSH_HOST }}
-            SSH_USER: ${{ secrets.SSH_USER }}
-        run: |
-          PROJECT_NAME="bookmarks"
-          PR_ID="pr-${PR_NUMBER}"
-          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-
-          echo "Removing $TARGET_DIR on $SSH_HOST..."
-          ssh -o StrictHostKeyChecking=no $SSH_USER@$SSH_HOST "rm -rf $TARGET_DIR"
+          envs: PR_NUMBER
+          script: |
+            PROJECT_NAME="bookmarks"
+            PR_ID="pr-${PR_NUMBER}"
+            TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+            rm -rf $TARGET_DIR
