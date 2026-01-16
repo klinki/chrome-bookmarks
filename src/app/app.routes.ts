@@ -7,7 +7,22 @@ export const routes: Routes = [
         component: BookmarksViewComponent
     },
     {
-        path: 'settings/ai',
-        loadComponent: () => import('./components/ai-settings/ai-settings.component').then(m => m.AiSettingsComponent)
+        path: 'settings',
+        loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
+        children: [
+            {
+                path: '',
+                redirectTo: 'general',
+                pathMatch: 'full'
+            },
+            {
+                path: 'general',
+                loadComponent: () => import('./components/settings/general-settings/general-settings.component').then(m => m.GeneralSettingsComponent)
+            },
+            {
+                path: 'ai',
+                loadComponent: () => import('./components/ai-settings/ai-settings.component').then(m => m.AiSettingsComponent)
+            }
+        ]
     }
 ];

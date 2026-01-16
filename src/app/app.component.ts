@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { BookmarksViewComponent } from "./components";
 
 import { RouterModule } from '@angular/router';
+import { SettingsService } from './services/settings.service';
 
 @Component({
   standalone: true,
@@ -14,6 +15,8 @@ import { RouterModule } from '@angular/router';
   ],
 })
 export class AppComponent {
+  private settingsService = inject(SettingsService);
+
   constructor() {
   }
 }

@@ -1,0 +1,25 @@
+<div class="general-settings">
+  <h2>General Settings</h2>
+
+  <div class="setting-item">
+    <label for="theme-select">Theme</label>
+    <select
+      id="theme-select"
+      [ngModel]="settingsService.theme()"
+      (ngModelChange)="updateTheme($event)"
+    >
+      <option *ngFor="let t of themes" [value]="t.value">{{ t.label }}</option>
+    </select>
+  </div>
+
+  <div class="setting-item">
+    <label for="language-select">Language</label>
+    <select
+      id="language-select"
+      [ngModel]="settingsService.language()"
+      (ngModelChange)="updateLanguage($event)"
+    >
+      <option *ngFor="let l of languages" [value]="l.value">{{ l.label }}</option>
+    </select>
+  </div>
+</div>
