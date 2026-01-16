@@ -76,6 +76,7 @@ runs:
           rm -rf $TARGET_DIR/*
 
     - name: Copy Files
+      if: inputs.action == 'deploy'
       uses: appleboy/scp-action@v0.1.7
       with:
         host: ${{ inputs.SSH_HOST }}
@@ -87,6 +88,7 @@ runs:
         strip_components: 2
 
     - name: Comment on PR
+      if: inputs.action == 'deploy'
       uses: actions/github-script@v6
       with:
         script: |
@@ -101,7 +103,6 @@ runs:
             issue_number: prNumber,
             body: `🚀 **Preview Deployed!**\n\nAccess your preview here: [${url}](${url})`
           });
-
 
     - name: Cleanup Deployment
       if: inputs.action == 'cleanup'

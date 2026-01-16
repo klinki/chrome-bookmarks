@@ -26,7 +26,7 @@ jobs:
 
       - name: Deploy Preview
         id: deploy
-        uses: ./
+        uses: ./.github/actions/preview
         with:
           action: 'deploy'
           ssh_host: ${{ secrets.SSH_HOST }}
@@ -34,17 +34,17 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_password: ${{ secrets.SSH_PASSWORD }}
           project_name: 'bookmarks'
-          build_command: 'npx nx build bookmarks --configuration=production'
+          build_command: 'npm run build:dev'
           dist_dir: 'dist/bookmarks'
 
   cleanup:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6 # Required to access local action
+      - uses: actions/checkout@v6
 
       - name: Remove Preview
-        uses: ./
+        uses: ./.github/actions/preview
         with:
           action: 'cleanup'
           ssh_host: ${{ secrets.SSH_HOST }}
