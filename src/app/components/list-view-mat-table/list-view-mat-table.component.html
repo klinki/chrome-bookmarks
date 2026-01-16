@@ -5,7 +5,7 @@
       @if (element.url) {
         <img alt="" [src]="getFavicon(element)" />
       } @else {
-        <mat-icon class="list-icon">{{getIcon(element)}}</mat-icon>
+        <app-folder-icon [item]="element"></app-folder-icon>
       }
       {{element.title}}
     </mat-cell>

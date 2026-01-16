@@ -5,6 +5,7 @@ import {CdkContextMenuTrigger} from "@angular/cdk/menu";
 import { SelectionService, BookmarksFacadeService, TagsService } from "../../services";
 import { OrderByPipe } from "../../pipes/order-by.pipe";
 import { BookmarkMenuComponent } from '../menus/bookmark-menu/bookmark-menu.component';
+import { FolderIconComponent } from '../folder-icon/folder-icon.component';
 
 @Component({
   standalone: true,
@@ -15,7 +16,8 @@ import { BookmarkMenuComponent } from '../menus/bookmark-menu/bookmark-menu.comp
     DragulaModule,
     OrderByPipe,
     CdkContextMenuTrigger,
-    BookmarkMenuComponent
+    BookmarkMenuComponent,
+    FolderIconComponent
   ],
   viewProviders: [DragulaService]
 })
