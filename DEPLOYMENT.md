@@ -14,28 +14,24 @@ Example: `pr-23.bookmarks.github.klinki.cz`
 *   A server (VM) running Ubuntu (or any Linux distro).
 *   **Node.js** installed (required for the validation script).
 *   **Caddy** installed. [Official Install Guide](https://caddyserver.com/docs/install#debian-ubuntu-raspbian).
-*   **PM2** (optional but recommended) to keep the ask script running. `npm install -g pm2`.
 
 ### 2. File Setup
 Upload the contents of the `.server/` directory to your server (e.g., to `/home/user/server-config/` or directly to `/etc/caddy/` if preferred).
 
 *   `ask-script.js`: Validates if a subdomain corresponds to an existing deployment folder.
+*   `register-service.sh`: Helper to install the ask script as a systemd service.
 *   `Caddyfile`: The Caddy configuration.
 
 ### 3. Ask Script (Validation Service)
-This script prevents Caddy from issuing certificates for non-existent PRs (preventing abuse).
+This script prevents Caddy from issuing certificates for non-existent PRs (preventing abuse). We will run it as a systemd service so it starts automatically on boot.
 
-1.  Move `ask-script.js` to a permanent location.
-2.  Install dependencies (if any - currently uses standard library).
-3.  Run it:
+1.  Navigate to the directory where you uploaded the files (e.g., `/home/user/server-config/`).
+2.  Make the registration script executable and run it:
     ```bash
-    node ask-script.js
+    chmod +x register-service.sh
+    sudo ./register-service.sh
     ```
-    *Recommended: Use PM2 to keep it running in background:*
-    ```bash
-    pm2 start ask-script.js --name "caddy-ask"
-    ```
-    The script runs on port **5555**.
+    This will create and start a service named `caddy-ask`.
 
 ### 4. Caddy Configuration
 Replace the default Caddyfile content (usually at `/etc/caddy/Caddyfile`) with the content of `.server/Caddyfile`.
