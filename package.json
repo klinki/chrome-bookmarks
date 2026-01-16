@@ -55,5 +55,14 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "nx": "22.3.3",
     "typescript": "5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "lmdb",
+      "msgpackr-extract",
+      "nx"
+    ]
   }
 }
