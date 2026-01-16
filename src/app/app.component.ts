@@ -1,6 +1,4 @@
 import { Component, inject } from '@angular/core';
-import { BookmarksViewComponent } from "./components";
-
 import { RouterModule } from '@angular/router';
 import { SettingsService } from './services/settings.service';
 
@@ -11,7 +9,6 @@ import { SettingsService } from './services/settings.service';
   styleUrls: ['app.component.css'],
   imports: [
     RouterModule,
-    BookmarksViewComponent,
   ],
 })
 export class AppComponent {
