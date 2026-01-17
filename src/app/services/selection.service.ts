@@ -67,7 +67,7 @@ export class SelectionService {
       const selectedIds = items.slice(selectedRangeFrom, selectedRangeTo + 1)
         .map(x => x.id);
 
-      newItems = new Set(selectedIds);
+      selectedIds.forEach(id => newItems.add(id));
     } else if (!config.range) {
       if (newItems.has(bookmark.id)) {
         newItems.delete(bookmark.id);
