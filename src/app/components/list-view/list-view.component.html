@@ -27,7 +27,7 @@
               @if (!item.children) {
                 <img alt="" [src]="getFavicon(item)" />
               } @else {
-                <app-folder-icon [item]="item"></app-folder-icon>
+                <span class="tree-label"></span>
               }
             }
             {{getColumnValue(item, column.name)}}

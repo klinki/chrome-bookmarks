@@ -59,7 +59,7 @@ test('Folder with only bookmarks', async ({ page }) => {
     const listView = page.locator('app-list-view');
     await expect(listView.getByText('Bookmark B1', { exact: true })).toBeVisible();
     await expect(listView.getByText('Bookmark B2', { exact: true })).toBeVisible();
-    await expect(listView.locator('app-folder-icon')).toHaveCount(0);
+    await expect(listView.locator('.tree-label')).toHaveCount(0);
 });
 
 test('Folder with only subfolders', async ({ page }) => {
@@ -69,7 +69,7 @@ test('Folder with only subfolders', async ({ page }) => {
     const listView = page.locator('app-list-view');
     await expect(listView.getByText('Subfolder S1', { exact: true })).toBeVisible();
     await expect(listView.getByText('Subfolder S2', { exact: true })).toBeVisible();
-    await expect(listView.locator('app-folder-icon')).toHaveCount(2);
+    await expect(listView.locator('.tree-label')).toHaveCount(2);
 });
 
 test('Folder with mixed content', async ({ page }) => {
@@ -79,7 +79,7 @@ test('Folder with mixed content', async ({ page }) => {
     const listView = page.locator('app-list-view');
     await expect(listView.getByText('Bookmark M1', { exact: true })).toBeVisible();
     await expect(listView.getByText('Subfolder M2', { exact: true })).toBeVisible();
-    await expect(listView.locator('app-folder-icon')).toHaveCount(1);
+    await expect(listView.locator('.tree-label')).toHaveCount(1);
 });
 
 test('Selection: Single bookmark', async ({ page }) => {
@@ -172,7 +172,7 @@ test('Search functionality finds items across folders and types', async ({ page 
     
     // In search result list, folders should still have the tree-label span (as per list-view.component.html)
     const folderRow = listView.locator('tr', { hasText: 'Duplicate Item Folder 1' });
-    await expect(folderRow.locator('app-folder-icon')).toBeVisible();
+    await expect(folderRow.locator('.tree-label')).toBeVisible();
     
     // Verify selection works from search results
     await listView.getByText('Duplicate Item 1', { exact: true }).first().click();

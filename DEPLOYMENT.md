@@ -86,3 +86,19 @@ sudo chmod -R 775 /var/www
 
 ### Notifications
 The workflow will automatically post a comment on the Pull Request with the link to the deployed preview.
+
+## Scaling to Multiple Projects
+
+If you plan to use this deployment strategy across multiple repositories, managing secrets for each one can be tedious.
+
+### Using GitHub Organizations
+To share secrets like `SSH_HOST`, `SSH_USER`, and `SSH_PRIVATE_KEY` across multiple projects:
+
+1.  **Create a GitHub Organization** (if you haven't already).
+2.  Move your repositories into this organization.
+3.  Go to **Organization Settings** -> **Secrets and variables** -> **Actions**.
+4.  Create your secrets here. You can choose to:
+    *   Allow access to **all repositories**.
+    *   Allow access to **selected repositories**.
+
+This way, you only need to update your credentials in one place, and all your projects will automatically inherit them.

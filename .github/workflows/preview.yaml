@@ -9,24 +9,24 @@ jobs:
     if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v3
         with:
-          version: 10
+          version: 8
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v3
         with:
-          node-version: 24
+          node-version: 20
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
 
       - name: Deploy Preview
         id: deploy
-        uses: ./.github/actions/preview
+        uses: ./
         with:
           action: 'deploy'
           ssh_host: ${{ secrets.SSH_HOST }}
@@ -34,17 +34,31 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_password: ${{ secrets.SSH_PASSWORD }}
           project_name: 'bookmarks'
-          build_command: 'npm run build:dev'
+          build_command: 'npx nx build bookmarks --configuration=production'
           dist_dir: 'dist/bookmarks'
+
+      - name: Comment on PR
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const url = '${{ steps.deploy.outputs.preview_url }}';
+
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: `🚀 **Preview Deployed!**\n\nAccess your preview here: [${url}](${url})`
+            });
 
   cleanup:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4 # Required to access local action
 
       - name: Remove Preview
-        uses: ./.github/actions/preview
+        uses: ./
         with:
           action: 'cleanup'
           ssh_host: ${{ secrets.SSH_HOST }}
@@ -52,4 +66,3 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_password: ${{ secrets.SSH_PASSWORD }}
           project_name: 'bookmarks'
-

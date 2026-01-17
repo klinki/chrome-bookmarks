@@ -1,16 +1,16 @@
 import { Component, OnInit, input, Input, HostBinding, computed, inject } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
 
 import { CdkContextMenuTrigger } from "@angular/cdk/menu";
-import { FolderIconComponent } from '../folder-icon/folder-icon.component';
 
 @Component({
   standalone: true,
   selector: 'app-tree-item',
   imports: [
     CdkContextMenuTrigger,
-    FolderIconComponent
+    MatIconModule
   ],
   templateUrl: './tree-item.component.html',
   styleUrls: ['./tree-item.component.scss']
@@ -79,5 +79,20 @@ export class TreeItemComponent implements OnInit {
     }
 
     return false;
+  }
+
+  getIcon(directory: any): string {
+    if (directory.id?.startsWith('TAG_') || directory.id === 'ROOT_TAGS') {
+      return 'label';
+    }
+    if (directory.id?.startsWith('SERVER_') || directory.id === 'ROOT_SERVERS') {
+      return 'dns'; // or public, storage
+    }
+    // Default folder icons
+    if (directory.id === 'ROOT_ALL') {
+      return 'bookmarks';
+    }
+
+    return directory.expanded ? 'folder_open' : 'folder';
   }
 }

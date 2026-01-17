@@ -17,7 +17,7 @@
     [attr.selected]="isSelected() ? true : null"
     >
     <span class="expand-icon" (click)="toggle($event, directory())"></span>
-    <app-folder-icon [item]="directory()" [expanded]="expanded(directory())"></app-folder-icon>
+    <mat-icon class="tree-icon">{{getIcon(directory())}}</mat-icon>
     <span class="tree-label">{{directory().title}}</span>
   </div>
   <div class="tree-children" [attr.expanded]="expanded(directory()) ? true : null">
