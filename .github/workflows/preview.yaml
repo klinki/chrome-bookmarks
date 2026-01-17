@@ -36,6 +36,8 @@ jobs:
           project_name: 'bookmarks'
           build_command: 'npm run build:dev'
           dist_dir: 'dist/bookmarks'
+          slug: 'pr-${{ github.event.number }}'
+          pr_number: ${{ github.event.number }}
 
   cleanup:
     if: github.event.action == 'closed'
@@ -52,4 +54,6 @@ jobs:
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_password: ${{ secrets.SSH_PASSWORD }}
           project_name: 'bookmarks'
+          slug: 'pr-${{ github.event.number }}'
+          pr_number: ${{ github.event.number }}
 
