@@ -2,7 +2,7 @@ import { FormsModule } from "@angular/forms";
 import { BrowserModule, bootstrapApplication } from "@angular/platform-browser";
 import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from "@angular/core";
 import { AppComponent } from "./app";
-import { DragulaModule } from "ng2-dragula";
+
 import { environment } from "./environments/environment";
 import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { provideRouter, withHashLocation } from "@angular/router";
@@ -23,7 +23,7 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection(),
     provideRouter(routes, withHashLocation()),
-    importProvidersFrom(BrowserModule, FormsModule, DragulaModule.forRoot()),
+    importProvidersFrom(BrowserModule, FormsModule),
     provideNoopAnimations(),
     BookmarksServiceProvider,
     BookmarksProviderService,

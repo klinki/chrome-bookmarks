@@ -38,5 +38,7 @@ Thumbs.db
 
 .angular
 .temp/
+*.log
+
 
 vitest.config.*.timestamp*
