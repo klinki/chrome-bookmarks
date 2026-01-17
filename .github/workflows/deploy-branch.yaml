@@ -1,0 +1,64 @@
+name: Deploy Branch Manually
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'deploy'
+        type: choice
+        options:
+          - deploy
+          - cleanup
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Get sanitized branch name
+        id: branch_name
+        shell: bash
+        run: |
+          REF_NAME="${{ github.ref_name }}"
+          # Lowercase
+          SANITIZED=$(echo "$REF_NAME" | tr '[:upper:]' '[:lower:]')
+          # Replace non-alphanumeric with -
+          SANITIZED=$(echo "$SANITIZED" | sed 's/[^a-z0-9]/-/g')
+          # Remove duplicate dashes
+          SANITIZED=$(echo "$SANITIZED" | sed 's/-\+/-/g')
+          # Remove leading/trailing dashes
+          SANITIZED=$(echo "$SANITIZED" | sed 's/^-//;s/-$//')
+
+          echo "slug=$SANITIZED" >> $GITHUB_OUTPUT
+
+      - uses: pnpm/action-setup@v4
+        if: inputs.action == 'deploy'
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v6
+        if: inputs.action == 'deploy'
+        with:
+          node-version: 24
+          cache: 'pnpm'
+
+      - run: pnpm install --frozen-lockfile
+        if: inputs.action == 'deploy'
+
+      - name: Manage Deployment
+        uses: ./.github/actions/preview
+        with:
+          action: ${{ inputs.action }}
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_password: ${{ secrets.SSH_PASSWORD }}
+          project_name: 'bookmarks'
+          build_command: 'npm run build:dev'
+          dist_dir: 'dist/bookmarks'
+          slug: ${{ steps.branch_name.outputs.slug }}

@@ -30,6 +30,12 @@ inputs:
     description: 'Domain suffix for the preview URL'
     required: false
     default: 'github.klinki.cz'
+  slug:
+    description: 'Unique identifier for the deployment (e.g. pr-123, feature-branch)'
+    required: true
+  pr_number:
+    description: 'PR number (only for PR deployments)'
+    required: false
 
 outputs:
   preview_url:
@@ -56,7 +62,7 @@ runs:
       if: inputs.action == 'deploy'
       uses: appleboy/ssh-action@v1.2.0
       env:
-        PR_NUMBER: ${{ github.event.number }}
+        SLUG: ${{ inputs.slug }}
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_USER: ${{ inputs.ssh_user }}
         PROJECT_NAME: ${{ inputs.project_name }}
@@ -67,11 +73,10 @@ runs:
         username: ${{ inputs.SSH_USER }}
         key: ${{ inputs.SSH_PRIVATE_KEY }}
         passphrase: ${{ inputs.SSH_PASSWORD }}
-        envs: PR_NUMBER
+        envs: SLUG
         script: |
           PROJECT_NAME="${{ inputs.project_name }}"
-          PR_ID="pr-${PR_NUMBER}"
-          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+          TARGET_DIR="/var/www/$PROJECT_NAME/$SLUG"
           mkdir -p $TARGET_DIR
           rm -rf $TARGET_DIR/*
 
@@ -84,18 +89,19 @@ runs:
         key: ${{ inputs.SSH_PRIVATE_KEY }}
         passphrase: ${{ inputs.SSH_PASSWORD }}
         source: "${{ inputs.dist_dir }}/*"
-        target: "/var/www/${{ inputs.project_name }}/pr-${{ github.event.number }}"
+        target: "/var/www/${{ inputs.project_name }}/${{ inputs.slug }}"
         strip_components: 2
 
     - name: Comment on PR
-      if: inputs.action == 'deploy'
+      if: inputs.action == 'deploy' && inputs.pr_number != ''
       uses: actions/github-script@v6
       with:
         script: |
-          const prNumber = context.payload.pull_request.number;
+          const prNumber = '${{ inputs.pr_number }}';
           const project = '${{ inputs.project_name }}';
           const domain = '${{ inputs.domain_suffix }}';
-          const url = `https://pr-${prNumber}.${project}.${domain}`;
+          const slug = '${{ inputs.slug }}';
+          const url = `https://${slug}.${project}.${domain}`;
 
           github.rest.issues.createComment({
             owner: context.repo.owner,
@@ -108,7 +114,7 @@ runs:
       if: inputs.action == 'cleanup'
       uses: appleboy/ssh-action@v1.2.0
       env:
-        PR_NUMBER: ${{ github.event.number }}
+        SLUG: ${{ inputs.slug }}
         SSH_HOST: ${{ inputs.ssh_host }}
         SSH_USER: ${{ inputs.ssh_user }}
         PROJECT_NAME: ${{ inputs.project_name }}
@@ -119,11 +125,10 @@ runs:
         username: ${{ inputs.SSH_USER }}
         key: ${{ inputs.SSH_PRIVATE_KEY }}
         passphrase: ${{ inputs.SSH_PASSWORD }}
-        envs: PR_NUMBER
+        envs: SLUG
         script: |
           PROJECT_NAME="${{ inputs.project_name }}"
-          PR_ID="pr-${PR_NUMBER}"
-          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+          TARGET_DIR="/var/www/$PROJECT_NAME/$SLUG"
           rm -rf $TARGET_DIR
 
     - name: Set Output URL
@@ -131,9 +136,9 @@ runs:
       if: inputs.action == 'deploy'
       shell: bash
       env:
-        PR_NUMBER: ${{ github.event.number }}
+        SLUG: ${{ inputs.slug }}
         PROJECT_NAME: ${{ inputs.project_name }}
         DOMAIN_SUFFIX: ${{ inputs.domain_suffix }}
       run: |
-        URL="https://pr-${PR_NUMBER}.${PROJECT_NAME}.${DOMAIN_SUFFIX}"
+        URL="https://${SLUG}.${PROJECT_NAME}.${DOMAIN_SUFFIX}"
         echo "url=$URL" >> $GITHUB_OUTPUT
