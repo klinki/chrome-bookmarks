@@ -24,70 +24,32 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build Application
-        run: pnpm run build:dev
-        #npx nx build bookmarks --configuration=production
-
-      - name: Prepare Server
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          PR_NUMBER: ${{ github.event.number }}
+      - name: Deploy Preview
+        id: deploy
+        uses: ./.github/actions/preview
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSWORD }}
-          envs: PR_NUMBER
-          script: |
-            PROJECT_NAME="bookmarks"
-            PR_ID="pr-${PR_NUMBER}"
-            TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-            mkdir -p $TARGET_DIR
-            rm -rf $TARGET_DIR/*
-
-      - name: Copy Files
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSWORD }}
-          source: "dist/bookmarks/*"
-          target: "/var/www/bookmarks/pr-${{ github.event.number }}"
-          strip_components: 2
-
-      - name: Comment on PR
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const prNumber = context.payload.pull_request.number;
-            const project = 'bookmarks';
-            const domain = 'github.klinki.cz';
-            const url = `https://pr-${prNumber}.${project}.${domain}`;
-
-            github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: prNumber,
-              body: `🚀 **Preview Deployed!**\n\nAccess your preview here: [${url}](${url})`
-            });
+          action: 'deploy'
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_password: ${{ secrets.SSH_PASSWORD }}
+          project_name: 'bookmarks'
+          build_command: 'npm run build:dev'
+          dist_dir: 'dist/bookmarks'
 
   cleanup:
     if: github.event.action == 'closed'
     runs-on: ubuntu-latest
     steps:
-      - name: Remove Deployment
-        uses: appleboy/ssh-action@v1.2.0
-        env:
-          PR_NUMBER: ${{ github.event.number }}
+      - uses: actions/checkout@v6
+
+      - name: Remove Preview
+        uses: ./.github/actions/preview
         with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_PASSWORD }}
-          envs: PR_NUMBER
-          script: |
-            PROJECT_NAME="bookmarks"
-            PR_ID="pr-${PR_NUMBER}"
-            TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-            rm -rf $TARGET_DIR
+          action: 'cleanup'
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh_password: ${{ secrets.SSH_PASSWORD }}
+          project_name: 'bookmarks'
+

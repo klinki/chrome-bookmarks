@@ -1,0 +1,139 @@
+name: 'Deploy PR Preview to Caddy Server'
+description: 'Builds and deploys a PR preview to a Caddy server with dynamic subdomains.'
+inputs:
+  action:
+    description: 'Action to perform: "deploy" or "cleanup"'
+    required: true
+    default: 'deploy'
+  ssh_host:
+    description: 'SSH Host'
+    required: true
+  ssh_user:
+    description: 'SSH User'
+    required: true
+  ssh_private_key:
+    description: 'SSH Private Key'
+    required: true
+  ssh_password:
+    description: 'SSH Private Key Password'
+    required: false
+  project_name:
+    description: 'Name of the project (used in URL and folder path)'
+    required: true
+  build_command:
+    description: 'Command to build the application (e.g., "npm run build")'
+    required: false
+  dist_dir:
+    description: 'Directory containing build artifacts (e.g., "dist/my-app")'
+    required: false
+  domain_suffix:
+    description: 'Domain suffix for the preview URL'
+    required: false
+    default: 'github.klinki.cz'
+
+outputs:
+  preview_url:
+    description: 'The URL of the deployed preview'
+    value: ${{ steps.set-url.outputs.url }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build Application
+      if: inputs.action == 'deploy' && inputs.build_command != ''
+      shell: bash
+      run: ${{ inputs.build_command }}
+
+    - name: Setup SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
+        known_hosts: unnecessary
+        if_key_exists: replace
+
+    - name: Prepare Server
+      if: inputs.action == 'deploy'
+      uses: appleboy/ssh-action@v1.2.0
+      env:
+        PR_NUMBER: ${{ github.event.number }}
+        SSH_HOST: ${{ inputs.ssh_host }}
+        SSH_USER: ${{ inputs.ssh_user }}
+        PROJECT_NAME: ${{ inputs.project_name }}
+        DIST_DIR: ${{ inputs.dist_dir }}
+        TARGET_DIR: ${{ inputs.target_dir }}
+      with:
+        host: ${{ inputs.SSH_HOST }}
+        username: ${{ inputs.SSH_USER }}
+        key: ${{ inputs.SSH_PRIVATE_KEY }}
+        passphrase: ${{ inputs.SSH_PASSWORD }}
+        envs: PR_NUMBER
+        script: |
+          PROJECT_NAME="${{ inputs.project_name }}"
+          PR_ID="pr-${PR_NUMBER}"
+          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+          mkdir -p $TARGET_DIR
+          rm -rf $TARGET_DIR/*
+
+    - name: Copy Files
+      if: inputs.action == 'deploy'
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ inputs.SSH_HOST }}
+        username: ${{ inputs.SSH_USER }}
+        key: ${{ inputs.SSH_PRIVATE_KEY }}
+        passphrase: ${{ inputs.SSH_PASSWORD }}
+        source: "${{ inputs.dist_dir }}/*"
+        target: "/var/www/${{ inputs.project_name }}/pr-${{ github.event.number }}"
+        strip_components: 2
+
+    - name: Comment on PR
+      if: inputs.action == 'deploy'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const prNumber = context.payload.pull_request.number;
+          const project = '${{ inputs.project_name }}';
+          const domain = '${{ inputs.domain_suffix }}';
+          const url = `https://pr-${prNumber}.${project}.${domain}`;
+
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: prNumber,
+            body: `🚀 **Preview Deployed!**\n\nAccess your preview here: [${url}](${url})`
+          });
+
+    - name: Cleanup Deployment
+      if: inputs.action == 'cleanup'
+      uses: appleboy/ssh-action@v1.2.0
+      env:
+        PR_NUMBER: ${{ github.event.number }}
+        SSH_HOST: ${{ inputs.ssh_host }}
+        SSH_USER: ${{ inputs.ssh_user }}
+        PROJECT_NAME: ${{ inputs.project_name }}
+        DIST_DIR: ${{ inputs.dist_dir }}
+        TARGET_DIR: ${{ inputs.target_dir }}
+      with:
+        host: ${{ inputs.SSH_HOST }}
+        username: ${{ inputs.SSH_USER }}
+        key: ${{ inputs.SSH_PRIVATE_KEY }}
+        passphrase: ${{ inputs.SSH_PASSWORD }}
+        envs: PR_NUMBER
+        script: |
+          PROJECT_NAME="${{ inputs.project_name }}"
+          PR_ID="pr-${PR_NUMBER}"
+          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+          rm -rf $TARGET_DIR
+
+    - name: Set Output URL
+      id: set-url
+      if: inputs.action == 'deploy'
+      shell: bash
+      env:
+        PR_NUMBER: ${{ github.event.number }}
+        PROJECT_NAME: ${{ inputs.project_name }}
+        DOMAIN_SUFFIX: ${{ inputs.domain_suffix }}
+      run: |
+        URL="https://pr-${PR_NUMBER}.${PROJECT_NAME}.${DOMAIN_SUFFIX}"
+        echo "url=$URL" >> $GITHUB_OUTPUT
