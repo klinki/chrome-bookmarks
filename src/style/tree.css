@@ -13,7 +13,7 @@ app-tree-view {
   background-color: rgba(255, 255, 255, 0);
   border: 1px solid rgba(255, 255, 255, 0); /* transparent white */
   border-radius: 2px;
-  color: black;
+  color: var(--text-color, black);
   cursor: default;
   line-height: 28px;
   padding: 0 3px;
@@ -58,8 +58,8 @@ html[dir=rtl] .expand-icon {
 }
 
 .tree-row:hover {
-  background-color: hsl(214, 91%, 97%);
-  border-color: hsl(214, 91%, 85%);
+  background-color: var(--hover-bg, hsl(214, 91%, 97%));
+  border-color: transparent;
   z-index: 1;
 }
 
@@ -71,20 +71,19 @@ html[dir=rtl] .expand-icon {
 
 */
 .tree-row[selected] {
-  background-image: -webkit-linear-gradient(rgba(255, 255, 255, 0.8),
-                                            rgba(255,255,255,0));
+  background-image: none;
 }
 
 .tree-row[selected] {
-  background-color: hsl(0, 0%, 90%);
-  border-color: hsl(0, 0%, 85%);
+  background-color: var(--active-bg, hsl(0, 0%, 90%));
+  border-color: transparent;
   z-index: 2;
 }
 
 .tree-row[selected]:hover,
 tree:focus .tree-row[selected] {
-  background-color: hsl(214, 91%, 89%);
-  border-color: rgb(125, 162, 206);
+  background-color: var(--active-bg, hsl(214, 91%, 89%));
+  border-color: transparent;
 }
 
 .tree-children[expanded] {

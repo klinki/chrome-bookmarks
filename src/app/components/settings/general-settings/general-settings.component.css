@@ -1,0 +1,24 @@
+.general-settings {
+  max-width: 600px;
+}
+
+.setting-item {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+label {
+  font-weight: 500;
+  color: var(--text-color, #333);
+}
+
+select {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color, #ccc);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--input-bg, #fff);
+  color: var(--text-color, #333);
+}

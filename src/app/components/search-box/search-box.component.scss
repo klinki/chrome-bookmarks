@@ -1,10 +1,25 @@
-input {
-  width: 100%;
-  padding-left: 10px;
-  padding-right: 10px;
-}
-
 :host {
   padding-left: 10px;
   padding-right: 10px;
+  display: block;
+}
+
+input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--input-border, #ccc);
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: var(--input-bg, #fff);
+  color: var(--text-color, #333);
+  box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+
+input::placeholder {
+  color: var(--secondary-text-color, #777);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
 }

@@ -1,0 +1,21 @@
+<div class="settings-layout">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <h2>Settings</h2>
+    </div>
+    <nav>
+      <a routerLink="/settings/general" routerLinkActive="active" class="nav-item">
+        General
+      </a>
+      <a routerLink="/settings/ai" routerLinkActive="active" class="nav-item">
+        AI Categorization
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a routerLink="/" class="back-link">← Back to Bookmarks</a>
+    </div>
+  </aside>
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

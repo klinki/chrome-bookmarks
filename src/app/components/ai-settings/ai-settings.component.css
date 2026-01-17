@@ -1,42 +1,31 @@
 .settings-container {
-    padding: 40px;
     max-width: 800px;
-    margin: 0 auto;
+    /* padding handled by parent */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--text-color, #333);
 }
 
 .header {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
     margin-bottom: 30px;
-}
-
-.header .back-link {
-    text-decoration: none;
-    color: #666;
-    font-size: 14px;
-}
-
-.header .back-link:hover {
-    color: #007bff;
 }
 
 .header h2 {
     margin: 0;
+    color: var(--text-color, #333);
 }
 
 section {
-    background: #f9f9f9;
+    background: var(--section-bg, #f9f9f9);
     padding: 24px;
     border-radius: 8px;
     margin-bottom: 24px;
-    border: 1px solid #eee;
+    border: 1px solid var(--border-color, #eee);
 }
 
 section h3 {
     margin-top: 0;
     margin-bottom: 20px;
+    color: var(--text-color, #333);
 }
 
 .form-group {
@@ -49,13 +38,16 @@ section h3 {
 .form-group label {
     font-weight: 500;
     font-size: 14px;
+    color: var(--text-color, #333);
 }
 
 .form-group input {
     padding: 8px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--input-border, #ccc);
     border-radius: 4px;
     font-size: 14px;
+    background: var(--input-bg, #fff);
+    color: var(--text-color, #333);
 }
 
 button {
@@ -79,7 +71,7 @@ button:hover:not(:disabled) {
 
 .hint {
     font-size: 13px;
-    color: #777;
+    color: var(--secondary-text-color, #777);
     margin-bottom: 15px;
 }
 
@@ -92,8 +84,10 @@ button:hover:not(:disabled) {
 .tag-input-group input {
     flex: 1;
     padding: 8px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--input-border, #ccc);
     border-radius: 4px;
+    background: var(--input-bg, #fff);
+    color: var(--text-color, #333);
 }
 
 .tags-list {
@@ -130,8 +124,8 @@ button:hover:not(:disabled) {
 .progress-bar-container {
     margin-bottom: 30px;
     padding: 15px;
-    background: #fff;
-    border: 1px solid #e0e0e0;
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e0e0e0);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
@@ -141,13 +135,13 @@ button:hover:not(:disabled) {
     justify-content: space-between;
     margin-bottom: 10px;
     font-size: 14px;
-    color: #555;
+    color: var(--secondary-text-color, #555);
     font-weight: 500;
 }
 
 .progress-bar {
     height: 8px;
-    background: #f0f0f0;
+    background: var(--border-color, #f0f0f0);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -222,7 +216,7 @@ button:hover:not(:disabled) {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.5);
+    background: var(--modal-overlay-bg, rgba(0, 0, 0, 0.5));
     display: flex;
     justify-content: center;
     align-items: center;
@@ -230,12 +224,13 @@ button:hover:not(:disabled) {
 }
 
 .modal-content {
-    background: white;
+    background: var(--modal-bg, #fff);
     padding: 24px;
     border-radius: 8px;
     width: 90%;
     max-width: 500px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    color: var(--text-color, #333);
 }
 
 .modal-header {
@@ -243,7 +238,7 @@ button:hover:not(:disabled) {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color, #eee);
     padding-bottom: 10px;
 }
 
@@ -255,14 +250,14 @@ button:hover:not(:disabled) {
     background: none;
     border: none;
     font-size: 24px;
-    color: #999;
+    color: var(--secondary-text-color, #999);
     cursor: pointer;
     padding: 0;
     line-height: 1;
 }
 
 .close-btn:hover {
-    color: #333;
+    color: var(--text-color, #333);
 }
 
 .modal-body {
@@ -275,10 +270,12 @@ button:hover:not(:disabled) {
 
 .modal-body select {
     padding: 8px 12px;
-    border: 1px solid #ccc;
+    border: 1px solid var(--input-border, #ccc);
     border-radius: 4px;
     font-size: 14px;
     width: 100%;
+    background: var(--input-bg, #fff);
+    color: var(--text-color, #333);
 }
 
 .action-btn {
@@ -303,7 +300,7 @@ button:hover:not(:disabled) {
 .results-group {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px dashed #eee;
+    border-top: 1px dashed var(--border-color, #eee);
 }
 
 .modal-footer {
@@ -313,12 +310,12 @@ button:hover:not(:disabled) {
 }
 
 .secondary-btn {
-    background: #eee;
-    color: #333;
+    background: var(--button-secondary-bg, #eee);
+    color: var(--button-secondary-text, #333);
 }
 
 .secondary-btn:hover {
-    background: #ddd;
+    background: var(--button-secondary-hover, #ddd);
 }
 
 .primary-btn {
