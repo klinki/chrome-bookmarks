@@ -38,6 +38,7 @@ Thumbs.db
 
 .angular
 .temp/
+*.log
 
 vitest.config.*.timestamp*test-results/
 /test-results/
