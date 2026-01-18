@@ -35,16 +35,20 @@ test('Navigate to AI Settings Page', async ({ page }) => {
     await expect(settingsLink).toBeVisible();
     await settingsLink.click();
 
+    // Navigate to AI settings via sidebar
+    await page.locator('nav').getByText('AI Categorization').click();
+
     // Verify AI Settings page loads
-    await expect(page.getByText('AI Categorization Settings')).toBeVisible();
+    await expect(page.locator('h2').filter({ hasText: 'AI Categorization' })).toBeVisible();
 });
 
 test('Configure AI Endpoint and Model', async ({ page }) => {
     // Navigate to AI settings
     await page.locator('a.settings-link').click();
+    await page.locator('nav').getByText('AI Categorization').click();
 
     // Wait for settings form
-    await expect(page.getByText('AI Categorization Settings')).toBeVisible();
+    await expect(page.locator('h2').filter({ hasText: 'AI Categorization' })).toBeVisible();
 
     // Fill in the form using input ids
     const baseUrlInput = page.locator('#baseUrl');

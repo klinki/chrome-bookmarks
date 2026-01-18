@@ -1,7 +1,11 @@
 import { test, expect } from '@playwright/test';
+import { getMockData, setupChromeMock } from './e2e-utils';
+
+const { root, MOCK_BOOKMARKS_MAP } = getMockData();
 
 test.describe('Context Menu', () => {
   test.beforeEach(async ({ page }) => {
+    await setupChromeMock(page, root, MOCK_BOOKMARKS_MAP);
     // Navigate to the app. Assuming default generic setup or configured baseUrl
     await page.goto('/');
   });
@@ -22,6 +26,11 @@ test.describe('Context Menu', () => {
   });
 
   test('should open context menu on right click on bookmark in list view', async ({ page }) => {
+    // Select "Bookmarks Bar" which contains bookmarks
+    const treeView = page.locator('app-tree-view');
+    const bookmarksBar = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: 'Bookmarks Bar' }) }).first();
+    await bookmarksBar.click();
+
     // Locate a list item (tr).
     // Assuming there is at least one item.
     const row = page.locator('app-list-view tr[draggable="true"]').first();
