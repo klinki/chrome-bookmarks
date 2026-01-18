@@ -63,31 +63,27 @@ runs:
       id: ssh
       env:
         SLUG: ${{ inputs.slug }}
-        SSH_HOST: ${{ inputs.ssh_host }}
-        SSH_USER: ${{ inputs.ssh_user }}
         PROJECT_NAME: ${{ inputs.project_name }}
-        DIST_DIR: ${{ inputs.dist_dir }}
-        TARGET_DIR: ${{ inputs.target_dir }}
       with:
-        host: ${{ inputs.SSH_HOST }}
-        username: ${{ inputs.SSH_USER }}
-        key: ${{ inputs.SSH_PRIVATE_KEY }}
-        passphrase: ${{ inputs.SSH_PASSWORD }}
-        envs: SLUG
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
+        envs: SLUG,PROJECT_NAME
         script: |
           PROJECT_NAME="${{ inputs.project_name }}"
           TARGET_DIR="/var/www/$PROJECT_NAME/$SLUG"
-          mkdir -p $TARGET_DIR
-          rm -rf $TARGET_DIR/*
+          mkdir -p "$TARGET_DIR"
+          rm -rf "$TARGET_DIR/*"
 
     - name: Copy Files
       if: inputs.action == 'deploy'
       uses: appleboy/scp-action@v1
       with:
-        host: ${{ inputs.SSH_HOST }}
-        username: ${{ inputs.SSH_USER }}
-        key: ${{ inputs.SSH_PRIVATE_KEY }}
-        passphrase: ${{ inputs.SSH_PASSWORD }}
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
         source: "${{ inputs.dist_dir }}/*"
         target: "/var/www/${{ inputs.project_name }}/${{ inputs.slug }}"
         strip_components: 2
@@ -112,24 +108,18 @@ runs:
 
     - name: Cleanup Deployment
       if: inputs.action == 'cleanup'
-      uses: appleboy/ssh-action@v1.2.0
-      env:
-        SLUG: ${{ inputs.slug }}
-        SSH_HOST: ${{ inputs.ssh_host }}
-        SSH_USER: ${{ inputs.ssh_user }}
-        PROJECT_NAME: ${{ inputs.project_name }}
-        DIST_DIR: ${{ inputs.dist_dir }}
-        TARGET_DIR: ${{ inputs.target_dir }}
+      uses: appleboy/ssh-action@v1
       with:
-        host: ${{ inputs.SSH_HOST }}
-        username: ${{ inputs.SSH_USER }}
-        key: ${{ inputs.SSH_PRIVATE_KEY }}
-        passphrase: ${{ inputs.SSH_PASSWORD }}
-        envs: SLUG
+        host: ${{ inputs.ssh_host }}
+        port: ${{ inputs.ssh_port }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
         script: |
           PROJECT_NAME="${{ inputs.project_name }}"
+          SLUG="${{ inputs.slug }}"
           TARGET_DIR="/var/www/$PROJECT_NAME/$SLUG"
-          rm -rf $TARGET_DIR
+          rm -rf "$TARGET_DIR"
 
     - name: Set Output URL
       id: set-url
