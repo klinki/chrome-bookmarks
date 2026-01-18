@@ -61,11 +61,25 @@ runs:
         key: ${{ inputs.ssh_private_key }}
         passphrase: ${{ inputs.ssh_password }}
         script: |
+          set -e
           PROJECT_NAME="${{ inputs.project_name }}"
           PR_ID="pr-${{ github.event.number }}"
           TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-          mkdir -p $TARGET_DIR
-          rm -rf $TARGET_DIR/*
+
+          echo "Preparing deployment for $PROJECT_NAME ($PR_ID)"
+          echo "Target directory: $TARGET_DIR"
+
+          # Remove existing directory to ensure clean state
+          if [ -d "$TARGET_DIR" ]; then
+            echo "Removing existing directory..."
+            rm -rf "$TARGET_DIR"
+          fi
+
+          echo "Creating directory..."
+          mkdir -p "$TARGET_DIR"
+
+          echo "Verifying directory..."
+          ls -ld "$TARGET_DIR"
 
     - name: Copy Files
       if: inputs.action == 'deploy'
