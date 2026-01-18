@@ -57,10 +57,12 @@
         </div>
 
         <div class="tags-list">
-            <div *ngFor="let tag of availableTags()" class="tag-item">
+            @for (tag of availableTags(); track tag) {
+            <div class="tag-item">
                 <span>{{ tag }}</span>
                 <button class="remove-tag" (click)="removeTag(tag)">×</button>
             </div>
+            }
         </div>
     </section>
 
