@@ -60,26 +60,9 @@ runs:
         username: ${{ inputs.ssh_user }}
         key: ${{ inputs.ssh_private_key }}
         passphrase: ${{ inputs.ssh_password }}
+        script_stop: true
         script: |
-          set -e
-          PROJECT_NAME="${{ inputs.project_name }}"
-          PR_ID="pr-${{ github.event.number }}"
-          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-
-          echo "Preparing deployment for $PROJECT_NAME ($PR_ID)"
-          echo "Target directory: $TARGET_DIR"
-
-          # Remove existing directory to ensure clean state
-          if [ -d "$TARGET_DIR" ]; then
-            echo "Removing existing directory..."
-            rm -rf "$TARGET_DIR"
-          fi
-
-          echo "Creating directory..."
-          mkdir -p "$TARGET_DIR"
-
-          echo "Verifying directory..."
-          ls -ld "$TARGET_DIR"
+          PROJECT_NAME="${{ inputs.project_name }}" PR_ID="pr-${{ github.event.number }}" bash -c 'TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"; echo "Preparing deployment for $TARGET_DIR"; if [ -d "$TARGET_DIR" ]; then echo "Removing existing directory..."; rm -rf "$TARGET_DIR"; fi; echo "Creating directory..."; mkdir -p "$TARGET_DIR"; echo "Verifying directory..."; ls -ld "$TARGET_DIR"'
 
     - name: Copy Files
       if: inputs.action == 'deploy'
@@ -118,11 +101,9 @@ runs:
         username: ${{ inputs.ssh_user }}
         key: ${{ inputs.ssh_private_key }}
         passphrase: ${{ inputs.ssh_password }}
+        script_stop: true
         script: |
-          PROJECT_NAME="${{ inputs.project_name }}"
-          PR_ID="pr-${{ github.event.number }}"
-          TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
-          rm -rf $TARGET_DIR
+          PROJECT_NAME="${{ inputs.project_name }}" PR_ID="pr-${{ github.event.number }}" bash -c 'TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"; echo "Cleaning up $TARGET_DIR"; rm -rf "$TARGET_DIR"'
 
     - name: Set Output URL
       id: set-url
