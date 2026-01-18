@@ -54,7 +54,6 @@ runs:
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ inputs.ssh_private_key }}
-        passphrase: ${{ inputs.ssh_password }}
         known_hosts: unnecessary
         if_key_exists: replace
 
