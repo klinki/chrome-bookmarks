@@ -101,5 +101,29 @@ describe('AiService', () => {
             expect(models).toEqual([]);
         });
     });
+
+    describe('flattenBookmarks', () => {
+        it('should correctly flatten nested bookmarks', () => {
+            const mockBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [
+                { id: '1', title: 'Folder 1', children: [
+                    { id: '11', title: 'Bookmark 1-1', url: 'http://1-1.com' },
+                    { id: '12', title: 'Folder 1-2', children: [
+                        { id: '121', title: 'Bookmark 1-2-1', url: 'http://1-2-1.com' }
+                    ]}
+                ]},
+                { id: '2', title: 'Bookmark 2', url: 'http://2.com' }
+            ];
+
+            const flattened = (service as any).flattenBookmarks(mockBookmarks);
+
+            expect(flattened.length).toBe(5);
+            expect(flattened.map((b: any) => b.id)).toEqual(['1', '11', '12', '121', '2']);
+        });
+
+        it('should handle empty input', () => {
+            const flattened = (service as any).flattenBookmarks([]);
+            expect(flattened).toEqual([]);
+        });
+    });
 });
 
