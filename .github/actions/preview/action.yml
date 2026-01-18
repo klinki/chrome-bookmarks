@@ -59,7 +59,8 @@ runs:
 
     - name: Prepare Server
       if: inputs.action == 'deploy'
-      uses: appleboy/ssh-action@v1.2.0
+      uses: appleboy/ssh-action@v1
+      id: ssh
       env:
         SLUG: ${{ inputs.slug }}
         SSH_HOST: ${{ inputs.ssh_host }}
@@ -81,7 +82,7 @@ runs:
 
     - name: Copy Files
       if: inputs.action == 'deploy'
-      uses: appleboy/scp-action@v0.1.7
+      uses: appleboy/scp-action@v1
       with:
         host: ${{ inputs.SSH_HOST }}
         username: ${{ inputs.SSH_USER }}
