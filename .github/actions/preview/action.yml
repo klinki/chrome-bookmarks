@@ -55,22 +55,14 @@ runs:
     - name: Prepare Server
       if: inputs.action == 'deploy'
       uses: appleboy/ssh-action@v1.2.0
-      env:
-        PR_NUMBER: ${{ github.event.number }}
-        SSH_HOST: ${{ inputs.ssh_host }}
-        SSH_USER: ${{ inputs.ssh_user }}
-        PROJECT_NAME: ${{ inputs.project_name }}
-        DIST_DIR: ${{ inputs.dist_dir }}
-        TARGET_DIR: ${{ inputs.target_dir }}
       with:
-        host: ${{ inputs.SSH_HOST }}
-        username: ${{ inputs.SSH_USER }}
-        key: ${{ inputs.SSH_PRIVATE_KEY }}
-        passphrase: ${{ inputs.SSH_PASSWORD }}
-        envs: PR_NUMBER
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
         script: |
           PROJECT_NAME="${{ inputs.project_name }}"
-          PR_ID="pr-${PR_NUMBER}"
+          PR_ID="pr-${{ github.event.number }}"
           TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
           mkdir -p $TARGET_DIR
           rm -rf $TARGET_DIR/*
@@ -79,10 +71,10 @@ runs:
       if: inputs.action == 'deploy'
       uses: appleboy/scp-action@v0.1.7
       with:
-        host: ${{ inputs.SSH_HOST }}
-        username: ${{ inputs.SSH_USER }}
-        key: ${{ inputs.SSH_PRIVATE_KEY }}
-        passphrase: ${{ inputs.SSH_PASSWORD }}
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
         source: "${{ inputs.dist_dir }}/*"
         target: "/var/www/${{ inputs.project_name }}/pr-${{ github.event.number }}"
         strip_components: 2
@@ -107,22 +99,14 @@ runs:
     - name: Cleanup Deployment
       if: inputs.action == 'cleanup'
       uses: appleboy/ssh-action@v1.2.0
-      env:
-        PR_NUMBER: ${{ github.event.number }}
-        SSH_HOST: ${{ inputs.ssh_host }}
-        SSH_USER: ${{ inputs.ssh_user }}
-        PROJECT_NAME: ${{ inputs.project_name }}
-        DIST_DIR: ${{ inputs.dist_dir }}
-        TARGET_DIR: ${{ inputs.target_dir }}
       with:
-        host: ${{ inputs.SSH_HOST }}
-        username: ${{ inputs.SSH_USER }}
-        key: ${{ inputs.SSH_PRIVATE_KEY }}
-        passphrase: ${{ inputs.SSH_PASSWORD }}
-        envs: PR_NUMBER
+        host: ${{ inputs.ssh_host }}
+        username: ${{ inputs.ssh_user }}
+        key: ${{ inputs.ssh_private_key }}
+        passphrase: ${{ inputs.ssh_password }}
         script: |
           PROJECT_NAME="${{ inputs.project_name }}"
-          PR_ID="pr-${PR_NUMBER}"
+          PR_ID="pr-${{ github.event.number }}"
           TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
           rm -rf $TARGET_DIR
 
