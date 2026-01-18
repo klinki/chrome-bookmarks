@@ -54,15 +54,27 @@ runs:
 
     - name: Prepare Server
       if: inputs.action == 'deploy'
-      uses: appleboy/ssh-action@v1.2.0
-      with:
-        host: ${{ inputs.ssh_host }}
-        username: ${{ inputs.ssh_user }}
-        key: ${{ inputs.ssh_private_key }}
-        passphrase: ${{ inputs.ssh_password }}
-        script_stop: true
-        script: |
-          PROJECT_NAME="${{ inputs.project_name }}" PR_ID="pr-${{ github.event.number }}" bash -c 'TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"; echo "Preparing deployment for $TARGET_DIR"; if [ -d "$TARGET_DIR" ]; then echo "Removing existing directory..."; rm -rf "$TARGET_DIR"; fi; echo "Creating directory..."; mkdir -p "$TARGET_DIR"; echo "Verifying directory..."; ls -ld "$TARGET_DIR"'
+      shell: bash
+      run: |
+        PROJECT_NAME="${{ inputs.project_name }}"
+        PR_ID="pr-${{ github.event.number }}"
+        TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+
+        echo "Preparing deployment for $TARGET_DIR on ${{ inputs.ssh_host }}"
+
+        # Use ssh directly for better visibility and control
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} "
+          set -e
+          echo 'Connected to server'
+          if [ -d \"$TARGET_DIR\" ]; then
+            echo 'Removing existing directory...'
+            rm -rf \"$TARGET_DIR\"
+          fi
+          echo 'Creating directory...'
+          mkdir -p \"$TARGET_DIR\"
+          echo 'Verifying directory...'
+          ls -ld \"$TARGET_DIR\"
+        "
 
     - name: Copy Files
       if: inputs.action == 'deploy'
@@ -95,15 +107,18 @@ runs:
 
     - name: Cleanup Deployment
       if: inputs.action == 'cleanup'
-      uses: appleboy/ssh-action@v1.2.0
-      with:
-        host: ${{ inputs.ssh_host }}
-        username: ${{ inputs.ssh_user }}
-        key: ${{ inputs.ssh_private_key }}
-        passphrase: ${{ inputs.ssh_password }}
-        script_stop: true
-        script: |
-          PROJECT_NAME="${{ inputs.project_name }}" PR_ID="pr-${{ github.event.number }}" bash -c 'TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"; echo "Cleaning up $TARGET_DIR"; rm -rf "$TARGET_DIR"'
+      shell: bash
+      run: |
+        PROJECT_NAME="${{ inputs.project_name }}"
+        PR_ID="pr-${{ github.event.number }}"
+        TARGET_DIR="/var/www/$PROJECT_NAME/$PR_ID"
+
+        echo "Cleaning up $TARGET_DIR on ${{ inputs.ssh_host }}"
+
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=30 ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} "
+          echo 'Cleaning up directory...'
+          rm -rf \"$TARGET_DIR\"
+        "
 
     - name: Set Output URL
       id: set-url
