@@ -229,13 +229,16 @@ Instructions:
     }
 
     private flattenBookmarks(nodes: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
-        let results: chrome.bookmarks.BookmarkTreeNode[] = [];
-        for (const node of nodes) {
-            results.push(node);
-            if (node.children) {
-                results = results.concat(this.flattenBookmarks(node.children));
+        const results: chrome.bookmarks.BookmarkTreeNode[] = [];
+        const traverse = (list: chrome.bookmarks.BookmarkTreeNode[]) => {
+            for (const node of list) {
+                results.push(node);
+                if (node.children) {
+                    traverse(node.children);
+                }
             }
-        }
+        };
+        traverse(nodes);
         return results;
     }
 }
