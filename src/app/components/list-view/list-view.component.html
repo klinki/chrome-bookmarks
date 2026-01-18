@@ -24,7 +24,7 @@
         @for (column of displayedColumns; track column) {
           <td>
             @if (column.name === 'title') {
-              @if (!item.children) {
+              @if (item.url) {
                 <img alt="" [src]="getFavicon(item)" />
               } @else {
                 <app-folder-icon [item]="item"></app-folder-icon>

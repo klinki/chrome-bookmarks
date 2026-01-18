@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   selector: 'app-folder-icon',
   imports: [MatIconModule],
-  template: `<mat-icon class="tree-icon">{{icon()}}</mat-icon>`,
+  template: `<mat-icon class="tree-icon" [fontIcon]="icon()"></mat-icon>`,
   styleUrls: ['./folder-icon.component.scss']
 })
 export class FolderIconComponent {
