@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { TreeViewComponent } from './tree-view.component';
 import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
 import { MockBookmarksService } from '../../services/chrome/bookmarks/mock-bookmarks.service';
@@ -18,7 +19,7 @@ describe('Component: TreeView', () => {
 
   const mockSelectionService = {
     selectedDirectory: signal(null),
-    selectDirectory: jasmine.createSpy('selectDirectory')
+    selectDirectory: vi.fn()
   };
   
   const mockDragAndDropService = {};

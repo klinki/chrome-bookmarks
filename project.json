@@ -95,25 +95,9 @@
       }
     },
     "test": {
-      "executor": "@angular-devkit/build-angular:karma",
+      "executor": "@nx/vitest:test",
       "options": {
-        "polyfills": [
-          "zone.js",
-          "zone.js/testing",
-          "src/test-polyfills.ts"
-        ],
-        "karmaConfig": "config/karma.conf.js",
-        "tsConfig": "tsconfig.spec.json",
-        "inlineStyleLanguage": "scss",
-        "assets": [
-          "src/favicon.ico",
-          "src/assets"
-        ],
-        "styles": [
-          "@angular/material/prebuilt-themes/deeppurple-amber.css",
-          "src/styles.scss"
-        ],
-        "scripts": []
+        "config": "vitest.config.ts"
       }
     }
   }

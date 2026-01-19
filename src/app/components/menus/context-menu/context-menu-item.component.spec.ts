@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContextMenuItemComponent } from './context-menu-item.component';
 import { ContextMenuGroupDirective } from './context-menu-group.component';
 
-xdescribe('ContextMenuItemComponent', () => {
+describe.skip('ContextMenuItemComponent', () => {
   let component: ContextMenuItemComponent;
   let fixture: ComponentFixture<ContextMenuItemComponent>;
 

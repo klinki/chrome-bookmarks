@@ -3,7 +3,7 @@ import { ContextMenuGroupDirective } from './context-menu-group.component';
 import { ContextMenuItemComponent } from './context-menu-item.component';
 import { QueryList } from '@angular/core';
 
-xdescribe('ContextMenuGroupDirective', () => {
+describe.skip('ContextMenuGroupDirective', () => {
   let component: ContextMenuGroupDirective;
   let fixture: ComponentFixture<ContextMenuGroupDirective>;
 

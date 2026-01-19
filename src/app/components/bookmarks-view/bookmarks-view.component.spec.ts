@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { BookmarksViewComponent } from './bookmarks-view.component';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
 import { DragAndDropService } from '../../services/drag-and-drop.service';
@@ -10,7 +11,7 @@ import { signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
-xdescribe('Component: BookmarksView', () => {
+describe.skip('Component: BookmarksView', () => {
   let component: BookmarksViewComponent;
   let fixture: ComponentFixture<BookmarksViewComponent>;
 
@@ -22,7 +23,7 @@ xdescribe('Component: BookmarksView', () => {
   };
 
   const mockDragAndDropService = {
-    init: jasmine.createSpy('init')
+    init: vi.fn()
   };
 
 
@@ -34,7 +35,7 @@ xdescribe('Component: BookmarksView', () => {
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
         { provide: DragAndDropService, useValue: mockDragAndDropService },
         { provide: SelectionService, useValue: {} },
-        { provide: AiService, useValue: { suggestTags: jasmine.createSpy('suggestTags') } },
+        { provide: AiService, useValue: { suggestTags: vi.fn() } },
         { provide: TagsService, useValue: { getTagsForBookmark: () => [], availableTags: signal([]) } }
       ]
     })

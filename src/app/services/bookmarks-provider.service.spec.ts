@@ -1,6 +1,7 @@
 import {
   waitForAsync, inject, TestBed
 } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { BookmarksProviderService } from './bookmarks-provider.service';
 import { BookmarksService } from './chrome/bookmarks/bookmarks.service';
 import { of } from 'rxjs';
@@ -15,9 +16,9 @@ describe('BookmarksProvider Service', () => {
     onChildrenReorderedEvent$: of(null),
     onImportBeganEvent$: of(null),
     onImportEndedEvent$: of(null),
-    getTree: jasmine.createSpy('getTree').and.returnValue(Promise.resolve([])),
-    getSubTree: jasmine.createSpy('getSubTree').and.returnValue(Promise.resolve([])),
-    search: jasmine.createSpy('search').and.returnValue(Promise.resolve([]))
+    getTree: vi.fn().mockResolvedValue([]),
+    getSubTree: vi.fn().mockResolvedValue([]),
+    search: vi.fn().mockResolvedValue([])
   };
 
   beforeEach(() => {

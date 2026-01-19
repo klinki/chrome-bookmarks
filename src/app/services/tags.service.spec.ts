@@ -1,19 +1,25 @@
 import { TestBed } from '@angular/core/testing';
+import { vi, beforeEach, afterEach } from 'vitest';
 import { TagsService, BookmarkTags } from './tags.service';
 
 describe('TagsService', () => {
     let service: TagsService;
+    let mockStorage: { [key: string]: string };
 
     beforeEach(() => {
-        // Mock localStorage
-        const mockStorage: { [key: string]: string } = {};
-        spyOn(localStorage, 'getItem').and.callFake((key: string) => mockStorage[key] || null);
-        spyOn(localStorage, 'setItem').and.callFake((key: string, value: string) => {
+        // Reset mock storage for each test
+        mockStorage = {};
+        vi.spyOn(localStorage, 'getItem').mockImplementation((key: string) => mockStorage[key] || null);
+        vi.spyOn(localStorage, 'setItem').mockImplementation((key: string, value: string) => {
             mockStorage[key] = value;
         });
 
         TestBed.configureTestingModule({});
         service = TestBed.inject(TagsService);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     it('should be created', () => {
@@ -53,9 +59,9 @@ describe('TagsService', () => {
         });
 
         it('should not add duplicate tags', () => {
-            service.addTagToBookmark('123', 'tag');
-            service.addTagToBookmark('123', 'tag');
-            expect(service.getTagsForBookmark('123')).toEqual(['tag']);
+            service.addTagToBookmark('dup-test-123', 'tag');
+            service.addTagToBookmark('dup-test-123', 'tag');
+            expect(service.getTagsForBookmark('dup-test-123')).toEqual(['tag']);
         });
     });
 

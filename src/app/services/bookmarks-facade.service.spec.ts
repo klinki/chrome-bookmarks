@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { BookmarksFacadeService } from './bookmarks-facade.service';
 import { BookmarksProviderService } from './bookmarks-provider.service';
@@ -19,9 +20,9 @@ describe('BookmarksFacadeService', () => {
     onChildrenReorderedEvent$: { subscribe: () => {} },
     onImportBeganEvent$: { subscribe: () => {} },
     onImportEndedEvent$: { subscribe: () => {} },
-    getDirectoryTree: jasmine.createSpy('getDirectoryTree').and.returnValue(Promise.resolve([])),
-    getBookmarks: jasmine.createSpy('getBookmarks').and.returnValue(Promise.resolve([])),
-    search: jasmine.createSpy('search').and.returnValue(Promise.resolve([]))
+    getDirectoryTree: vi.fn().mockResolvedValue([]),
+    getBookmarks: vi.fn().mockResolvedValue([]),
+    search: vi.fn().mockResolvedValue([])
   };
 
   const mockSelectionService = {

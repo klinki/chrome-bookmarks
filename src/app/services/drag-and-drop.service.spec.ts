@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 
 import { DragAndDropService } from './drag-and-drop.service';
 import { DragulaService } from 'ng2-dragula';
@@ -12,8 +13,8 @@ describe('DragAndDropService', () => {
   let service: DragAndDropService;
 
   const mockDragulaService = {
-    createGroup: jasmine.createSpy('createGroup'),
-    find: jasmine.createSpy('find').and.returnValue(undefined)
+    createGroup: vi.fn(),
+    find: vi.fn().mockReturnValue(undefined)
   };
 
   const mockBookmarksFacade = {
@@ -22,7 +23,7 @@ describe('DragAndDropService', () => {
 
   const mockBookmarksProvider = {
     bookmarksMap: signal({}),
-    getBookmarks: jasmine.createSpy('getBookmarks').and.returnValue(Promise.resolve([]))
+    getBookmarks: vi.fn().mockResolvedValue([])
   };
 
   const mockSelectionService = {

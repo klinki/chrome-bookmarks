@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { ListViewComponent } from './list-view.component';
 import { SelectionService } from '../../services/selection.service';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
@@ -14,9 +15,9 @@ describe('Component: ListView', () => {
   const mockSelectionService = {
     selection: signal(new Set()),
     selectAllActive: signal(false),
-    select: jasmine.createSpy('select'),
-    clearSelection: jasmine.createSpy('clearSelection'),
-    selectAll: jasmine.createSpy('selectAll'),
+    select: vi.fn(),
+    clearSelection: vi.fn(),
+    selectAll: vi.fn(),
     items: [],
     itemsSignal: signal([]) 
   };

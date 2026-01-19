@@ -1,4 +1,5 @@
 import { waitForAsync, inject, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { StorageService } from './storage.service';
 
 describe('Storage Service', () => {
@@ -6,12 +7,12 @@ describe('Storage Service', () => {
     (window as any).chrome = {
       storage: {
         local: {
-          get: jasmine.createSpy('get'),
-          set: jasmine.createSpy('set')
+          get: vi.fn(),
+          set: vi.fn()
         },
         sync: {
-           get: jasmine.createSpy('get'),
-           set: jasmine.createSpy('set')
+           get: vi.fn(),
+           set: vi.fn()
         }
       }
     };
@@ -23,3 +24,4 @@ describe('Storage Service', () => {
       expect(service).toBeTruthy();
     })));
 });
+

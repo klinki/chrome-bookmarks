@@ -8,7 +8,8 @@
     "production": [
       "default",
       "!{projectRoot}/tsconfig.spec.json",
-      "!{projectRoot}/**/*.spec.[jt]s"
+      "!{projectRoot}/**/*.spec.[jt]s",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)"
     ]
   },
   "targetDefaults": {
@@ -28,6 +29,13 @@
         "^production"
       ],
       "cache": true
+    },
+    "@nx/vitest:test": {
+      "cache": true,
+      "inputs": [
+        "default",
+        "^production"
+      ]
     }
   },
   "nxCloudAccessToken": "MDVjMzdlY2QtZjNkNy00N2RiLWFhOTctMTg4YTk1MjIzZTA5fHJlYWQ=",

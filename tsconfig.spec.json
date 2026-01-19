@@ -2,16 +2,17 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
+    "target": "ES2022",
     "types": [
-      "jasmine",
+      "vitest/globals",
       "chrome"
-    ],
-    "moduleResolution": "bundler",
-    "isolatedModules": true
+    ]
   },
+  "files": [
+    "src/test-setup.ts"
+  ],
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts",
-    "src/test-polyfills.ts"
+    "src/**/*.d.ts"
   ]
 }

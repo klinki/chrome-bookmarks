@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { AiService } from './ai.service';
 import { BookmarksStore } from './bookmarks.store';
 import { TagsService } from './tags.service';
@@ -11,24 +12,24 @@ describe('AiService', () => {
     beforeEach(() => {
         mockBookmarksStore = {
             prefs: {
-                aiConfig: jasmine.createSpy('aiConfig').and.returnValue({
+                aiConfig: vi.fn().mockReturnValue({
                     baseUrl: 'http://localhost:11434/v1',
                     apiKey: '',
                     model: 'llama3:latest'
                 })
             },
             progress: {
-                isProcessing: jasmine.createSpy('isProcessing').and.returnValue(false),
-                isPaused: jasmine.createSpy('isPaused').and.returnValue(false),
-                isCancelled: jasmine.createSpy('isCancelled').and.returnValue(false)
+                isProcessing: vi.fn().mockReturnValue(false),
+                isPaused: vi.fn().mockReturnValue(false),
+                isCancelled: vi.fn().mockReturnValue(false)
             },
-            updateProgress: jasmine.createSpy('updateProgress')
+            updateProgress: vi.fn()
         };
 
         mockTagsService = {
-            getTagsForBookmark: jasmine.createSpy('getTagsForBookmark').and.returnValue([]),
-            setTagsForBookmark: jasmine.createSpy('setTagsForBookmark'),
-            addAvailableTag: jasmine.createSpy('addAvailableTag')
+            getTagsForBookmark: vi.fn().mockReturnValue([]),
+            setTagsForBookmark: vi.fn(),
+            addAvailableTag: vi.fn()
         };
 
         TestBed.configureTestingModule({
@@ -62,10 +63,10 @@ describe('AiService', () => {
 
     describe('suggestTags', () => {
         it('should throw error if baseUrl is not configured', async () => {
-            mockBookmarksStore.prefs.aiConfig.and.returnValue({ baseUrl: '' });
+            mockBookmarksStore.prefs.aiConfig.mockReturnValue({ baseUrl: '' });
 
-            await expectAsync(service.suggestTags([], []))
-                .toBeRejectedWithError('AI Base URL is not configured');
+            await expect(service.suggestTags([], []))
+                .rejects.toThrowError('AI Base URL is not configured');
         });
     });
 
@@ -73,7 +74,7 @@ describe('AiService', () => {
         it('should call getOllamaModels for Ollama provider', async () => {
             const ollamaProvider = service.providers.find(p => p.name === 'Ollama')!;
             
-            spyOn(service, 'getOllamaModels').and.returnValue(Promise.resolve(['llama3', 'mistral']));
+            vi.spyOn(service, 'getOllamaModels').mockResolvedValue(['llama3', 'mistral']);
             
             const models = await service.discoverProviderModels(ollamaProvider);
             
@@ -84,7 +85,7 @@ describe('AiService', () => {
         it('should call getLMStudioModels for LM Studio provider', async () => {
             const lmStudioProvider = service.providers.find(p => p.name === 'LM Studio')!;
             
-            spyOn(service, 'getLMStudioModels').and.returnValue(Promise.resolve(['model-a', 'model-b']));
+            vi.spyOn(service, 'getLMStudioModels').mockResolvedValue(['model-a', 'model-b']);
             
             const models = await service.discoverProviderModels(lmStudioProvider);
             
@@ -101,3 +102,4 @@ describe('AiService', () => {
         });
     });
 });
+

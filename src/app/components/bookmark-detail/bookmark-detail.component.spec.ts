@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { vi } from 'vitest';
 import { BookmarkDetailComponent } from './bookmark-detail.component';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
 import { TagsService } from '../../services/tags.service';
@@ -11,16 +12,16 @@ describe('BookmarkDetailComponent', () => {
   let fixture: ComponentFixture<BookmarkDetailComponent>;
 
   const mockBookmarksFacade = {
-    updateBookmark: jasmine.createSpy('updateBookmark').and.returnValue(Promise.resolve())
+    updateBookmark: vi.fn().mockResolvedValue(undefined)
   };
 
   const mockTagsService = {
-    getTagsForBookmark: jasmine.createSpy('getTagsForBookmark').and.returnValue([]),
+    getTagsForBookmark: vi.fn().mockReturnValue([]),
     availableTags: signal([])
   };
 
   const mockAiService = {
-    suggestTags: jasmine.createSpy('suggestTags').and.returnValue(Promise.resolve({}))
+    suggestTags: vi.fn().mockResolvedValue({})
   };
 
   beforeEach(async () => {
