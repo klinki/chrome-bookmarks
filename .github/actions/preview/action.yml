@@ -8,6 +8,10 @@ inputs:
   ssh_host:
     description: 'SSH Host'
     required: true
+  ssh_port:
+    description: 'SSH Port'
+    required: false
+    default: '22'
   ssh_user:
     description: 'SSH User'
     required: true
@@ -66,6 +70,7 @@ runs:
         PROJECT_NAME: ${{ inputs.project_name }}
       with:
         host: ${{ inputs.ssh_host }}
+        port: ${{ inputs.ssh_port }}
         username: ${{ inputs.ssh_user }}
         key: ${{ inputs.ssh_private_key }}
         passphrase: ${{ inputs.ssh_password }}
@@ -81,6 +86,7 @@ runs:
       uses: appleboy/scp-action@v1
       with:
         host: ${{ inputs.ssh_host }}
+        port: ${{ inputs.ssh_port }}
         username: ${{ inputs.ssh_user }}
         key: ${{ inputs.ssh_private_key }}
         passphrase: ${{ inputs.ssh_password }}
