@@ -114,6 +114,9 @@ importers:
       karma-jasmine-html-reporter:
         specifier: ~2.1.0
         version: 2.1.0(jasmine-core@5.13.0)(karma-jasmine@5.1.0(karma@6.4.4))(karma@6.4.4)
+      karma-junit-reporter:
+        specifier: ^2.0.1
+        version: 2.0.1(karma@6.4.4)
       nx:
         specifier: 22.3.3
         version: 22.3.3
@@ -5380,6 +5383,12 @@ packages:
     peerDependencies:
       karma: ^6.0.0
 
+  karma-junit-reporter@2.0.1:
+    resolution: {integrity: sha512-VtcGfE0JE4OE1wn0LK8xxDKaTP7slN8DO3I+4xg6gAi1IoAHAXOJ1V9G/y45Xg6sxdxPOR3THCFtDlAfBo9Afw==}
+    engines: {node: '>= 8'}
+    peerDependencies:
+      karma: '>=0.9'
+
   karma-source-map-support@1.4.0:
     resolution: {integrity: sha512-RsBECncGO17KAoJCYXjv+ckIz+Ii9NCi+9enk+rq6XC81ezYkb4/RHE6CTXdA7IOJqoF3wcaLfVG0CPmE5ca6A==}
 
@@ -7599,6 +7608,10 @@ packages:
   wsl-utils@0.1.0:
     resolution: {integrity: sha512-h3Fbisa2nKGPxCpm89Hk33lBLsnaGBvctQopaBSOW/uIs6FTe1ATyAnKFJrzVs9vpGdsTe73WF3V4lIsk4Gacw==}
     engines: {node: '>=18'}
+
+  xmlbuilder@12.0.0:
+    resolution: {integrity: sha512-lMo8DJ8u6JRWp0/Y4XLa/atVDr75H9litKlb2E5j3V3MesoL50EBgZDWoLT3F/LztVnG67GjPXLZpqcky/UMnQ==}
+    engines: {node: '>=6.0'}
 
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
@@ -13850,6 +13863,12 @@ snapshots:
       jasmine-core: 4.6.0
       karma: 6.4.4
 
+  karma-junit-reporter@2.0.1(karma@6.4.4):
+    dependencies:
+      karma: 6.4.4
+      path-is-absolute: 1.0.1
+      xmlbuilder: 12.0.0
+
   karma-source-map-support@1.4.0:
     dependencies:
       source-map-support: 0.5.21
@@ -16324,6 +16343,8 @@ snapshots:
   wsl-utils@0.1.0:
     dependencies:
       is-wsl: 3.1.0
+
+  xmlbuilder@12.0.0: {}
 
   y18n@5.0.8: {}
 
