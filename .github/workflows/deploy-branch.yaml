@@ -12,6 +12,12 @@ on:
           - deploy
           - cleanup
 
+# Needed for nx-set-shas when run on the main branch
+permissions:
+  actions: read
+  contents: read
+  checks: write # needed for test reporter
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

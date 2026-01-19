@@ -9,6 +9,7 @@ on:
 permissions:
   actions: read
   contents: read
+  checks: write # needed for test reporter
 
 jobs:
   main:

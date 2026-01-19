@@ -3,6 +3,12 @@ name: Deploy PR Preview
 on:
   pull_request:
     types: [opened, synchronize, reopened, closed]
+  
+# Needed for nx-set-shas when run on the main branch
+permissions:
+  actions: read
+  contents: read
+  checks: write # needed for test reporter
 
 jobs:
   deploy:
