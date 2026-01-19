@@ -55,6 +55,7 @@ jobs:
         with:
           action: ${{ inputs.action }}
           ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_port: ${{ secrets.SSH_PORT }}
           ssh_user: ${{ secrets.SSH_USER }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           ssh_password: ${{ secrets.SSH_PASSWORD }}
