@@ -3,6 +3,8 @@ import { ListViewComponent } from './list-view.component';
 import { SelectionService } from '../../services/selection.service';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
 import { TagsService } from '../../services/tags.service';
+import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
+import { MockBookmarksService } from '../../services/chrome/bookmarks/mock-bookmarks.service';
 import { signal } from '@angular/core';
 
 describe('Component: ListView', () => {
@@ -31,7 +33,8 @@ describe('Component: ListView', () => {
       providers: [
         { provide: SelectionService, useValue: mockSelectionService },
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
-        { provide: TagsService, useValue: mockTagsService }
+        { provide: TagsService, useValue: mockTagsService },
+        { provide: BookmarksService, useClass: MockBookmarksService }
       ]
     })
     .compileComponents();

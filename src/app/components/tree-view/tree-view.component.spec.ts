@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { TreeViewComponent } from './tree-view.component';
+import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
+import { MockBookmarksService } from '../../services/chrome/bookmarks/mock-bookmarks.service';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
 import { SelectionService } from '../../services/selection.service';
 import { DragAndDropService } from '../../services/drag-and-drop.service';
@@ -27,7 +29,8 @@ describe('Component: TreeView', () => {
       providers: [
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
         { provide: SelectionService, useValue: mockSelectionService },
-        { provide: DragAndDropService, useValue: mockDragAndDropService }
+        { provide: DragAndDropService, useValue: mockDragAndDropService },
+        { provide: BookmarksService, useClass: MockBookmarksService }
       ]
     })
     .compileComponents();
