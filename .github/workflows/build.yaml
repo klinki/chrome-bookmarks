@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - master
+  workflow_dispatch:
 
 # Needed for nx-set-shas when run on the main branch
 permissions:
