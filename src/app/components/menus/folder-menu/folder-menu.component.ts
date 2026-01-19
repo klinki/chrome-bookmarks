@@ -3,7 +3,7 @@ import { ChangeDetectorRef, Component, inject, Input, SimpleChanges, ViewChild }
 import { ContextMenuComponent } from "../context-menu/context-menu.component";
 import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.component";
 import { ContextMenuItemComponent } from "../context-menu/context-menu-item.component";
-import { Icons } from 'src/app/shared/icons';
+import { Icons } from '../../../shared/icons';
 import { Router } from "@angular/router";
 import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.service";
 

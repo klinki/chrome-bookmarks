@@ -2,7 +2,7 @@ import {AfterContentInit, Component, ContentChildren, Input, OnInit, QueryList, 
 import { CommonModule } from '@angular/common';
 import {CdkMenu, CdkMenuItem, CdkMenuTrigger} from "@angular/cdk/menu";
 import { ContextMenuGroupDirective } from './context-menu-group.component';
-import { Icons } from 'src/app/shared/icons';
+import { Icons } from '../../../shared/icons';
 
 @Component({
   selector: 'app-context-menu',
