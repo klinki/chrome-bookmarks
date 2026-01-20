@@ -39,12 +39,7 @@ export class FolderMenuComponent {
   }
 
   openInNewWindow() {
-    // TODO more parameters
-    const popupHeight = Math.max(parseInt((window.innerHeight * 0.8) as any /*this is to round it up to a whole number*/), 500);
-    // TODO check if window height > width
-    const popupWidth = Math.max(Math.min(parseInt((popupHeight * 1.777) as any /*this is to round it up to a whole number*/), window.innerWidth * 0.8), 500);
-    // TODO position
-    window.open(this.getUrl(), "_blank", `toolbar=yes,scrollbars=yes,resizable=yes,top=500,left=500,width=${popupWidth},height=${popupHeight}`);
+    window.open(this.getUrl(), "_blank");
   }
 
   createNewFolder() {
