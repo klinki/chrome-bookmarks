@@ -48,21 +48,31 @@ test.describe('Extended Selection', () => {
         // Navigate to the test folder
         const treeView = page.locator('app-tree-view');
         await treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: 'Bookmarks Bar' }) }).first().locator('.expand-icon').click();
-        await treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: 'Selection Test' }) }).first().click();
+
+        // Wait for the Selection Test folder to be visible before clicking
+        const selectionTestFolder = treeView.locator('.tree-row').filter({ has: page.locator('.tree-label', { hasText: 'Selection Test' }) }).first();
+        await selectionTestFolder.waitFor({ state: 'visible' });
+        await selectionTestFolder.click();
+
+        // Wait for list items to be rendered
+        const listView = page.locator('app-list-view');
+        await expect(listView.locator('tbody tr')).toHaveCount(5);
+
+        // Wait a moment for Angular event handlers to be fully attached
+        await page.waitForTimeout(200);
     });
 
     test('Shift+Click range selection', async ({ page }) => {
         const listView = page.locator('app-list-view');
-        const item1 = listView.getByText('Item 1', { exact: true });
-        const item3 = listView.getByText('Item 3', { exact: true });
+        const item1Row = listView.locator('tr[itemid="1001"]');
+        const item3Row = listView.locator('tr[itemid="1003"]');
 
-        // Click Item 1
-        await item1.click();
+        // Click Item 1 row and verify it was selected
+        await item1Row.click();
+        await expect(item1Row).toHaveAttribute('selected', 'true');
 
-        // Shift+Click Item 3
-        await page.keyboard.down('Shift');
-        await item3.click();
-        await page.keyboard.up('Shift');
+        // Shift+Click Item 3 using built-in modifier for reliability
+        await item3Row.click({ modifiers: ['Shift'] });
 
         // Check selection count
         const detail = page.locator('app-bookmark-detail');
@@ -116,28 +126,22 @@ test.describe('Extended Selection', () => {
         // Result: 1, 3, 4, 5.
 
         const listView = page.locator('app-list-view');
-        const item1 = listView.getByText('Item 1', { exact: true });
-        const item3 = listView.getByText('Item 3', { exact: true });
-        const item5 = listView.getByText('Item 5', { exact: true });
+        const item1Row = listView.locator('tr[itemid="1001"]');
+        const item3Row = listView.locator('tr[itemid="1003"]');
+        const item5Row = listView.locator('tr[itemid="1005"]');
 
-        // Click 1
-        await item1.click();
+        // Click 1 and verify it was selected
+        await item1Row.click();
+        await expect(item1Row).toHaveAttribute('selected', 'true');
 
         const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
 
-        // Ctrl+Click 5
-        await page.keyboard.down(modifier);
-        await item5.click();
-        await page.keyboard.up(modifier);
-
+        // Ctrl+Click 5 using built-in modifier for reliability
+        await item5Row.click({ modifiers: [modifier] });
         await expect(listView.locator('tr[selected="true"]')).toHaveCount(2); // 1 and 5
 
-        // Ctrl+Shift+Click 3
-        await page.keyboard.down(modifier);
-        await page.keyboard.down('Shift');
-        await item3.click();
-        await page.keyboard.up('Shift');
-        await page.keyboard.up(modifier);
+        // Ctrl+Shift+Click 3 using built-in modifiers for reliability
+        await item3Row.click({ modifiers: [modifier, 'Shift'] });
 
         // Expect: 1 (kept), 3, 4, 5 (range from 5 to 3). Total 4 items.
         // Note: The logic I saw in code calculates range from lastSelectedItem (which became 5).
@@ -173,10 +177,8 @@ test.describe('Extended Selection', () => {
         const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
         await page.keyboard.press(`${modifier}+a`);
 
-        // Deselect Item 3 with Ctrl+Click
-        await page.keyboard.down(modifier);
-        await listView.getByText('Item 3', { exact: true }).click();
-        await page.keyboard.up(modifier);
+        // Deselect Item 3 with Ctrl+Click using built-in modifier for reliability
+        await listView.getByText('Item 3', { exact: true }).click({ modifiers: [modifier] });
 
         await expect(listView.locator('tr[selected="true"]')).toHaveCount(4);
         await expect(listView.locator('tr[itemid="1003"][selected="true"]')).toHaveCount(0);
