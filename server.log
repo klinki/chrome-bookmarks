@@ -59,3 +59,47 @@
 [1m[33mFor more info see: https://angular.dev/tools/cli/build#configuring-commonjs-dependencies[39m[22m
 [1m[33m[39m[22m
 [1m[33m[39m[22m
+[32m✔[39m Browser application bundle generation complete.
+[1m[33m[39m[22m
+[1m[33m[0m[33mWarning: [39m[33m[0m[96msrc/app/components/menus/bookmark-menu/bookmark-menu.component.ts[0m:[93m13[0m:[93m13[0m - [93mwarning[0m[90m NG8113: [0mCdkMenu is not used within the template of BookmarkMenuComponent[39m[22m
+[1m[33m[39m[22m
+[1m[33m[7m13[0m   imports: [CdkMenu, CdkMenuItem, CdkMenuTrigger, ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],[39m[22m
+[1m[33m[7m  [0m [93m            ~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[0m[33mWarning: [39m[33m[0m[96msrc/app/components/menus/bookmark-menu/bookmark-menu.component.ts[0m:[93m13[0m:[93m22[0m - [93mwarning[0m[90m NG8113: [0mCdkMenuItem is not used within the template of BookmarkMenuComponent[39m[22m
+[1m[33m[39m[22m
+[1m[33m[7m13[0m   imports: [CdkMenu, CdkMenuItem, CdkMenuTrigger, ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],[39m[22m
+[1m[33m[7m  [0m [93m                     ~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[0m[33mWarning: [39m[33m[0m[96msrc/app/components/menus/bookmark-menu/bookmark-menu.component.ts[0m:[93m13[0m:[93m35[0m - [93mwarning[0m[90m NG8113: [0mCdkMenuTrigger is not used within the template of BookmarkMenuComponent[39m[22m
+[1m[33m[39m[22m
+[1m[33m[7m13[0m   imports: [CdkMenu, CdkMenuItem, CdkMenuTrigger, ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],[39m[22m
+[1m[33m[7m  [0m [93m                                  ~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[0m[33mWarning: [39m[33m[0m[96msrc/app/components/tree-view/tree-view.component.html[0m:[93m8[0m:[93m36[0m - [93mwarning[0m[90m NG8107: [0mThe left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[39m[22m
+[1m[33m[39m[22m
+[1m[33m[7m8[0m       [menu]="rightClickMenu.menu?.menu"[39m[22m
+[1m[33m[7m [0m [93m                                   ~~~~[0m[39m[22m
+[1m[33m[39m[22m
+[1m[33m  [96msrc/app/components/tree-view/tree-view.component.ts[0m:[93m11[0m:[93m16[0m[39m[22m
+[1m[33m    [7m11[0m   templateUrl: './tree-view.component.html',[39m[22m
+[1m[33m    [7m  [0m [96m               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m[39m[22m
+[1m[33m    Warning occurs in the template of component TreeViewComponent.[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[1m[33m[39m[22m
+[37m[0m[0m[39m
+[37m[0m[1mInitial chunk files[22m                                       [2m | [22m[1mNames[22m                                       [2m | [22m[1mRaw size[22m[0m[39m
+[37m[0m[32mruntime.js[39m[37m                                                [2m | [22m[2mruntime[22m                                     [2m | [22m[36m14.71 kB[39m[37m[2m | [22m[0m[39m
+[37m[0m[0m[39m
+[37m[0m[1mLazy chunk files[22m                                          [2m | [22m[1mNames[22m                                       [2m | [22m[1mRaw size[22m[0m[39m
+[37m[0m[32msrc_app_components_ai-settings_ai-settings_component_ts.js[39m[37m[2m | [22m[2mcomponents-ai-settings-ai-settings-component[22m[2m | [22m[36m53.05 kB[39m[37m[2m | [22m[0m[39m
+[37m[0m[0m[39m
+[37m[0m6 unchanged chunks[0m[39m
+[37m[0m[0m[39m
+[37m[0mBuild at: [1m[37m2026-01-26T20:52:21.067Z[39m[37m[22m - Hash: [1m[37m1b3011db43195df1[39m[37m[22m - Time: [1m[37m15003[39m[37m[22mms[0m[39m
+[37m[39m
+[37m[92m✔[39m[37m Compiled successfully.[39m

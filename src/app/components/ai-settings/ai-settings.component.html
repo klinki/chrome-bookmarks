@@ -38,10 +38,6 @@
                 <label for="model">Model Name</label>
                 <input id="model" type="text" formControlName="model" placeholder="llama3:8b">
             </div>
-            <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
-                <input id="allowNewTags" type="checkbox" formControlName="allowNewTags" style="width: auto; margin: 0;">
-                <label for="allowNewTags" style="margin: 0; cursor: pointer;">Allow creating new tags</label>
-            </div>
             <button type="submit" [disabled]="!configForm.dirty">Save Configuration</button>
         </form>
     </section>
@@ -53,6 +49,12 @@
                 {{ progress().isProcessing ? 'Processing...' : 'Categorize All Bookmarks' }}
             </button>
         </div>
+
+        <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px; margin-bottom: 15px;">
+            <input id="allowNewTags" type="checkbox" [formControl]="$any(configForm.get('allowNewTags'))" style="width: auto; margin: 0;">
+            <label for="allowNewTags" style="margin: 0; cursor: pointer;">Allow creating new tags</label>
+        </div>
+
         <p class="hint">These tags will be suggested to the AI for categorization.</p>
 
         <div class="tag-input-group">
