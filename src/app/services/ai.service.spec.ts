@@ -68,6 +68,70 @@ describe('AiService', () => {
             await expect(service.suggestTags([], []))
                 .rejects.toThrowError('AI Base URL is not configured');
         });
+
+        it('should filter out new tags when allowNewTags is false', async () => {
+            mockBookmarksStore.prefs.aiConfig.mockReturnValue({
+                baseUrl: 'http://localhost:11434/v1',
+                apiKey: '',
+                model: 'llama3:latest',
+                allowNewTags: false
+            });
+
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    choices: [{
+                        message: {
+                            content: JSON.stringify({
+                                results: [{
+                                    id: '1',
+                                    tags: ['ExistingTag', 'NewTag']
+                                }]
+                            })
+                        }
+                    }]
+                })
+            } as any);
+
+            const result = await service.suggestTags(
+                [{ id: '1', title: 'Test', url: 'http://test.com' } as any],
+                ['ExistingTag']
+            );
+
+            expect(result['1']).toEqual(['ExistingTag']);
+        });
+
+        it('should allow new tags when allowNewTags is true', async () => {
+             mockBookmarksStore.prefs.aiConfig.mockReturnValue({
+                baseUrl: 'http://localhost:11434/v1',
+                apiKey: '',
+                model: 'llama3:latest',
+                allowNewTags: true
+            });
+
+            global.fetch = vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    choices: [{
+                        message: {
+                            content: JSON.stringify({
+                                results: [{
+                                    id: '1',
+                                    tags: ['ExistingTag', 'NewTag']
+                                }]
+                            })
+                        }
+                    }]
+                })
+            } as any);
+
+            const result = await service.suggestTags(
+                [{ id: '1', title: 'Test', url: 'http://test.com' } as any],
+                ['ExistingTag']
+            );
+
+            expect(result['1']).toEqual(['ExistingTag', 'NewTag']);
+        });
     });
 
     describe('discoverProviderModels', () => {

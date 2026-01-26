@@ -39,6 +39,7 @@ export interface AiConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  allowNewTags: boolean;
 }
 
 export interface PreferencesState {
@@ -76,7 +77,8 @@ const initialState: BookmarksPageState = {
     aiConfig: {
       baseUrl: 'http://localhost:11434/v1',
       apiKey: '',
-      model: 'llama3:8b'
+      model: 'llama3:8b',
+      allowNewTags: false
     }
   },
   search: {

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="48" failures="0" errors="0" time="1.654896286">
+    <testsuite name="src/app/app.component.spec.ts" timestamp="2026-01-26T20:28:20.266Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.046327702">
+        <testcase classname="src/app/app.component.spec.ts" name="App: TestNgCli &gt; should create the app" time="0.04400776">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/pipes/filter-bookmarks.pipe.spec.ts" timestamp="2026-01-26T20:28:20.268Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.013704659">
+        <testcase classname="src/app/pipes/filter-bookmarks.pipe.spec.ts" name="FilterBookmarks Pipe &gt; should create an instance" time="0.011740588">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/pipes/order-by.pipe.spec.ts" timestamp="2026-01-26T20:28:20.269Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.013324455">
+        <testcase classname="src/app/pipes/order-by.pipe.spec.ts" name="OrderBy Pipe &gt; should create an instance" time="0.011326828">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/ai.service.spec.ts" timestamp="2026-01-26T20:28:20.270Z" hostname="devbox" tests="11" failures="0" errors="0" skipped="0" time="0.080698782">
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; should be created" time="0.033030662">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; providers &gt; should have Ollama provider" time="0.005855416">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; providers &gt; should have LM Studio provider" time="0.003924489">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; suggestTags &gt; should throw error if baseUrl is not configured" time="0.006104942">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; suggestTags &gt; should filter out new tags when allowNewTags is false" time="0.00476082">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; suggestTags &gt; should allow new tags when allowNewTags is true" time="0.002893034">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; discoverProviderModels &gt; should call getOllamaModels for Ollama provider" time="0.004564346">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; discoverProviderModels &gt; should call getLMStudioModels for LM Studio provider" time="0.003337272">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; discoverProviderModels &gt; should return empty array for unknown provider" time="0.005191756">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; flattenBookmarks &gt; should correctly flatten nested bookmarks" time="0.00338196">
+        </testcase>
+        <testcase classname="src/app/services/ai.service.spec.ts" name="AiService &gt; flattenBookmarks &gt; should handle empty input" time="0.00420517">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/bookmarks-facade.service.spec.ts" timestamp="2026-01-26T20:28:20.277Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.02375695">
+        <testcase classname="src/app/services/bookmarks-facade.service.spec.ts" name="BookmarksFacadeService &gt; should be created" time="0.021479378">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/bookmarks-provider.service.spec.ts" timestamp="2026-01-26T20:28:20.277Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.018074139">
+        <testcase classname="src/app/services/bookmarks-provider.service.spec.ts" name="BookmarksProvider Service &gt; should ..." time="0.015845813">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/drag-and-drop.service.spec.ts" timestamp="2026-01-26T20:28:20.278Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.03023907">
+        <testcase classname="src/app/services/drag-and-drop.service.spec.ts" name="DragAndDropService &gt; should be created" time="0.027805471">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/selection.service.spec.ts" timestamp="2026-01-26T20:28:20.279Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.016427437">
+        <testcase classname="src/app/services/selection.service.spec.ts" name="SelectionService Service &gt; should ..." time="0.014049443">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/settings.service.spec.ts" timestamp="2026-01-26T20:28:20.281Z" hostname="devbox" tests="4" failures="0" errors="0" skipped="0" time="0.041604902">
+        <testcase classname="src/app/services/settings.service.spec.ts" name="SettingsService &gt; should be created" time="0.018407513">
+        </testcase>
+        <testcase classname="src/app/services/settings.service.spec.ts" name="SettingsService &gt; should have default theme" time="0.010596864">
+        </testcase>
+        <testcase classname="src/app/services/settings.service.spec.ts" name="SettingsService &gt; should change theme" time="0.004678105">
+        </testcase>
+        <testcase classname="src/app/services/settings.service.spec.ts" name="SettingsService &gt; should have default language" time="0.004622806">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/tags.service.spec.ts" timestamp="2026-01-26T20:28:20.283Z" hostname="devbox" tests="14" failures="0" errors="0" skipped="0" time="0.073009821">
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; should be created" time="0.025847036">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; getTagsForBookmark &gt; should return empty array for bookmark without tags" time="0.00556167">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; getTagsForBookmark &gt; should return tags for bookmark with tags" time="0.003560595">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; setTagsForBookmark &gt; should set tags for a bookmark" time="0.003579072">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; setTagsForBookmark &gt; should remove bookmark from tags when empty array provided" time="0.003762766">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; addTagToBookmark &gt; should add a tag to a bookmark" time="0.0035096">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; addTagToBookmark &gt; should not add duplicate tags" time="0.00283009">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; addTagToBookmarks &gt; should add a tag to multiple bookmarks" time="0.003316556">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; removeTagFromBookmark &gt; should remove a tag from a bookmark" time="0.003910196">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; removeTagFromBookmarks &gt; should remove a tag from multiple bookmarks" time="0.003589007">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; availableTags &gt; should add an available tag" time="0.00267625">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; availableTags &gt; should not add duplicate available tags" time="0.002327942">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; availableTags &gt; should remove an available tag" time="0.002409714">
+        </testcase>
+        <testcase classname="src/app/services/tags.service.spec.ts" name="TagsService &gt; availableTags &gt; should set all available tags" time="0.002123335">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/ai-settings/ai-settings.component.spec.ts" timestamp="2026-01-26T20:28:20.290Z" hostname="devbox" tests="2" failures="0" errors="0" skipped="0" time="0.288134838">
+        <testcase classname="src/app/components/ai-settings/ai-settings.component.spec.ts" name="AiSettingsComponent &gt; should create" time="0.239100346">
+        </testcase>
+        <testcase classname="src/app/components/ai-settings/ai-settings.component.spec.ts" name="AiSettingsComponent &gt; should render tags" time="0.046419165">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/bookmark-detail/bookmark-detail.component.spec.ts" timestamp="2026-01-26T20:28:20.292Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.153143367">
+        <testcase classname="src/app/components/bookmark-detail/bookmark-detail.component.spec.ts" name="BookmarkDetailComponent &gt; should create" time="0.150767831">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/bookmarks-view/bookmarks-view.component.spec.ts" timestamp="2026-01-26T20:28:20.293Z" hostname="devbox" tests="0" failures="0" errors="0" skipped="0" time="0.000864967">
+    </testsuite>
+    <testsuite name="src/app/components/list-view/list-view.component.spec.ts" timestamp="2026-01-26T20:28:20.294Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.203948806">
+        <testcase classname="src/app/components/list-view/list-view.component.spec.ts" name="Component: ListView &gt; should create an instance" time="0.201575031">
+            <system-out>
+order by pipe
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/list-view-mat-table/list-view-mat-table.component.spec.ts" timestamp="2026-01-26T20:28:20.295Z" hostname="devbox" tests="0" failures="0" errors="0" skipped="0" time="0.000936021">
+    </testsuite>
+    <testsuite name="src/app/components/search-box/search-box.component.spec.ts" timestamp="2026-01-26T20:28:20.296Z" hostname="devbox" tests="2" failures="0" errors="0" skipped="0" time="0.006156359">
+        <testcase classname="src/app/components/search-box/search-box.component.spec.ts" name="Component: SearchBox &gt; should create an instance" time="0.003112086">
+        </testcase>
+        <testcase classname="src/app/components/search-box/search-box.component.spec.ts" name="Component: SearchBox &gt; should fire an event when input changes" time="0.000825816">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/tree-view/tree-view.component.spec.ts" timestamp="2026-01-26T20:28:20.297Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.204686675">
+        <testcase classname="src/app/components/tree-view/tree-view.component.spec.ts" name="Component: TreeView &gt; should create an instance" time="0.2021389">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/menus/bookmark-menu/bookmark-menu.component.spec.ts" timestamp="2026-01-26T20:28:20.298Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.137811237">
+        <testcase classname="src/app/components/menus/bookmark-menu/bookmark-menu.component.spec.ts" name="BookmarkMenuComponent &gt; should create" time="0.135582467">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/menus/context-menu/context-menu-group.component.spec.ts" timestamp="2026-01-26T20:28:20.299Z" hostname="devbox" tests="0" failures="0" errors="0" skipped="0" time="0.000926743">
+    </testsuite>
+    <testsuite name="src/app/components/menus/context-menu/context-menu-item.component.spec.ts" timestamp="2026-01-26T20:28:20.299Z" hostname="devbox" tests="0" failures="0" errors="0" skipped="0" time="0.001504256">
+    </testsuite>
+    <testsuite name="src/app/components/menus/context-menu/context-menu.component.spec.ts" timestamp="2026-01-26T20:28:20.300Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.102195166">
+        <testcase classname="src/app/components/menus/context-menu/context-menu.component.spec.ts" name="ContextMenuComponent &gt; should create" time="0.100047929">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/components/menus/folder-menu/folder-menu.component.spec.ts" timestamp="2026-01-26T20:28:20.301Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.154790641">
+        <testcase classname="src/app/components/menus/folder-menu/folder-menu.component.spec.ts" name="FolderMenuComponent &gt; should create" time="0.152402791">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/chrome/bookmarks/bookmarks.service.spec.ts" timestamp="2026-01-26T20:28:20.302Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.022209493">
+        <testcase classname="src/app/services/chrome/bookmarks/bookmarks.service.spec.ts" name="Bookmarks Service &gt; should ..." time="0.019540822">
+        </testcase>
+    </testsuite>
+    <testsuite name="src/app/services/chrome/storage/storage.service.spec.ts" timestamp="2026-01-26T20:28:20.303Z" hostname="devbox" tests="1" failures="0" errors="0" skipped="0" time="0.0204198">
+        <testcase classname="src/app/services/chrome/storage/storage.service.spec.ts" name="Storage Service &gt; should ..." time="0.017770314">
+        </testcase>
+    </testsuite>
+</testsuites>
