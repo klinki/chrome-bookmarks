@@ -6,7 +6,7 @@
 .section {
   margin-bottom: 30px;
   padding: 20px;
-  background: var(--surface-card);
+  background: var(--card-bg, #fff);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
@@ -17,7 +17,7 @@ h3 {
 }
 
 p {
-  color: var(--text-secondary);
+  color: var(--secondary-text-color, #666);
   margin-bottom: 20px;
 }
 
@@ -41,22 +41,23 @@ p {
 }
 
 .btn.primary {
-  background: var(--primary);
+  background: var(--primary-color, #1976d2);
   color: white;
 }
 
 .btn.primary:hover:not(:disabled) {
-  background: var(--primary-dark);
+  /* Simple darken effect using filter if variable not available, or just same color */
+  filter: brightness(0.9);
 }
 
 .btn.secondary {
-  background: var(--surface-hover);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background: var(--button-secondary-bg, #eee);
+  color: var(--text-color, #333);
+  border: 1px solid var(--border-color, #ccc);
 }
 
 .btn.secondary:hover:not(:disabled) {
-  background: var(--surface-active);
+  background: var(--button-secondary-hover, #ddd);
 }
 
 .message {
