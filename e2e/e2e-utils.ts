@@ -189,6 +189,39 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                         }
                         callback(JSON.parse(JSON.stringify(results)));
                     },
+                    create: (bookmark: any, callback: any) => {
+                        const newId = String(Math.floor(Math.random() * 1000000));
+                        const parentId = bookmark.parentId || '1'; // Default to Bookmarks Bar
+                        const newNode: any = {
+                            id: newId,
+                            title: bookmark.title || '',
+                            url: bookmark.url,
+                            parentId: parentId,
+                            index: bookmark.index,
+                            dateAdded: Date.now()
+                        };
+
+                        if (!bookmark.url) {
+                            newNode.children = [];
+                        }
+
+                        const parent = findNode(rootNodeArg, parentId);
+                        if (parent) {
+                            if (!parent.children) parent.children = [];
+                            if (typeof bookmark.index === 'number' && bookmark.index >= 0 && bookmark.index <= parent.children.length) {
+                                parent.children.splice(bookmark.index, 0, newNode);
+                            } else {
+                                parent.children.push(newNode);
+                            }
+
+                            // Normalize indices
+                            parent.children.forEach((c: any, i: number) => { c.index = i; });
+
+                            listeners.onCreated.forEach((l: any) => l(newId, newNode));
+                        }
+
+                        if (callback) callback(JSON.parse(JSON.stringify(newNode)));
+                    },
                     move: (id: string, destination: any, callback?: any) => {
                         moveNode(id, destination);
                         if (callback) callback(JSON.parse(JSON.stringify(findNode(rootNodeArg, id))));
