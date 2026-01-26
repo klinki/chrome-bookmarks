@@ -5,7 +5,15 @@ import { AppPage } from './app.po';
 const { root, MOCK_BOOKMARKS_MAP } = getMockData();
 
 test.beforeEach(async ({ page }) => {
-    await setupChromeMock(page, root, MOCK_BOOKMARKS_MAP);
+    await setupChromeMock(page, root, MOCK_BOOKMARKS_MAP, {
+        // Enable allowNewTags so AI suggestions aren't filtered out
+        aiConfig: {
+            baseUrl: 'http://localhost:11434/v1',
+            apiKey: '',
+            model: 'llama3:8b',
+            allowNewTags: true
+        }
+    });
     await setupAiMock(page, {
         '101': ['technology', 'programming'],
         '102': ['development', 'web']
@@ -87,4 +95,54 @@ test('AI Categorize Bookmark Applies Tags', async ({ page }) => {
 
     // Verify tags are applied (mock returns 'technology', 'programming' for id 101)
     await expect(detail.locator('.tag-chip').filter({ hasText: 'technology' })).toBeVisible();
+});
+
+test('AI Categorize with allowNewTags=false only applies existing tags', async ({ page, context }) => {
+    // Create a new page with different config for this test
+    const newPage = await context.newPage();
+
+    // Setup with allowNewTags=false and only 'technology' as available tag
+    await setupChromeMock(newPage, root, MOCK_BOOKMARKS_MAP, {
+        aiConfig: {
+            baseUrl: 'http://localhost:11434/v1',
+            apiKey: '',
+            model: 'llama3:8b',
+            allowNewTags: false
+        },
+        // Pre-populate only 'technology' as available tag
+        availableTags: ['technology']
+    });
+    await setupAiMock(newPage, {
+        '101': ['technology', 'programming'],  // AI suggests both, but only 'technology' should be applied
+        '102': ['development', 'web']
+    });
+
+    const appPage = new AppPage(newPage);
+    await appPage.navigate();
+
+    await expandFolder(newPage, 'Bookmarks Bar');
+    await selectTreeFolder(newPage, 'Only Bookmarks');
+
+    const listView = newPage.locator('app-list-view');
+    const bookmark = listView.getByText('Bookmark B1', { exact: true });
+    await bookmark.click();
+
+    // Wait for detail panel
+    const detail = newPage.locator('app-bookmark-detail');
+    await expect(detail.getByText('Bookmark Details')).toBeVisible();
+
+    // Click AI Categorize
+    const aiButton = detail.locator('button.ai-btn');
+    await aiButton.click();
+
+    // Wait for categorization to complete
+    await newPage.waitForTimeout(1000);
+
+    // Verify only 'technology' tag is applied (it was in availableTags)
+    await expect(detail.locator('.tag-chip').filter({ hasText: 'technology' })).toBeVisible();
+
+    // Verify 'programming' tag is NOT applied (it was not in availableTags)
+    await expect(detail.locator('.tag-chip').filter({ hasText: 'programming' })).not.toBeVisible();
+
+    await newPage.close();
 });
