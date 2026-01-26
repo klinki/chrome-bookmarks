@@ -59,7 +59,8 @@ export class AiSettingsComponent {
   public configForm = this.fb.group({
     baseUrl: [this.store.prefs.aiConfig().baseUrl],
     apiKey: [this.store.prefs.aiConfig().apiKey],
-    model: [this.store.prefs.aiConfig().model]
+    model: [this.store.prefs.aiConfig().model],
+    allowNewTags: [this.store.prefs.aiConfig().allowNewTags]
   });
 
   public saveConfig() {

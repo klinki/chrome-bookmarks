@@ -41,6 +41,10 @@ export class AiService {
             url: b.url
         }));
 
+        const instruction = config.allowNewTags
+            ? '2. If none of the available tags are suitable, you can suggest NEW tags if you think they are very relevant, but try to stick to the available ones if possible.'
+            : '2. You are RESTRICTED to use ONLY the provided Available Tags. Do NOT create new tags.';
+
         const prompt = `
 You are a bookmark categorization assistant. Your task is to assign relevant tags to each bookmark from the provided list of available tags.
 
@@ -51,7 +55,7 @@ ${JSON.stringify(bookmarksData, null, 2)}
 
 Instructions:
 1. For each bookmark, choose one or more tags from the "Available Tags" list that best describe the bookmark.
-2. If none of the available tags are suitable, you can suggest NEW tags if you think they are very relevant, but try to stick to the available ones if possible.
+${instruction}
 3. Return the result as a JSON object with a "results" property containing a list of objects, where each object has "id" and "tags" fields.
 `;
 
@@ -120,7 +124,13 @@ Instructions:
             if (parsed && Array.isArray(parsed.results)) {
                 for (const item of parsed.results) {
                     if (item.id && Array.isArray(item.tags)) {
-                        output[item.id] = item.tags;
+                        let tags = item.tags;
+                        if (!config.allowNewTags) {
+                            tags = tags.filter((t: string) => availableTags.includes(t));
+                        }
+                        if (tags.length > 0) {
+                            output[item.id] = tags;
+                        }
                     }
                 }
             }
