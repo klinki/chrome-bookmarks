@@ -1,0 +1,29 @@
+<div class="settings-container">
+  <h2>Import & Export</h2>
+
+  <div class="section">
+    <h3>Backup & Restore (JSON)</h3>
+    <p>Export all bookmarks, folders, and tags to a JSON file. This format preserves all metadata.</p>
+    <div class="actions">
+      <button class="btn primary" (click)="exportJson()" [disabled]="isLoading">Export JSON</button>
+
+      <input type="file" #jsonInput style="display: none" accept=".json" (change)="onJsonFileSelected($event)">
+      <button class="btn secondary" (click)="jsonInput.click()" [disabled]="isLoading">Import JSON</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Standard HTML Format</h3>
+    <p>Export bookmarks to a standard HTML file compatible with Chrome, Firefox, and other browsers.</p>
+    <div class="actions">
+      <button class="btn primary" (click)="exportHtml()" [disabled]="isLoading">Export HTML</button>
+
+      <input type="file" #htmlInput style="display: none" accept=".html" (change)="onHtmlFileSelected($event)">
+      <button class="btn secondary" (click)="htmlInput.click()" [disabled]="isLoading">Import HTML</button>
+    </div>
+  </div>
+
+  <div *ngIf="message" class="message" [ngClass]="messageType">
+    {{ message }}
+  </div>
+</div>

@@ -44,6 +44,10 @@ export class BookmarksProviderService {
     return this.bookmarksService.search(searchTerm);
   }
 
+  public create(bookmark: chrome.bookmarks.BookmarkCreateArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
+    return this.bookmarksService.create(bookmark);
+  }
+
   public filterDirectories(bookmarks: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
     return bookmarks.filter((bookmark) => bookmark.url === undefined).map((bookmark) => {
       let newBookmark = Object.create(bookmark);

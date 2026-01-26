@@ -22,6 +22,10 @@ export const routes: Routes = [
             {
                 path: 'ai',
                 loadComponent: () => import('./components/ai-settings/ai-settings.component').then(m => m.AiSettingsComponent)
+            },
+            {
+                path: 'import-export',
+                loadComponent: () => import('./components/settings/import-export/import-export.component').then(m => m.ImportExportComponent)
             }
         ]
     }
