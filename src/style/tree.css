@@ -24,7 +24,7 @@ app-tree-view {
 .expand-icon {
   transform: rotate(-90deg);
   -webkit-transition: all 150ms;
-  background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxMSIgdmlld2JveD0iMCAwIDE2IDExIiBmaWxsPSIjN2E3YTdhIj4KICA8cGF0aCBkPSJNMCAwIEwwIDIgTDcgOSBMMTQgMiBMMTQgMCBMMCAwIiBzdHJva2U9ImJsYWNrIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=) no-repeat center center;
+  background: url(/assets/icons/expand-arrow.svg) no-repeat center center;
   background-size: 8px 5px;
   display: inline-block;
   height: 16px;
@@ -41,7 +41,7 @@ html[dir=rtl] .expand-icon {
 
 .tree-item[expanded] > .tree-row > .expand-icon {
   transform: rotate(0);
-  background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxMSIgdmlld2JveD0iMCAwIDE2IDExIiBmaWxsPSIjN2E3YTdhIj4KICA8cGF0aCBkPSJNMCAwIEwwIDIgTDcgOSBMMTQgMiBMMTQgMCBMMCAwIiBzdHJva2U9ImJsYWNrIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=);
+  background-image: url(/assets/icons/expand-arrow.svg);
   opacity: .5;
 }
 
@@ -112,13 +112,11 @@ html[dir=rtl] .tree-label {
 
 html[dir=rtl] .tree-label,
 html[dir=rtl] .tree-row[may-have-children] > .tree-label {
-  background-image: -webkit-image-set(
-      url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAASCAYAAAC5DOVpAAABRUlEQVR4Xs2UPUvEQBCG39mLnvhZXSEoWghWguAfsNPK1kYUG6+00fYKbSwtBLlrBFv/hKWVpVaWYiESReJdNNlxdhIRwkLIcYhDhmcHss/skuwSM2NQYTDACKoIjnZX9wRtj6fZurjuVJI50ebWBuYXl7SIokh5dnLqGnSCCt0xMz2F+OUB9zePWjMbZWN2QecVZexwcLiD4cYcNIjco4RCqEOBkrC8Bhzvt9rebfLTHYLJUWiYGkAGrMzGMEapCQKboOQDxKFCBCokN0GSA2liawVhmaz7lrE+DlgDmETFlH6pFCLln1VTvURm01/pyATArnbSXCZSGhrTVTNxhZ+2957JbaISJD3JLhC/Cj/B1lY8AXEkYIBtLs6lqchS/qPj9BFL1+fQIwjhf//WL1tZ38b51SX6iCaYuZB9h3eb9C/us28Uf7F5VS9BsgAAAABJRU5ErkJggg==) 1x);
+  background-image: url(/assets/icons/folder-closed.svg);
 }
 
 html[dir=rtl] .tree-item[expanded] > .tree-row > .tree-label {
-  background-image: -webkit-image-set(
-     url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAASCAYAAAC5DOVpAAABTUlEQVR4Xs3Uy0oCUQDGcZ+s3qBt2yCYRZsg3ASFRQUtKroaWVZCQRkkhEGEXXyADJVg7KKVUjGpFRQEOufrzHcwc5ggh6AWf2Zz5nc+ZjEeAL/W32GDHa2aDA5pbjDosXG85/dZSY9YESTWxO0I9rYhudmF060elgh7mb+/k+vsmM8C3s6WUTEOVI+HqBZlpSNmlo9hPqnEs1Uc4iVuYVzSIkOgr73pCql1iHIMpkSJARiwsNeYF9XU2Ge4nFddBYBcELgJAXn58n0E4mEHwogSFMU9rv0eOxkC0qOq81ngwi/RBSC7BFyvArdrwN02sYrBT1DDGkEkR4jJZ73MtERnZHNqbXYRyK0AhXANdMSYmRgm0pA+KZuqw1wbcMBsYDU9QcABrJdRMHIhgnbM92Wde8wOGrvdBH8Yzzti0Y0gJ7tII2IHXeb5v/+zD5m5/ov62ALOAAAAAElFTkSuQmCC) 1x);
+  background-image: url(/assets/icons/folder-open.svg);
 }
 
 tree[icon-visibility=hidden] .tree-label {
@@ -133,13 +131,11 @@ app-tree-view[icon-visibility=parent] .tree-row[has-children=false] > .tree-labe
 
 .tree-label,
 .tree-row[may-have-children] > .tree-label {
-  background-image: -webkit-image-set(
-      url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAASCAYAAAC5DOVpAAABLElEQVR4Xs2Ur0oEURhHz10UwQkmg6DNZvQFDAafYsHiGgwGg8lg1S5jEcEiNvEBLPZFQbC5yWCSdZf5ez/5wQUHlpW7sqAHPhi+4R4OA3ecmTEtWkyRGYDj7Y0dIGWUztHF/flEMon2DvcRSZIgXl+euL66TYF4maoWV1bpPT4gnPOIls9YXlpQtSEiqlWW7h60wQAMMwQYrG0Gj4V9eFm89zg9uVS1xjVlmBnOV4DhzIPG+/Bc43wddjUif3v+4Zt5QLKGCEmqofZhJKwZT7OsLiVSBTQlEoQy8s8IWS1ZARKVA7AgUiGqNMj6ABEyHaoKKPvfNRJoMMgHBOLKUFmVAUESkOjvrtNH9475uVliGeblWFnn7KabMiHrW21GMDPs99AclQn37/5nX4eJ9e7eNnr7AAAAAElFTkSuQmCC) 1x);
+  background-image: url(/assets/icons/folder-closed.svg);
 }
 
 .tree-item[expanded] > .tree-row > .tree-label {
-  background-image: -webkit-image-set(
-      url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABMAAAASCAYAAAC5DOVpAAABUElEQVR4XrXUzUoCURyG8a6s7qBt2yBw0SYIN0FhUUGLij6NLCshoQwSwiDCzC4gQyVQ+7BSKkytoCBwPE+nP52FqaBii4dZzPDjPcMwHUDbaj821ttl01EjWysYhYRf+socS4ngjIDNYLLKOdJHxGeXLvYGpehuP+6hbgEbXC0Y6v0M9fZTmPLrb8UwVuEUKR+i9KLLnUiflxtmtaMKK2tEFYNkY15cwz3NZpZ2CqZXoPJHAqhcAPV8gHryQ8YL9x5Iu+HGBdcrkhWbNvERtJuVo4Lpo+j5IcF43IeHbbjbgtt1jazClRNSSxCfkqzz8fqYgcj6IL2pkTVZQGpZtwjJBYhOmgTT1wrIvDODyVFkhQES87o5g5goRyYEqokJlPYIQFIAqQYkWfHZKqhV7O8qRwWWOxyQmw0mz9f7zmw6mi2w467CjOpopX//BbWtb8Fi/ouV4PDxAAAAAElFTkSuQmCC) 1x);
+  background-image: url(/assets/icons/folder-open.svg);
 }
 
 /* We need to ensure that even empty labels take up space */

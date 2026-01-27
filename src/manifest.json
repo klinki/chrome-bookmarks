@@ -32,7 +32,8 @@
     {
       "resources": [
         "_favicon/*",
-        "icons/*"
+        "icons/*",
+        "assets/*"
       ],
       "matches": [
         "<all_urls>"

@@ -35,7 +35,9 @@
         ],
         "styles": [
           "@angular/material/prebuilt-themes/deeppurple-amber.css",
-          "src/styles.scss"
+          "src/styles.scss",
+          "src/style/tree.css",
+          "src/style/list.css"
         ],
         "scripts": []
       },
@@ -54,6 +56,14 @@
             }
           ],
           "outputHashing": "all",
+          "optimization": {
+            "scripts": true,
+            "styles": {
+              "minify": true,
+              "inlineCritical": false
+            },
+            "fonts": true
+          },
           "fileReplacements": [
             {
               "replace": "src/environments/environment.ts",
