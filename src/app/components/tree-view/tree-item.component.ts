@@ -70,14 +70,6 @@ export class TreeItemComponent implements OnInit {
   }
 
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
-    if ((directory?.children?.length ?? 0) > 0) {
-      const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {
-        return (arr[index] as any).hasOwnProperty('children') && prev;
-      }, true) ?? false;
-
-      return hasSubDirectories;
-    }
-
-    return false;
+    return directory?.children?.some((child) => (child as any).hasOwnProperty('children')) ?? false;
   }
 }
