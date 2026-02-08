@@ -1,4 +1,4 @@
-import { Component, input, computed } from '@angular/core';
+import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -6,7 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
   selector: 'app-folder-icon',
   imports: [MatIconModule],
   template: `<mat-icon class="tree-icon" [fontIcon]="icon()"></mat-icon>`,
-  styleUrls: ['./folder-icon.component.scss']
+  styleUrls: ['./folder-icon.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FolderIconComponent {
   public item = input.required<any>();
