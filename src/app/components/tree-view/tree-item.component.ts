@@ -1,4 +1,4 @@
-import { Component, OnInit, input, Input, HostBinding, computed, inject } from '@angular/core';
+import { Component, OnInit, input, Input, HostBinding, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
 
@@ -13,7 +13,8 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
     FolderIconComponent
   ],
   templateUrl: './tree-item.component.html',
-  styleUrls: ['./tree-item.component.scss']
+  styleUrls: ['./tree-item.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TreeItemComponent implements OnInit {
   private bookmarkService: SelectionService = inject(SelectionService);
