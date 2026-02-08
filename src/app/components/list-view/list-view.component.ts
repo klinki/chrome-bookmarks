@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { DragulaModule, DragulaService } from "ng2-dragula";
 import {CdkContextMenuTrigger} from "@angular/cdk/menu";
 
@@ -13,6 +13,7 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
   selector: 'app-list-view',
   templateUrl: 'list-view.component.html',
   styleUrls: ['list-view.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DragulaModule,
     OrderByPipe,
