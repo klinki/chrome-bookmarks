@@ -9,6 +9,7 @@ permissions:
   actions: read
   contents: read
   checks: write # needed for test reporter
+  pull-requests: write # needed for commenting on PRs
 
 jobs:
   deploy:
