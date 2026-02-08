@@ -25,7 +25,7 @@
           <td>
             @if (column.name === 'title') {
               @if (item.url) {
-                <img alt="" [src]="getFavicon(item)" />
+                <img alt="" [src]="item.url | favicon" />
               } @else {
                 <app-folder-icon [item]="item"></app-folder-icon>
               }

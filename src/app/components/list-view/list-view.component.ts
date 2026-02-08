@@ -4,6 +4,7 @@ import {CdkContextMenuTrigger} from "@angular/cdk/menu";
 
 import { SelectionService, BookmarksFacadeService, TagsService } from "../../services";
 import { OrderByPipe } from "../../pipes/order-by.pipe";
+import { FaviconPipe } from "../../pipes/favicon.pipe";
 import { BookmarkMenuComponent } from '../menus/bookmark-menu/bookmark-menu.component';
 import { FolderIconComponent } from '../folder-icon/folder-icon.component';
 
@@ -15,6 +16,7 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
   imports: [
     DragulaModule,
     OrderByPipe,
+    FaviconPipe,
     CdkContextMenuTrigger,
     BookmarkMenuComponent,
     FolderIconComponent
@@ -139,21 +141,6 @@ export class ListViewComponent implements OnInit, OnChanges {
     } else {
       this.selectionService.selectDirectory(item);
     }
-  }
-
-  // https://developer.chrome.com/docs/extensions/how-to/ui/favicons
-  public getFavicon(item: chrome.bookmarks.BookmarkTreeNode) {
-    if (item?.url != null) {
-      try {
-        const url = new URL(chrome?.runtime?.getURL("/_favicon/") ?? 'https://www.google.com/s2/favicons');
-        url.searchParams.set("pageUrl", item.url);
-        url.searchParams.set("size", "16");
-        return url.toString();
-      } catch (e) {
-        return '';
-      }
-    }
-    return '';
   }
 
   @HostListener('window:keydown', ['$event'])
