@@ -29,8 +29,12 @@
               } @else {
                 <app-folder-icon [item]="item"></app-folder-icon>
               }
+              {{ item.title }}
+            } @else if (column.name === 'dateAdded' || column.name === 'dateLastUsed') {
+              {{ $any(item)[column.name] | date:'d.M.yyyy H:mm' }}
+            } @else {
+              {{ getColumnValue(item, column.name) }}
             }
-            {{getColumnValue(item, column.name)}}
           </td>
         }
       </tr>

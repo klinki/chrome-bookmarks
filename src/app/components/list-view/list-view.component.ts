@@ -1,4 +1,5 @@
-import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { DragulaModule, DragulaService } from "ng2-dragula";
 import {CdkContextMenuTrigger} from "@angular/cdk/menu";
 
@@ -20,7 +21,8 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
     FaviconPipe,
     CdkContextMenuTrigger,
     BookmarkMenuComponent,
-    FolderIconComponent
+    FolderIconComponent,
+    DatePipe
   ],
   viewProviders: [DragulaService]
 })
@@ -106,12 +108,7 @@ export class ListViewComponent implements OnInit, OnChanges {
       const tags = this.tagsService.getTagsForBookmark(item.id);
       return tags.join(', ');
     }
-    if (column === 'dateAdded' || column === 'dateLastUsed') {
-      if (!value) return '';
-      const date = new Date(value);
-      // Format: d.M.yyyy H:mm
-      return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
-    }
+
     return value;
   }
 
