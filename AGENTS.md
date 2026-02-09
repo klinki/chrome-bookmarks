@@ -45,3 +45,23 @@ A web-based Chrome Bookmarks manager built with **Angular** and **Nx**. It featu
 ## Known Nuances
 - **MIME Warnings**: Browsers may show MIME type warnings for `tree.css` and `list.css` because they are served as `text/html` by the dev server, but they are included as inline styles as a fallback.
 - **Keyboard Shortcuts**: E2E tests check `process.platform` for `Meta` (macOS) vs `Control` (Windows/Linux) keys.
+
+## AI Agent Guidelines
+
+### Git Commit Standards
+- **Commit Messages**: Adhere to the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+  - **Format**: `<type>(<scope>): <subject>`
+  - **Types**:
+    - `feat`: A new feature
+    - `fix`: A bug fix
+    - `docs`: Documentation only changes
+    - `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+    - `refactor`: A code change that neither fixes a bug nor adds a feature
+    - `perf`: A code change that improves performance
+    - `test`: Adding missing tests or correcting existing tests
+    - `chore`: Changes to the build process or auxiliary tools and libraries such as documentation generation
+  - **Scope**: (Optional) The module or component affected (e.g., `bookmarks`, `sidebar`, `api`).
+- **File Inclusions**:
+  - **Never commit temporary or generated test files**.
+  - **Only commit** tests that are intended to be part of the permanent test suite (e.g., in `e2e/` or `src/**/*.spec.ts`).
+  - **Review** the `git status` carefully before committing to ensure no unintended files are included.
