@@ -40,4 +40,5 @@ Thumbs.db
 .temp/
 
 vitest.config.*.timestamp*test-results/
+/test-results/
 /src/environments/version.ts
