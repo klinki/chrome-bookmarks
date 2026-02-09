@@ -1,0 +1,24 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="owlBody" x1="32" y1="4" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#1565C0"/>
+            <stop offset="1" stop-color="#0D47A1"/>
+        </linearGradient>
+        <linearGradient id="ribbonGrad" x1="32" y1="32" x2="32" y2="60" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#1976D2"/>
+            <stop offset="1" stop-color="#0D47A1"/>
+        </linearGradient>
+    </defs>
+    
+    <path d="M20 32H44V52L32 60L20 52V32Z" fill="url(#ribbonGrad)"/>
+    
+    <path d="M32 4L18 14V26C18 30.4183 21.5817 34 26 34H38C42.4183 34 46 30.4183 46 26V14L32 4Z" fill="url(#owlBody)"/>
+    <path d="M18 14L14 6L24 10L18 14Z" fill="#0D47A1"/>
+    <path d="M46 14L50 6L40 10L46 14Z" fill="#0D47A1"/>
+    
+    <circle cx="25" cy="22" r="5" fill="#FFC107"/>
+    <circle cx="39" cy="22" r="5" fill="#FFC107"/>
+    <circle cx="25" cy="22" r="2.5" fill="#263238"/>
+    <circle cx="39" cy="22" r="2.5" fill="#263238"/>
+    <path d="M32 30L29 26H35L32 30Z" fill="#FFC107"/>
+</svg>

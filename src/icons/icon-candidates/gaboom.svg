@@ -1,0 +1,34 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="ribbonGradient" x1="100" y1="100" x2="412" y2="450" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6a11cb" />
+      <stop offset="100%" stop-color="#2575fc" />
+    </linearGradient>
+    <radialGradient id="sparkGradient" cx="256" cy="60" r="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#fff" />
+      <stop offset="50%" stop-color="#ffbf00" />
+      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0" />
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="15" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Fuse -->
+  <path d="M256 100 Q 256 60 290 50" stroke="#333" stroke-width="12" fill="none" stroke-linecap="round" />
+
+  <!-- Bookmark Body -->
+  <path d="M146 100 H 366 V 450 L 256 380 L 146 450 V 100 Z" fill="url(#ribbonGradient)" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+  
+  <!-- Spark -->
+  <g filter="url(#glow)">
+    <path d="M290 50 L 300 30 L 310 50 L 330 60 L 310 70 L 300 90 L 290 70 L 270 60 Z" fill="#ffeb3b" />
+    <circle cx="290" cy="50" r="5" fill="white" />
+  </g>
+  
+  <!-- Text/Logo hint (Optional, sticking to graphical) -->
+</svg>

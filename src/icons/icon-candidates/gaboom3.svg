@@ -1,0 +1,22 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="coreGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 28) rotate(90) scale(16)">
+            <stop stop-color="#FFFFFF"/>
+            <stop offset="0.6" stop-color="#00E676"/>
+            <stop offset="1" stop-color="#1B5E20"/>
+        </radialGradient>
+        <linearGradient id="ribbonMetal" x1="16" y1="4" x2="48" y2="60" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#37474F"/>
+            <stop offset="1" stop-color="#263238"/>
+        </linearGradient>
+    </defs>
+    
+    <path d="M20 4H44C46.2091 4 48 5.79086 48 8V58L32 48L16 58V8C16 5.79086 17.7909 4 20 4Z" fill="url(#ribbonMetal)"/>
+    
+    <circle cx="32" cy="28" r="12" fill="url(#coreGlow)"/>
+    
+    <path d="M32 14C35 14 38 15 40 17" stroke="#69F0AE" stroke-width="2" stroke-linecap="round"/>
+    <path d="M32 42C28 42 24 40 22 37" stroke="#69F0AE" stroke-width="2" stroke-linecap="round"/>
+    
+    <path d="M20 4H44V6H20V4Z" fill="#546E7A"/>
+</svg>

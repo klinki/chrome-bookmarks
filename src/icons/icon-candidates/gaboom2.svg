@@ -1,0 +1,20 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="singularityPoint" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(32 18) scale(10)">
+            <stop stop-color="#FFFFFF"/>
+            <stop offset="0.4" stop-color="#00B0FF"/>
+            <stop offset="1" stop-color="#311B92" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="darkMatterBody" x1="32" y1="0" x2="32" y2="64" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#311B92"/>
+            <stop offset="1" stop-color="#000000"/>
+        </linearGradient>
+    </defs>
+    
+    <path d="M18 8C18 5.79086 19.7909 4 22 4H42C44.2091 4 46 5.79086 46 8V60L32 50L18 60V8Z" fill="url(#darkMatterBody)"/>
+    
+    <circle cx="32" cy="18" r="8" fill="url(#singularityPoint)"/>
+    <circle cx="32" cy="18" r="3" fill="white"/>
+    
+    <path d="M18 32H46V34H18V32Z" fill="#00B0FF" opacity="0.5"/>
+</svg>
