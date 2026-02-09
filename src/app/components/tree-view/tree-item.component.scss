@@ -24,3 +24,37 @@
   padding-inline-start: 0 !important;
   -webkit-padding-start: 0 !important;
 }
+
+// Expand icon styles - moved here to ensure they're bundled with component
+.expand-icon {
+  transform: rotate(-90deg);
+  transition: all 150ms;
+  -webkit-transition: all 150ms;
+  background: url('/assets/icons/expand-arrow.svg') no-repeat center center;
+  background-size: 8px 5px;
+  display: inline-block;
+  height: 16px;
+  opacity: 0.6;
+  position: relative;
+  top: 6px;
+  vertical-align: top;
+  width: 16px;
+}
+
+.tree-item[expanded] > .tree-row > .expand-icon {
+  transform: rotate(0);
+  background-image: url('/assets/icons/expand-arrow.svg');
+  opacity: 0.5;
+}
+
+.tree-row .expand-icon {
+  visibility: hidden;
+}
+
+.tree-row[may-have-children] .expand-icon {
+  visibility: visible;
+}
+
+.tree-row[has-children=false] .expand-icon {
+  visibility: hidden;
+}
