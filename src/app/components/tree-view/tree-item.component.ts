@@ -1,4 +1,4 @@
-import { Component, OnInit, input, Input, HostBinding, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, input, Input, HostBinding, computed, inject } from '@angular/core';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
 
@@ -13,8 +13,7 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
     FolderIconComponent
   ],
   templateUrl: './tree-item.component.html',
-  styleUrls: ['./tree-item.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./tree-item.component.scss']
 })
 export class TreeItemComponent implements OnInit {
   private bookmarkService: SelectionService = inject(SelectionService);
@@ -71,6 +70,14 @@ export class TreeItemComponent implements OnInit {
   }
 
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
-    return directory?.children?.some((child) => (child as any).hasOwnProperty('children')) ?? false;
+    if ((directory?.children?.length ?? 0) > 0) {
+      const hasSubDirectories = directory.children?.reduce((prev, curr, index, arr) => {
+        return (arr[index] as any).hasOwnProperty('children') && prev;
+      }, true) ?? false;
+
+      return hasSubDirectories;
+    }
+
+    return false;
   }
 }

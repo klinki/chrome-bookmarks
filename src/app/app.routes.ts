@@ -26,10 +26,6 @@ export const routes: Routes = [
             {
                 path: 'import-export',
                 loadComponent: () => import('./components/settings/import-export/import-export.component').then(m => m.ImportExportComponent)
-            },
-            {
-                path: 'about',
-                loadComponent: () => import('./components/settings/about/about.component').then(m => m.AboutComponent)
             }
         ]
     }

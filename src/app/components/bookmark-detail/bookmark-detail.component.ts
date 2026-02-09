@@ -32,25 +32,16 @@ export class BookmarkDetailComponent {
     url: ['']
   });
 
-  private currentId: string | null = null;
-
   constructor() {
     // Update form when selection changes
     effect(() => {
       const sel = this.selection();
       if (sel && sel.length === 1) {
-        const item = sel[0];
-        // Only update if the selected item has changed to avoid overwriting form state
-        if (item.id !== this.currentId) {
-          this.currentId = item.id;
-          this.editForm.patchValue({
-            title: item.title,
-            url: item.url ?? ''
-          });
-          this.editForm.markAsPristine();
-        }
-      } else {
-        this.currentId = null;
+        this.editForm.patchValue({
+          title: sel[0].title,
+          url: sel[0].url ?? ''
+        });
+        this.editForm.markAsPristine();
       }
     });
   }

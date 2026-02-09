@@ -39,5 +39,4 @@ Thumbs.db
 .angular
 .temp/
 
-vitest.config.*.timestamp*test-results/
-/src/environments/version.ts
+vitest.config.*.timestamp*
