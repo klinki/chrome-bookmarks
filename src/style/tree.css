@@ -35,6 +35,10 @@ app-tree-view {
   width: 16px;
 }
 
+.dark-theme .expand-icon {
+  filter: brightness(0) invert(1);
+}
+
 html[dir=rtl] .expand-icon {
   transform: rotate(90deg);
 }

@@ -47,6 +47,10 @@
   opacity: 0.5;
 }
 
+:host-context(.dark-theme) .expand-icon {
+  filter: brightness(0) invert(1);
+}
+
 .tree-row .expand-icon {
   visibility: hidden;
 }
