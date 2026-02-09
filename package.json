@@ -5,7 +5,7 @@
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
-    "build": "nx build",
+    "build": "npm run version-info && nx build && npx tsc src/background.ts --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution node",
     "watch": "nx build --watch --configuration development",
     "test": "nx test --watch=false && npx playwright test",
     "test:unit": "nx test --watch=false",
