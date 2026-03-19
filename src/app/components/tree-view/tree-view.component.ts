@@ -1,4 +1,4 @@
-import { Component, OnInit, input, inject, effect } from '@angular/core';
+import { Component, OnInit, input, inject, effect, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { SelectionService } from '../../services';
 import { TreeItemComponent } from "./tree-item.component";
 import { FolderMenuComponent } from "../menus/folder-menu/folder-menu.component";
@@ -17,6 +17,8 @@ export type BookmarkDirectory = any;
 })
 export class TreeViewComponent implements OnInit {
   private selectionService = inject(SelectionService);
+  @ViewChild('treeContainer', { static: true }) private treeContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('rightClickMenu', { static: true }) private rightClickMenu!: FolderMenuComponent;
 
   public directories = input<BookmarkDirectory[] | null>([]);
 
@@ -71,5 +73,30 @@ export class TreeViewComponent implements OnInit {
 
   open(directory: BookmarkDirectory) {
     this.selectionService.selectDirectory(directory);
+  }
+
+  public focusTree() {
+    this.treeContainer.nativeElement.focus();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  public onKeydown(event: KeyboardEvent) {
+    if ((event.target as HTMLElement).localName === 'input') {
+      return true;
+    }
+
+    if (event.key === 'Delete' && this.treeHasFocus()) {
+      event.preventDefault();
+      event.stopPropagation();
+      void this.rightClickMenu.deleteSelectedFolder();
+      return false;
+    }
+
+    return true;
+  }
+
+  private treeHasFocus() {
+    const container = this.treeContainer.nativeElement;
+    return document.activeElement === container || container.contains(document.activeElement);
   }
 }

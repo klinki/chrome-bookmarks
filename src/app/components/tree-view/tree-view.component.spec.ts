@@ -46,4 +46,31 @@ describe('Component: TreeView', () => {
   it('should create an instance', () => {
     expect(component).toBeTruthy();
   });
+
+  it('forwards Delete to folder deletion when the tree has focus', () => {
+    mockSelectionService.selectedDirectory.set({
+      id: '123',
+      parentId: '1',
+      title: 'Empty Folder',
+      children: []
+    } as any);
+    fixture.detectChanges();
+
+    const deleteSpy = vi.spyOn((component as any).rightClickMenu, 'deleteSelectedFolder').mockResolvedValue(undefined);
+    const treeContainer: HTMLDivElement = fixture.nativeElement.querySelector('#tree-container');
+    treeContainer.focus();
+
+    const event = {
+      key: 'Delete',
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn(),
+      target: { localName: 'body' }
+    } as any;
+
+    component.onKeydown(event);
+
+    expect(deleteSpy).toHaveBeenCalledTimes(1);
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
 });

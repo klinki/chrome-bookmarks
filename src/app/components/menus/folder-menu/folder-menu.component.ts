@@ -6,6 +6,7 @@ import { ContextMenuItemComponent } from "../context-menu/context-menu-item.comp
 import { Icons } from '../../../shared/icons';
 import { Router } from "@angular/router";
 import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.service";
+import { SelectionService } from '../../../services';
 
 @Component({
   selector: 'app-folder-menu',
@@ -23,6 +24,7 @@ export class FolderMenuComponent {
   menu!: ContextMenuComponent;
 
   private bookmarksService = inject(BookmarksService);
+  private selectionService = inject(SelectionService);
 
   private cdr = inject(ChangeDetectorRef);
   private router = inject(Router);
@@ -64,7 +66,41 @@ export class FolderMenuComponent {
      }
   }
 
+  public async deleteSelectedFolder() {
+    const folder = this.folder;
+    if (!folder) {
+      return;
+    }
+
+    if (this.isProtectedFolder(folder)) {
+      alert('This folder cannot be deleted from the sidebar.');
+      return;
+    }
+
+    if ((folder.children?.length ?? 0) > 0) {
+      alert('Only empty folders can be deleted from the sidebar.');
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete "${folder.title}"?`)) {
+      return;
+    }
+
+    await new Promise(resolve => window.setTimeout(resolve, 0));
+    await this.bookmarksService.remove(folder.id);
+    this.selectionService.clearDirectorySelection();
+  }
+
   private getUrl() {
     return this.folder?.url;
+  }
+
+  private isProtectedFolder(folder: chrome.bookmarks.BookmarkTreeNode) {
+    return !!folder.url
+      || !folder.parentId
+      || folder.parentId === '0'
+      || folder.id.startsWith('ROOT_')
+      || folder.id.startsWith('TAG_')
+      || folder.id.startsWith('SERVER_');
   }
 }

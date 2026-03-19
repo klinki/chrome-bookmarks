@@ -89,6 +89,11 @@ export class SelectionService {
     this.clearSelection(true);
   }
 
+  public clearDirectorySelection() {
+    this._selectedDirectory.set(null);
+    this.clearSelection(true);
+  }
+
    public getSelectedBookmark() {
     return this.selectedBookmark;
   }

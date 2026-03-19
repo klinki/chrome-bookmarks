@@ -1,5 +1,5 @@
 <app-folder-menu #rightClickMenu [folder]="selectedDirectory()"></app-folder-menu>
-<div id="tree-container">
+<div id="tree-container" #treeContainer tabindex="0" (click)="focusTree()">
   @for (dir of directories(); track dir.id) {
     <app-tree-item
       [directory]="dir"
