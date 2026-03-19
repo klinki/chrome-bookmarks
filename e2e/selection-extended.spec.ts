@@ -22,11 +22,13 @@ function createExtendedMockData() {
     bookmarksBar.children?.push(selectionFolder);
     MOCK_BOOKMARKS_MAP['1000'] = selectionFolder;
 
+    const titles = ['Zulu', 'Alpha', 'Mike', 'Bravo', 'Charlie'];
+
     // Add 5 items
     for (let i = 1; i <= 5; i++) {
         const item = {
             id: `100${i}`,
-            title: `Item ${i}`,
+            title: titles[i - 1],
             url: `https://example.com/item${i}`,
             parentId: '1000',
             index: i - 1
@@ -83,6 +85,28 @@ test.describe('Extended Selection', () => {
         await expect(listView.locator('tr[itemid="1001"][selected="true"]')).toBeVisible();
         await expect(listView.locator('tr[itemid="1002"][selected="true"]')).toBeVisible();
         await expect(listView.locator('tr[itemid="1003"][selected="true"]')).toBeVisible();
+    });
+
+    test('Shift+Click range selection follows the visible sort order', async ({ page }) => {
+        const listView = page.locator('app-list-view');
+
+        await listView.locator('th', { hasText: 'Title' }).click();
+
+        const rows = listView.locator('tbody tr');
+        await expect(rows).toHaveCount(5);
+
+        const firstVisibleRow = rows.nth(0);
+        const thirdVisibleRow = rows.nth(2);
+
+        await firstVisibleRow.click();
+        await thirdVisibleRow.click({ modifiers: ['Shift'] });
+
+        const detail = page.locator('app-bookmark-detail');
+        await expect(detail.getByText('Selected 3 bookmarks')).toBeVisible();
+        await expect(listView.locator('tr[selected="true"]')).toHaveCount(3);
+        await expect(listView.locator('tr[itemid="1002"][selected="true"]')).toBeVisible();
+        await expect(listView.locator('tr[itemid="1004"][selected="true"]')).toBeVisible();
+        await expect(listView.locator('tr[itemid="1005"][selected="true"]')).toBeVisible();
     });
 
     test('Ctrl+Click then Shift+Click (Standard behavior)', async ({ page }) => {
@@ -160,7 +184,7 @@ test.describe('Extended Selection', () => {
         const listView = page.locator('app-list-view');
 
         // Focus list by clicking one item first (or just ensure focus is on body/list)
-        await listView.getByText('Item 1', { exact: true }).click();
+        await listView.locator('tr[itemid="1001"]').click();
 
         const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
         await page.keyboard.press(`${modifier}+a`);
@@ -172,13 +196,13 @@ test.describe('Extended Selection', () => {
 
     test('Select All then deselect one', async ({ page }) => {
         const listView = page.locator('app-list-view');
-        await listView.getByText('Item 1', { exact: true }).click();
+        await listView.locator('tr[itemid="1001"]').click();
 
         const modifier = process.platform === 'darwin' ? 'Meta' : 'Control';
         await page.keyboard.press(`${modifier}+a`);
 
         // Deselect Item 3 with Ctrl+Click using built-in modifier for reliability
-        await listView.getByText('Item 3', { exact: true }).click({ modifiers: [modifier] });
+        await listView.locator('tr[itemid="1003"]').click({ modifiers: [modifier] });
 
         await expect(listView.locator('tr[selected="true"]')).toHaveCount(4);
         await expect(listView.locator('tr[itemid="1003"][selected="true"]')).toHaveCount(0);

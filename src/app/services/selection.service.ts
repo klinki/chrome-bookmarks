@@ -47,6 +47,10 @@ export class SelectionService {
     toggle?: boolean
   }) {
     let newItems = new Set<string>();
+    const items = this._items();
+    const anchorIndex = this.lastSelectedItem != null ? items.indexOf(this.lastSelectedItem) : -1;
+    const bookmarkIndex = items.indexOf(bookmark);
+    const canSelectRange = !!config.range && anchorIndex >= 0 && bookmarkIndex >= 0;
 
     if (!config.clear) {
       newItems = new Set(this._selection());
@@ -54,31 +58,27 @@ export class SelectionService {
       this.selectAllActive.set(false);
     }
 
-    if (config.range && this.lastSelectedItem != null) {
-      const items = this._items();
-      const range = [
-        items.indexOf(this.lastSelectedItem),
-        items.indexOf(bookmark),
-      ];
+    if (canSelectRange) {
+      const selectedRangeFrom = Math.min(anchorIndex, bookmarkIndex);
+      const selectedRangeTo = Math.max(anchorIndex, bookmarkIndex);
 
-      const selectedRangeFrom = Math.min(...range);
-      const selectedRangeTo = Math.max(...range);
-
-      const selectedIds = items.slice(selectedRangeFrom, selectedRangeTo + 1)
-        .map(x => x.id);
-
-      selectedIds.forEach(id => newItems.add(id));
+      items.slice(selectedRangeFrom, selectedRangeTo + 1)
+        .forEach(item => newItems.add(item.id));
     } else if (!config.range) {
       if (newItems.has(bookmark.id)) {
         newItems.delete(bookmark.id);
       } else {
         newItems.add(bookmark.id);
       }
+    } else {
+      // Shift-selection should still behave sensibly when the anchor was
+      // cleared or no longer exists in the current list.
+      newItems.add(bookmark.id);
     }
 
     this._selection.set(newItems);
 
-    if (!config.range) {
+    if (!config.range || !canSelectRange) {
       this.lastSelectedItem = bookmark;
     }
   }
@@ -96,6 +96,7 @@ export class SelectionService {
   public clearSelection(sendEvent: boolean = true) {
     this.selectAllActive.set(false);
     this._selection.set(new Set());
+    this.lastSelectedItem = null;
 
     if (sendEvent) {
       this.selectionChanged.next(this._selection());

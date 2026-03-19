@@ -1,5 +1,5 @@
-import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal, 
-  inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal,
+  inject, ChangeDetectionStrategy, computed, effect } from '@angular/core';
 
 import { DatePipe } from '@angular/common';
 import { CdkContextMenuTrigger } from "@angular/cdk/menu";
@@ -17,8 +17,6 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
   styleUrls: ['list-view.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-
-    OrderByPipe,
     FaviconPipe,
     CdkContextMenuTrigger,
     BookmarkMenuComponent,
@@ -74,6 +72,15 @@ export class ListViewComponent implements OnInit, OnChanges {
   protected selectionService = inject(SelectionService);
   protected bookmarksFacade = inject(BookmarksFacadeService);
   protected tagsService = inject(TagsService);
+  private readonly orderByPipe = new OrderByPipe();
+
+  public visibleItems = computed(() => {
+    return this.orderByPipe.transform(this.items() ?? [], this.orderProperties());
+  });
+
+  private readonly syncSelectionItems = effect(() => {
+    this.selectionService.items = this.visibleItems();
+  });
 
   public isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
     if (this.selectionService.selectAllActive()) {
@@ -155,7 +162,7 @@ export class ListViewComponent implements OnInit, OnChanges {
       return false;
     } else if (event.key == 'Delete') {
       const selectedIds = this.selectionService.selection();
-      const items = this.items() || [];
+      const items = this.visibleItems();
       const selectedBookmarks = items.filter(i => selectedIds.has(i.id));
 
       if (selectedBookmarks.length > 0) {
