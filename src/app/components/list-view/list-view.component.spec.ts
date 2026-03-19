@@ -53,6 +53,9 @@ describe('Component: ListView', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    mockBookmarksFacade.deleteBookmarks.mockReset();
+    mockSelectionService.selection.set(new Set());
+    mockSelectionService.selectAllActive.set(false);
     fixture = TestBed.createComponent(ListViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -75,6 +78,36 @@ describe('Component: ListView', () => {
 
     fixture.componentRef.setInput('items', bookmarks);
     mockSelectionService.selection.set(new Set(['1', '2']));
+    fixture.detectChanges();
+
+    const event = {
+      key: 'Delete',
+      ctrlKey: false,
+      stopPropagation: vi.fn(),
+      preventDefault: vi.fn(),
+      target: { localName: 'body' }
+    } as any;
+
+    component.onKeyup(event);
+
+    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    expect(mockBookmarksFacade.deleteBookmarks).not.toHaveBeenCalled();
+
+    vi.runAllTimers();
+
+    expect(mockBookmarksFacade.deleteBookmarks).toHaveBeenCalledTimes(1);
+    expect(mockBookmarksFacade.deleteBookmarks).toHaveBeenCalledWith(bookmarks);
+  });
+
+  it('deletes all visible bookmarks when select all is active', () => {
+    const bookmarks = [
+      { id: '1', title: 'Alpha', url: 'https://example.com/1' },
+      { id: '2', title: 'Beta', url: 'https://example.com/2' }
+    ] as chrome.bookmarks.BookmarkTreeNode[];
+
+    fixture.componentRef.setInput('items', bookmarks);
+    mockSelectionService.selectAllActive.set(true);
+    mockSelectionService.selection.set(new Set());
     fixture.detectChanges();
 
     const event = {

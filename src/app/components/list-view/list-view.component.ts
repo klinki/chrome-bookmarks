@@ -121,6 +121,17 @@ export class ListViewComponent implements OnInit, OnChanges {
     return value;
   }
 
+  private getSelectedBookmarksForAction() {
+    const selectedIds = this.selectionService.selection();
+    const items = this.visibleItems();
+
+    if (this.selectionService.selectAllActive()) {
+      return items.filter(item => !selectedIds.has(item.id));
+    }
+
+    return items.filter(item => selectedIds.has(item.id));
+  }
+
   public itemClick(e: MouseEvent, item: chrome.bookmarks.BookmarkTreeNode) {
     // Ignore double clicks so that Ctrl double-clicking an item won't deselect
     // the item before opening.
@@ -162,9 +173,7 @@ export class ListViewComponent implements OnInit, OnChanges {
       this.selectionService.selectAll();
       return false;
     } else if (event.key == 'Delete') {
-      const selectedIds = this.selectionService.selection();
-      const items = this.visibleItems();
-      const selectedBookmarks = items.filter(i => selectedIds.has(i.id));
+      const selectedBookmarks = this.getSelectedBookmarksForAction();
 
       if (selectedBookmarks.length > 0) {
         const count = selectedBookmarks.length;
