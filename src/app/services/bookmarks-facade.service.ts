@@ -12,6 +12,7 @@ export class BookmarksFacadeService {
   private selectionService = inject(SelectionService);
 
   private tagsService = inject(TagsService);
+  private pendingDeletionIds = signal<Set<string>>(new Set());
 
 
   // Signals
@@ -122,9 +123,10 @@ export class BookmarksFacadeService {
       ),
       this.debouncedSearchTerm$,
       toObservable(this.tagsService.bookmarkTags),
-      toObservable(this.tagsService.availableTags)
+      toObservable(this.tagsService.availableTags),
+      toObservable(this.pendingDeletionIds)
     ]).pipe(
-      switchMap(([_, directory, searchTerm, bookmarkTags, availableTags]) => {
+      switchMap(([_, directory, searchTerm, bookmarkTags, availableTags, pendingDeletionIds]) => {
         if (searchTerm !== '') {
           return combineLatest([
             fromPromise(this.bookmarkProviderService.search(searchTerm)),
@@ -163,7 +165,7 @@ export class BookmarksFacadeService {
               // 3. Deduplicate
               const uniqueResults = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
               results.forEach(b => uniqueResults.set(b.id, b));
-              return Array.from(uniqueResults.values());
+              return Array.from(uniqueResults.values()).filter(b => !pendingDeletionIds.has(b.id));
             })
           );
         }
@@ -174,7 +176,9 @@ export class BookmarksFacadeService {
         // Handle Virtual Nodes
         if (directory.id === 'ROOT_ALL') {
           // Show root children (Bookmarks Bar, Other Bookmarks, etc)
-          return fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot());
+          return fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot()).pipe(
+            map(items => items.filter(item => !pendingDeletionIds.has(item.id)))
+          );
         }
 
         if (directory.id === 'ROOT_TAGS' || directory.id === 'ROOT_SERVERS') {
@@ -195,7 +199,7 @@ export class BookmarksFacadeService {
               }
               return allBookmarks.filter(b => {
                 const tags = this.tagsService.getTagsForBookmark(b.id);
-                return tags.includes(tagName);
+                return tags.includes(tagName) && !pendingDeletionIds.has(b.id);
               });
             })
           );
@@ -218,12 +222,14 @@ export class BookmarksFacadeService {
                 }
                 if (node.children) stack.push(...node.children);
               }
-              return allBookmarks;
+              return allBookmarks.filter(item => !pendingDeletionIds.has(item.id));
             })
           );
         }
 
-        return fromPromise(this.bookmarkProviderService.getChildren(directory.id));
+        return fromPromise(this.bookmarkProviderService.getChildren(directory.id)).pipe(
+          map(items => items.filter(item => !pendingDeletionIds.has(item.id)))
+        );
       }),
       tap(items => {
         this.selectionService.items = items;
@@ -260,14 +266,26 @@ export class BookmarksFacadeService {
   }
 
   public async deleteBookmarks(bookmarks: chrome.bookmarks.BookmarkTreeNode[]) {
-    for (const bookmark of bookmarks) {
-      if (bookmark.url) {
-        await this.bookmarkProviderService.remove(bookmark.id);
-      } else {
-        await this.bookmarkProviderService.removeTree(bookmark.id);
-      }
-    }
+    const uniqueBookmarks = Array.from(new Map(bookmarks.map(bookmark => [bookmark.id, bookmark])).values());
+    const pendingIds = new Set(uniqueBookmarks.map(bookmark => bookmark.id));
+
     this.selectionService.clearSelection();
+    this.pendingDeletionIds.set(pendingIds);
+
+    try {
+      const results = await Promise.allSettled(uniqueBookmarks.map(bookmark => {
+        return bookmark.url
+          ? this.bookmarkProviderService.remove(bookmark.id)
+          : this.bookmarkProviderService.removeTree(bookmark.id);
+      }));
+
+      const rejected = results.find(result => result.status === 'rejected');
+      if (rejected && rejected.status === 'rejected') {
+        throw rejected.reason;
+      }
+    } finally {
+      this.pendingDeletionIds.set(new Set());
+    }
   }
 
   public async updateBookmark(id: string, changes: { title?: string; url?: string }) {

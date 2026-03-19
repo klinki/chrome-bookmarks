@@ -12,6 +12,16 @@ import { signal } from '@angular/core';
 describe('BookmarksFacadeService', () => {
   let service: BookmarksFacadeService;
 
+  function deferred<T>() {
+    let resolve!: (value: T) => void;
+
+    const promise = new Promise<T>((res) => {
+      resolve = res;
+    });
+
+    return { promise, resolve };
+  }
+
   const mockBookmarksProvider = {
     onCreatedEvent$: { subscribe: () => {} },
     onRemovedEvent$: { subscribe: () => {} },
@@ -21,13 +31,20 @@ describe('BookmarksFacadeService', () => {
     onImportBeganEvent$: { subscribe: () => {} },
     onImportEndedEvent$: { subscribe: () => {} },
     getDirectoryTree: vi.fn().mockResolvedValue([]),
+    getDirectoryTreeWithoutRoot: vi.fn().mockResolvedValue([]),
     getBookmarks: vi.fn().mockResolvedValue([]),
-    search: vi.fn().mockResolvedValue([])
+    search: vi.fn().mockResolvedValue([]),
+    remove: vi.fn().mockResolvedValue(undefined),
+    removeTree: vi.fn().mockResolvedValue(undefined)
   };
 
   const mockSelectionService = {
     items: [],
-    itemsSignal: signal([])
+    itemsSignal: signal([]),
+    selection: signal(new Set<string>()),
+    selectedDirectory: signal(null),
+    selectAllActive: signal(false),
+    clearSelection: vi.fn()
   };
   const mockTagsService = {};
   const mockAiService = {};
@@ -52,5 +69,31 @@ describe('BookmarksFacadeService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('deletes bookmarks in parallel and clears selection immediately', async () => {
+    const first = deferred<void>();
+    const second = deferred<void>();
+
+    mockBookmarksProvider.remove
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+
+    const bookmarks = [
+      { id: '1', url: 'https://example.com/1', title: '1' },
+      { id: '2', url: 'https://example.com/2', title: '2' }
+    ] as chrome.bookmarks.BookmarkTreeNode[];
+
+    const deletion = service.deleteBookmarks(bookmarks);
+
+    expect(mockSelectionService.clearSelection).toHaveBeenCalledTimes(1);
+    expect(mockBookmarksProvider.remove).toHaveBeenCalledTimes(2);
+    expect(mockBookmarksProvider.remove).toHaveBeenNthCalledWith(1, '1');
+    expect(mockBookmarksProvider.remove).toHaveBeenNthCalledWith(2, '2');
+
+    first.resolve();
+    second.resolve();
+
+    await deletion;
   });
 });
