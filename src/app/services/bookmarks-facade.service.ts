@@ -1,7 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { BookmarksProviderService } from "./bookmarks-provider.service";
 import { TagsService } from "./tags.service";
-import { combineLatest, debounceTime, distinctUntilChanged, map, merge, mergeMap, of, shareReplay, startWith, switchMap, tap } from "rxjs";
+import { Subject, combineLatest, debounceTime, distinctUntilChanged, filter, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
 import { fromPromise } from "rxjs/internal/observable/innerFrom";
 import { SelectionService } from "./selection.service";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
@@ -13,6 +13,7 @@ export class BookmarksFacadeService {
 
   private tagsService = inject(TagsService);
   private pendingDeletionIds = signal<Set<string>>(new Set());
+  private refreshRequested$ = new Subject<void>();
   public deleteProgress = signal({
     active: false,
     total: 0,
@@ -25,10 +26,16 @@ export class BookmarksFacadeService {
   public selectedBookmarkIds = this.selectionService.selection;
 
   public onBookmarksUpdated$ = merge(
-    this.bookmarkProviderService.onMovedEvent$,
-    this.bookmarkProviderService.onChangedEvent$,
-    this.bookmarkProviderService.onCreatedEvent$,
-    this.bookmarkProviderService.onRemovedEvent$,
+    merge(
+      this.bookmarkProviderService.onMovedEvent$,
+      this.bookmarkProviderService.onChangedEvent$,
+      this.bookmarkProviderService.onCreatedEvent$,
+      this.bookmarkProviderService.onRemovedEvent$,
+    ).pipe(
+      filter(() => this.pendingDeletionIds().size === 0),
+      map(() => null)
+    ),
+    this.refreshRequested$.pipe(map(() => null))
   ).pipe(
     tap(ev => {
       console.log(ev);
@@ -311,6 +318,7 @@ export class BookmarksFacadeService {
         total: 0,
         completed: 0
       });
+      this.refreshRequested$.next();
     }
   }
 

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
+import { Subject } from 'rxjs';
 
 import { BookmarksFacadeService } from './bookmarks-facade.service';
 import { BookmarksProviderService } from './bookmarks-provider.service';
@@ -11,6 +12,10 @@ import { signal } from '@angular/core';
 
 describe('BookmarksFacadeService', () => {
   let service: BookmarksFacadeService;
+  let onCreatedEvent$: Subject<unknown>;
+  let onRemovedEvent$: Subject<unknown>;
+  let onChangedEvent$: Subject<unknown>;
+  let onMovedEvent$: Subject<unknown>;
 
   function deferred<T>() {
     let resolve!: (value: T) => void;
@@ -22,22 +27,6 @@ describe('BookmarksFacadeService', () => {
     return { promise, resolve };
   }
 
-  const mockBookmarksProvider = {
-    onCreatedEvent$: { subscribe: () => {} },
-    onRemovedEvent$: { subscribe: () => {} },
-    onChangedEvent$: { subscribe: () => {} },
-    onMovedEvent$: { subscribe: () => {} },
-    onChildrenReorderedEvent$: { subscribe: () => {} },
-    onImportBeganEvent$: { subscribe: () => {} },
-    onImportEndedEvent$: { subscribe: () => {} },
-    getDirectoryTree: vi.fn().mockResolvedValue([]),
-    getDirectoryTreeWithoutRoot: vi.fn().mockResolvedValue([]),
-    getBookmarks: vi.fn().mockResolvedValue([]),
-    search: vi.fn().mockResolvedValue([]),
-    remove: vi.fn().mockResolvedValue(undefined),
-    removeTree: vi.fn().mockResolvedValue(undefined)
-  };
-
   const mockSelectionService = {
     items: [],
     itemsSignal: signal([]),
@@ -46,7 +35,11 @@ describe('BookmarksFacadeService', () => {
     selectAllActive: signal(false),
     clearSelection: vi.fn()
   };
-  const mockTagsService = {};
+  const mockTagsService = {
+    availableTags: signal<string[]>([]),
+    bookmarkTags: signal<Record<string, string[]>>({}),
+    getTagsForBookmark: vi.fn().mockReturnValue([])
+  };
   const mockAiService = {};
   const mockStore = {
     loading: signal(false),
@@ -54,6 +47,31 @@ describe('BookmarksFacadeService', () => {
   };
 
   beforeEach(() => {
+    onCreatedEvent$ = new Subject();
+    onRemovedEvent$ = new Subject();
+    onChangedEvent$ = new Subject();
+    onMovedEvent$ = new Subject();
+
+    mockSelectionService.clearSelection.mockReset();
+    mockTagsService.getTagsForBookmark.mockReset();
+    mockTagsService.getTagsForBookmark.mockReturnValue([]);
+
+    const mockBookmarksProvider = {
+      onCreatedEvent$,
+      onRemovedEvent$,
+      onChangedEvent$,
+      onMovedEvent$,
+      onChildrenReorderedEvent$: new Subject(),
+      onImportBeganEvent$: new Subject(),
+      onImportEndedEvent$: new Subject(),
+      getDirectoryTree: vi.fn().mockResolvedValue([]),
+      getDirectoryTreeWithoutRoot: vi.fn().mockResolvedValue([]),
+      getBookmarks: vi.fn().mockResolvedValue([]),
+      search: vi.fn().mockResolvedValue([]),
+      remove: vi.fn().mockResolvedValue(undefined),
+      removeTree: vi.fn().mockResolvedValue(undefined)
+    };
+
     TestBed.configureTestingModule({
       providers: [
         BookmarksFacadeService,
@@ -72,6 +90,9 @@ describe('BookmarksFacadeService', () => {
   });
 
   it('deletes bookmarks in parallel and clears selection immediately', async () => {
+    const mockBookmarksProvider = TestBed.inject(BookmarksProviderService) as unknown as {
+      remove: ReturnType<typeof vi.fn>;
+    };
     const first = deferred<void>();
     const second = deferred<void>();
 
@@ -99,5 +120,42 @@ describe('BookmarksFacadeService', () => {
 
     await deletion;
     expect(service.deleteProgress().active).toBe(false);
+  });
+
+  it('suppresses refresh storms from remove events during bulk delete', async () => {
+    const mockBookmarksProvider = TestBed.inject(BookmarksProviderService) as unknown as {
+      getBookmarks: ReturnType<typeof vi.fn>;
+      getDirectoryTreeWithoutRoot: ReturnType<typeof vi.fn>;
+      remove: ReturnType<typeof vi.fn>;
+    };
+
+    service.directories();
+
+    const initialGetBookmarksCalls = mockBookmarksProvider.getBookmarks.mock.calls.length;
+    const initialDirectoryCalls = mockBookmarksProvider.getDirectoryTreeWithoutRoot.mock.calls.length;
+
+    const first = deferred<void>();
+    const second = deferred<void>();
+    mockBookmarksProvider.remove
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise);
+
+    const deletion = service.deleteBookmarks([
+      { id: '1', url: 'https://example.com/1', title: '1' },
+      { id: '2', url: 'https://example.com/2', title: '2' }
+    ] as chrome.bookmarks.BookmarkTreeNode[]);
+
+    onRemovedEvent$.next({});
+    onRemovedEvent$.next({});
+
+    expect(mockBookmarksProvider.getBookmarks.mock.calls.length).toBe(initialGetBookmarksCalls);
+    expect(mockBookmarksProvider.getDirectoryTreeWithoutRoot.mock.calls.length).toBe(initialDirectoryCalls);
+
+    first.resolve();
+    second.resolve();
+    await deletion;
+
+    expect(mockBookmarksProvider.getBookmarks.mock.calls.length).toBe(initialGetBookmarksCalls + 1);
+    expect(mockBookmarksProvider.getDirectoryTreeWithoutRoot.mock.calls.length).toBe(initialDirectoryCalls + 1);
   });
 });
