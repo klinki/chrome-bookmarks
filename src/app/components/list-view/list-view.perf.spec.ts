@@ -101,7 +101,15 @@ describe('ListViewComponent Performance', () => {
             clearSelection: vi.fn()
           }
         },
-        { provide: BookmarksFacadeService, useValue: { items: signal([]) } },
+        { provide: BookmarksFacadeService, useValue: {
+            items: signal([]),
+            deleteProgress: signal({
+              active: false,
+              total: 0,
+              completed: 0
+            })
+          }
+        },
         { provide: TagsService, useValue: { getTagsForBookmark: vi.fn().mockReturnValue([]) } },
         { provide: BookmarksService, useClass: MockBookmarksService }
       ]

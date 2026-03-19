@@ -73,6 +73,7 @@ export class ListViewComponent implements OnInit, OnChanges {
   protected bookmarksFacade = inject(BookmarksFacadeService);
   protected tagsService = inject(TagsService);
   private readonly orderByPipe = new OrderByPipe();
+  public deleteProgress = this.bookmarksFacade.deleteProgress;
 
   public visibleItems = computed(() => {
     return this.orderByPipe.transform(this.items() ?? [], this.orderProperties());

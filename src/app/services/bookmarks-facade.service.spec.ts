@@ -87,6 +87,9 @@ describe('BookmarksFacadeService', () => {
     const deletion = service.deleteBookmarks(bookmarks);
 
     expect(mockSelectionService.clearSelection).toHaveBeenCalledTimes(1);
+    expect(service.deleteProgress().active).toBe(true);
+    expect(service.deleteProgress().total).toBe(2);
+    expect(service.deleteProgress().completed).toBe(0);
     expect(mockBookmarksProvider.remove).toHaveBeenCalledTimes(2);
     expect(mockBookmarksProvider.remove).toHaveBeenNthCalledWith(1, '1');
     expect(mockBookmarksProvider.remove).toHaveBeenNthCalledWith(2, '2');
@@ -95,5 +98,6 @@ describe('BookmarksFacadeService', () => {
     second.resolve();
 
     await deletion;
+    expect(service.deleteProgress().active).toBe(false);
   });
 });

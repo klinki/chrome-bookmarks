@@ -13,6 +13,11 @@ export class BookmarksFacadeService {
 
   private tagsService = inject(TagsService);
   private pendingDeletionIds = signal<Set<string>>(new Set());
+  public deleteProgress = signal({
+    active: false,
+    total: 0,
+    completed: 0
+  });
 
 
   // Signals
@@ -269,14 +274,30 @@ export class BookmarksFacadeService {
     const uniqueBookmarks = Array.from(new Map(bookmarks.map(bookmark => [bookmark.id, bookmark])).values());
     const pendingIds = new Set(uniqueBookmarks.map(bookmark => bookmark.id));
 
+    if (uniqueBookmarks.length === 0) {
+      return;
+    }
+
     this.selectionService.clearSelection();
     this.pendingDeletionIds.set(pendingIds);
+    this.deleteProgress.set({
+      active: true,
+      total: uniqueBookmarks.length,
+      completed: 0
+    });
 
     try {
       const results = await Promise.allSettled(uniqueBookmarks.map(bookmark => {
-        return bookmark.url
+        return (bookmark.url
           ? this.bookmarkProviderService.remove(bookmark.id)
-          : this.bookmarkProviderService.removeTree(bookmark.id);
+          : this.bookmarkProviderService.removeTree(bookmark.id)
+        ).finally(() => {
+          const progress = this.deleteProgress();
+          this.deleteProgress.set({
+            ...progress,
+            completed: Math.min(progress.completed + 1, progress.total)
+          });
+        });
       }));
 
       const rejected = results.find(result => result.status === 'rejected');
@@ -285,6 +306,11 @@ export class BookmarksFacadeService {
       }
     } finally {
       this.pendingDeletionIds.set(new Set());
+      this.deleteProgress.set({
+        active: false,
+        total: 0,
+        completed: 0
+      });
     }
   }
 

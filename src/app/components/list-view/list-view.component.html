@@ -43,3 +43,20 @@
 </table>
 
 <app-bookmark-menu #bookmarkMenu [bookmark]="contextMenuBookmark"></app-bookmark-menu>
+
+@if (deleteProgress().active) {
+  <div class="delete-overlay" role="status" aria-live="polite" aria-atomic="true">
+    <div class="delete-dialog">
+      <div class="delete-title">Deleting bookmarks</div>
+      <div class="delete-message">
+        {{ deleteProgress().completed }} / {{ deleteProgress().total }} deleted
+      </div>
+      <div class="delete-track" aria-hidden="true">
+        <div
+          class="delete-fill"
+          [style.width.%]="deleteProgress().total > 0 ? (deleteProgress().completed / deleteProgress().total) * 100 : 0">
+        </div>
+      </div>
+    </div>
+  </div>
+}

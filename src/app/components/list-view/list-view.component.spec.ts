@@ -23,7 +23,12 @@ describe('Component: ListView', () => {
   };
 
   const mockBookmarksFacade = {
-    items: signal([])
+    items: signal([]),
+    deleteProgress: signal({
+      active: false,
+      total: 0,
+      completed: 0
+    })
   };
 
   const mockTagsService = {};
