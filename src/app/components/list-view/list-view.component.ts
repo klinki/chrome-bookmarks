@@ -173,7 +173,11 @@ export class ListViewComponent implements OnInit, OnChanges {
           : `Are you sure you want to delete ${count} items?`;
 
         if (confirm(message)) {
-          this.bookmarksFacade.deleteBookmarks(selectedBookmarks);
+          // Yield to the browser so the native confirm dialog can close before
+          // the delete work and refresh storm begin.
+          window.setTimeout(() => {
+            void this.bookmarksFacade.deleteBookmarks(selectedBookmarks);
+          }, 0);
         }
       }
     }
