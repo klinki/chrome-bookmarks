@@ -26,6 +26,8 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+For a packaged Chrome extension archive, run `npm run build:extension`. The zip file will be written to `.temp/chrome-extension/bookmarks-chrome-extension.zip`.
+
 ## Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).

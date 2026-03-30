@@ -6,6 +6,7 @@
     "ng": "ng",
     "start": "nx serve",
     "build": "npm run version-info && nx build && npx tsc src/background.ts --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution node",
+    "build:extension": "pwsh -File ./scripts/build-extension.ps1",
     "watch": "nx build --watch --configuration development",
     "test": "nx test --watch=false && npx playwright test",
     "test:unit": "nx test --watch=false",
