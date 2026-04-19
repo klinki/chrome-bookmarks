@@ -169,6 +169,11 @@ export class MockBookmarksService extends BookmarksService {
         parent.children?.push(newBookmark);
         this.flatBookmarksArray[newBookmark.id] = newBookmark;
 
+        (this.onCreatedEvent$ as Subject<chrome.bookmarks.BookmarkCreatedEvent>).next({
+          id: newBookmark.id,
+          bookmark: newBookmark
+        } as any);
+
         return resolve(newBookmark);
       });
   }
