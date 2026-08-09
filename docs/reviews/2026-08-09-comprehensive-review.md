@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings are fixed: cross-platform selection now recognizes macOS modifiers, and the Chrome bookmark/storage adapters propagate native Promise rejections to callers. The full unit and E2E suites are green.
+Both High-severity findings and the first seven Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-09 now have focused regression coverage.
 
-Material risks remain in drag-and-drop target detection, AI cancellation, import validation, tree expansion state, sorting, and repeated full-tree loading. The repository also has no configured Nx lint target.
+Material risks remain in tree expansion state, sorting, repeated full-tree loading, editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,19 +43,19 @@ Material risks remain in drag-and-drop target detection, AI cancellation, import
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 13 | 1 |
+| Medium | 14 | 7 | 7 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **18** | **3** |
+| **Total** | **21** | **12** | **9** |
 
 ## Verification results
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 30 files passed; 108 tests passed, including native adapter rejection propagation and 11 development-mock contract tests. |
-| Playwright E2E | **Pass** | 33 tests passed after the macOS modifier fix; the six initially failing selection scenarios now pass. |
+| Unit tests | **Pass** | 31 files passed; 122 tests passed, including open-all traversal, empty-list/search drag guards, ordered moves and cleanup, owned AI cancellation, full import validation, and rollback. |
+| Playwright E2E | **Pass** | 36 tests passed, including recursive folder opening, empty-list drops, and search-result drag rejection. |
 | Nx lint | **Unavailable** | `nx lint bookmarks` fails with `Cannot find configuration for task bookmarks:lint`. |
-| Production build | **Pass with warnings** | Initial bundle 849.16 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
-| Commit whitespace | **Pass** | `git diff --check HEAD^ HEAD` passed before this review. |
+| Production build | **Pass with warnings** | Initial bundle 850.76 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
+| Working-tree whitespace | **Pass** | `git diff --check` passed after the T-04 through T-09 fixes. |
 
 ## Positive observations
 
@@ -129,40 +129,46 @@ At review time, `MockBookmarksService` was the default non-production service, b
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Low
-- **Status:** Confirmed code-path defect; browser result is [INFERENCE]
+- **Status:** **Fixed 2026-08-09**
 
 The folder context menu labels the action “Open all bookmarks” (`src/app/components/menus/folder-menu/folder-menu.component.html:3`), but the handler calls `window.open(this.getUrl(), '_blank')`, and `getUrl()` returns `folder.url` (`folder-menu.component.ts:39-45,102-104`). Folders do not have URLs.
 
 The action therefore does not traverse or open any child bookmarks and is expected to open a blank tab or do nothing [INFERENCE]. Implement explicit descendant/bookmark handling with the Chrome tabs API, or remove the action until its intended scope and popup behavior are defined.
+
+**Resolution:** The menu now retrieves the complete folder subtree, traverses descendant bookmarks in folder order, and opens each URL through `chrome.tabs.create({ active: false })`. Unit and Playwright tests verify nested traversal and the two expected background tabs.
 
 ### F-05 — dropping into an empty list cannot match the list target
 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Low
-- **Status:** Confirmed code-path mismatch; interaction result is [INFERENCE]
+- **Status:** **Fixed 2026-08-09**
 
 `isBookmarkList()` recognizes only `BOOKMARKS-LIST` (`src/app/services/drag-and-drop.service.ts:561-563`), while the rendered host is `APP-LIST-VIEW` (`src/app/components/list-view/list-view.component.ts:15`; `bookmarks-view.component.html:22-25`). No `bookmarks-list` element exists in the repository.
 
 When a folder is empty there is no `<tr>` target, so `getBookmarkElement()` cannot identify a valid list destination [INFERENCE]. Align the predicate with the actual host and add an E2E case that moves an item into an empty selected folder.
+
+**Resolution:** Drag target detection now recognizes both rendered list hosts and resolves an empty list to the selected folder before requiring an `itemid`. Unit coverage verifies the `ON` drop position, and Playwright moves a tree folder into an empty selected list.
 
 ### F-06 — the search-result drag guard is permanently ineffective
 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Low
-- **Status:** Confirmed code-path defect
+- **Status:** **Fixed 2026-08-09**
 
 `calculateValidDropPositions()` intends to forbid dragging on a search result list, but calls `isShowingSearch()` with a newly constructed state whose `results` is always `[]` (`src/app/services/drag-and-drop.service.ts:389-393`). `isShowingSearch()` returns true only when `results.length > 0` (`src/app/services/util.ts:77-79`). The condition is therefore always false.
 
 Inject the real search state or expose an explicit `isSearching` signal from the facade. Add drag tests while search results are active.
+
+**Resolution:** `DragAndDropService` now consumes the facade's real `searchTerm` signal and rejects list/item destinations whenever search is active. Unit coverage checks both target types; Playwright verifies a search-result drag does not move the bookmark.
 
 ### F-07 — multi-item drag moves are unordered and drop errors are detached
 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Medium
-- **Status:** Confirmed implementation pattern; ordering impact is [INFERENCE]
+- **Status:** **Fixed 2026-08-09**
 
 `BookmarksProviderService.moveMultiple()` starts every move concurrently with the same destination object (`src/app/services/bookmarks-provider.service.ts:81-84`). Repeated insertion at one index can reverse or otherwise destabilize item order [INFERENCE], especially when moving within the same parent.
 
@@ -170,27 +176,33 @@ Inject the real search state or expose an explicit `isSearching` signal from the
 
 Perform order-aware moves sequentially or compute adjusted indices. Catch errors at the event boundary and always clear drag state in `finally`.
 
+**Resolution:** `moveMultiple()` now performs sequential, index-adjusted moves and reverses same-parent execution only when moving a selected block later. The drop subscription owns the Promise through `concatMap`, reports failure at the event boundary, and clears drag state in `finally`. Focused tests cover cross-folder order, same-folder order, awaited rejection, and cleanup.
+
 ### F-08 — AI cancellation can overlap with a restarted run
 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Medium
-- **Status:** Confirmed state-machine race; timing result is [INFERENCE]
+- **Status:** **Fixed 2026-08-09**
 
 `cancelCategorization()` immediately sets `isCancelled = true` and `isProcessing = false` (`src/app/services/bookmarks.store.ts:201-208`), which re-enables the UI button. A new run resets `isCancelled` to false (`src/app/services/ai.service.ts:149-156`). The previous request has no `AbortController` and may still be waiting in `fetch()` (`:62-111,180`). When it resumes, it can see the new run’s false cancellation state and write tags/progress into the new run [INFERENCE].
 
 Use a per-run token plus `AbortController`, keep the operation active until the old run settles, and ensure only the owning run may update progress or tags. Apply the same timeout/abort handling to model discovery.
+
+**Resolution:** Each categorization run owns an `AbortController`; starting another run aborts the previous request, cancellation aborts transport work, and only the active controller may finish progress state or apply tags. Angular resource cancellation is also forwarded to model-discovery fetches. A focused test verifies the in-flight signal aborts and no tags are written.
 
 ### F-09 — imports mutate bookmarks before complete validation and have no rollback
 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** High
-- **Status:** Confirmed code path; partial-import impact is [INFERENCE]
+- **Status:** **Fixed 2026-08-09**
 
 JSON import validates only that `root` is an array, ignores the backup `version`, and does not validate node/tag shapes (`src/app/services/import-export.service.ts:34-67`). HTML import creates an import folder before verifying that a `<dl>` exists (`:159-172`). Both formats recursively mutate Chrome bookmarks as parsing proceeds, with no cleanup if a later node fails (`:70-84,175-234`). The destination is also hard-coded to parent ID `1` instead of resolving the browser’s bookmarks-bar folder.
 
 Malformed or unsupported files can leave partial imported trees and repeated retries can create duplicates [INFERENCE]. Parse and validate the complete input first, resolve the destination through tree metadata, then import. If any create fails, remove the import root or provide an explicit partial-import result.
+
+**Resolution:** JSON and HTML inputs are converted to bounded, fully validated import plans before any mutation. Validation covers version, node/tag shape, duplicate IDs, URLs, depth, and node count. The destination folder is resolved from the live tree; any later create failure removes the import root and restores bookmark/available-tag state. Tests verify malformed late entries cause zero creates and creation failures roll back partial state.
 
 ### F-10 — folder expansion state is stored by mutating transient input nodes
 
@@ -354,12 +366,12 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-01 — Support `Meta` and `Control` consistently for additive selection and Select All.** Severity: **High** · Priority: **P0** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-02 — Replace callback-only Chrome bookmark/storage wrappers with rejecting Promise adapters and add failure-path tests.** Severity: **High** · Priority: **P0** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-03 — Rebuild `MockBookmarksService` to honor create, move, update, remove, removeTree, search, recent, index, parent, and event contracts.** Severity: **Medium** · Priority: **P1** · Difficulty: **High** · Status: **Fixed 2026-08-09**
-- [ ] **T-04 — Implement or remove the folder “Open all bookmarks” action.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
-- [ ] **T-05 — Recognize the actual `APP-LIST-VIEW` drag target and cover drops into empty folders.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
-- [ ] **T-06 — Wire drag restrictions to real search state and test search-result dragging.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
-- [ ] **T-07 — Make multi-item moves order-aware; await drop work and clear drag state in `finally`.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
-- [ ] **T-08 — Add per-run AI cancellation with `AbortController` and operation ownership.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
-- [ ] **T-09 — Validate complete JSON/HTML imports before mutation and clean up partial imports on failure.** Severity: **Medium** · Priority: **P1** · Difficulty: **High**
+- [x] **T-04 — Implement or remove the folder “Open all bookmarks” action.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
+- [x] **T-05 — Recognize the actual `APP-LIST-VIEW` drag target and cover drops into empty folders.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
+- [x] **T-06 — Wire drag restrictions to real search state and test search-result dragging.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
+- [x] **T-07 — Make multi-item moves order-aware; await drop work and clear drag state in `finally`.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
+- [x] **T-08 — Add per-run AI cancellation with `AbortController` and operation ownership.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
+- [x] **T-09 — Validate complete JSON/HTML imports before mutation and clean up partial imports on failure.** Severity: **Medium** · Priority: **P1** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [ ] **T-10 — Move folder expansion state into a durable signal keyed by folder ID.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
 - [ ] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
 - [ ] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High**
