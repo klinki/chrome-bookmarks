@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings, all fourteen Medium-severity findings, and four Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-20 now have focused regression coverage or an explicit owner disposition.
+All 21 findings are fixed or resolved by an explicit owner decision. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-21 have focused regression coverage, enforceable quality gates, or a documented disposition.
 
-The remaining material risk is benchmark reliability.
+No confirmed review findings remain open.
 
 ### Finding status
 
@@ -44,8 +44,8 @@ The remaining material risk is benchmark reliability.
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
 | Medium | 14 | 0 | 14 |
-| Low | 5 | 1 | 4 |
-| **Total** | **21** | **1** | **20** |
+| Low | 5 | 0 | 5 |
+| **Total** | **21** | **0** | **21** |
 
 ## Verification results
 
@@ -343,11 +343,11 @@ The production initial bundle fell from 852.60 kB to 711.83 kB (16.5%), main Jav
 - **Severity:** Low
 - **Priority:** P3
 - **Difficulty:** Low
-- **Status:** Confirmed test design
+- **Status:** Fixed 2026-08-09
 
-`list-view.perf.spec.ts` compares two wall-clock loops once and asserts that one duration is lower (`:51-74`). Scheduling, JIT warm-up, CPU contention, and test ordering can change the result. The test duplicates favicon implementations rather than invoking the production pipe, so it can pass after production regresses. `verify-flaky-tests.ps1` runs the complete unit and E2E suite ten times but is Windows-only, hard-coded, and not integrated with a documented target.
+The duplicated one-shot favicon timing assertion was removed from the unit suite. `npm run benchmark` now runs `FaviconPipe.transform` itself after 50,000 warm-up operations, records nine samples of 200,000 operations, consumes each result, and enforces a 1,000 ns median budget. The local verification median was 122.91 ns per operation.
 
-Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark command with warm-up, repeated samples, and explicit thresholds against production functions.
+The deterministic OnPush assertions remain unit tests under `*.change-detection.spec.ts`, and favicon URL correctness has direct unit coverage. The Windows-only, hard-coded flaky-suite script was removed.
 
 ---
 
@@ -383,4 +383,4 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-20 — Reduce the initial bundle/style warnings and remove unused legacy styling/dependencies before changing budgets.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-21 — Replace timing assertions in unit tests with a dedicated benchmark workflow against production code.** Severity: **Low** · Priority: **P3** · Difficulty: **Low**
+- [x] **T-21 — Replace timing assertions in unit tests with a dedicated benchmark workflow against production code.** Severity: **Low** · Priority: **P3** · Difficulty: **Low** · Status: **Fixed 2026-08-09**

@@ -32,7 +32,7 @@ class TestHostComponent {
   }
 }
 
-describe('TreeItemComponent Performance', () => {
+describe('TreeItemComponent change detection', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let component: TestHostComponent;
 
@@ -48,7 +48,7 @@ describe('TreeItemComponent Performance', () => {
     component = fixture.componentInstance;
   });
 
-  it('should verify change detection checks', async () => {
+  it('skips unchanged OnPush tree items', async () => {
     // Create a tree structure
     const tree = [
       {
