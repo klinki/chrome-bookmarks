@@ -45,10 +45,6 @@ export class BookmarksFacadeService {
     ),
     this.refreshRequested$.pipe(map(() => null))
   ).pipe(
-    tap(ev => {
-      console.log(ev);
-      console.log('updated');
-    }),
     startWith(null),
     shareReplay(1)
   );
@@ -115,11 +111,7 @@ export class BookmarksFacadeService {
   public items = toSignal(
     combineLatest([
       this.treeSnapshot$,
-      toObservable(this.selectionService.selectedDirectory).pipe(
-        tap(value => {
-          console.log('directory changed', value);
-        })
-      ),
+      toObservable(this.selectionService.selectedDirectory),
       this.debouncedSearchTerm$,
       toObservable(this.tagsService.bookmarkTags),
       toObservable(this.tagsService.availableTags),

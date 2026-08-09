@@ -161,8 +161,6 @@ export class ListViewComponent {
         toggle: addKey && !e.shiftKey
       });
 
-      console.log('click');
-      console.log({ item });
     }
 
     e.stopPropagation();
@@ -206,7 +204,6 @@ export class ListViewComponent {
         }
       }
     }
-    console.log('keyup..', event);
 
     return true;
   }

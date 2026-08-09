@@ -85,7 +85,6 @@ export class SelectionService {
   }
 
   public selectDirectory(bookmark: chrome.bookmarks.BookmarkTreeNode) {
-    console.log('sel directory');
     this._selectedDirectory.set(bookmark);
     this.clearSelection(true);
   }

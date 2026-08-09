@@ -60,7 +60,6 @@ export class TreeItemComponent {
     if (component != null) {
       component.folder = directory;
     }
-    console.log(directory);
     this.bookmarkService.selectDirectory(directory);
   }
 

@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
+import { developmentLogger } from '../../services/development-logger';
 
 @Component({
   selector: 'app-bookmark-detail',
@@ -92,9 +93,9 @@ export class BookmarkDetailComponent {
       ) {
         this.editForm.markAsPristine();
       }
-    } catch (e) {
-      console.error('Failed to save bookmark:', e);
-      alert('Failed to save bookmark. Check console for details.');
+    } catch (error) {
+      developmentLogger.error('bookmark.save.failed', error);
+      alert('Failed to save bookmark.');
     } finally {
       this.isSaving.set(false);
     }
@@ -165,9 +166,9 @@ export class BookmarkDetailComponent {
       }
       this.tagsService.setTagsForBookmarks(tagUpdates);
       this.tagsService.addAvailableTags(newAvailableTags);
-    } catch (e) {
-      console.error('AI categorization failed:', e);
-      alert('AI categorization failed. Check console for details.');
+    } catch (error) {
+      developmentLogger.error('bookmark.categorization.failed', error);
+      alert('AI categorization failed.');
     } finally {
       this.isCategorizing.set(false);
     }

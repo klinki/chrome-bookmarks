@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings, thirteen of fourteen Medium-severity findings, and two Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-17 now have focused regression coverage or an explicit owner disposition.
+Both High-severity findings, thirteen of fourteen Medium-severity findings, and three Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-18 now have focused regression coverage or an explicit owner disposition.
 
-Material risks remain in accessibility, logging, bundle hygiene, and benchmark reliability.
+Material risks remain in accessibility, bundle hygiene, and benchmark reliability.
 
 ### Finding status
 
@@ -44,8 +44,8 @@ Material risks remain in accessibility, logging, bundle hygiene, and benchmark r
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
 | Medium | 14 | 1 | 13 |
-| Low | 5 | 3 | 2 |
-| **Total** | **21** | **4** | **17** |
+| Low | 5 | 2 | 3 |
+| **Total** | **21** | **3** | **18** |
 
 ## Verification results
 
@@ -53,7 +53,7 @@ Material risks remain in accessibility, logging, bundle hygiene, and benchmark r
 |---|---|---|
 | Unit tests | **Pass** | 27 files passed; 137 tests passed with missing-test failures enabled after unreachable suites and wrappers were removed. |
 | Playwright E2E | **Pass** | 36 tests passed, including recursive folder opening, empty-list drops, and search-result drag rejection. |
-| Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 52 existing warnings; CI runs `npm run lint`. |
+| Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 48 existing warnings; CI runs `npm run lint`. |
 | Production build | **Pass with warnings** | Initial bundle 848.23 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
 | Working-tree whitespace | **Pass** | `git diff --check` passed after the T-04 through T-09 fixes. |
 
@@ -310,11 +310,11 @@ The focused facade suite passes: 5 tests.
 - **Severity:** Low
 - **Priority:** P2
 - **Difficulty:** Low
-- **Status:** Confirmed; unit output demonstrates noise
+- **Status:** Fixed 2026-08-09
 
-Document-level `dragover`, `drop`, and `dragend` handlers log raw events (`src/app/services/drag-and-drop.service.ts:41-76`). Selection, list clicks, keyboard events, facade refreshes, directory changes, and every sort also log. `itemClick()` logs complete bookmark objects, including bookmark titles and URLs (`src/app/components/list-view/list-view.component.ts:135-150`).
+Raw event, selection, bookmark, keyboard, refresh, and directory logs were removed from production paths. Error diagnostics now use `DevelopmentLogger`, which emits structured event names in development and performs no console calls in production. AI response logging no longer includes raw model content.
 
-This creates avoidable work on drag hot paths, obscures useful diagnostics, and exposes bookmark data in extension console logs. Remove logs or route them through a development-only logger with structured levels.
+Focused logging and affected-consumer suites pass: 40 tests. Lint confirms no production `console.*` calls outside the environment-gated logger; the remaining direct console calls are confined to a performance spec that T-21 removes.
 
 ### F-19 — interactive list/tree semantics are incomplete
 
@@ -380,7 +380,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-15 — Add an Nx lint target, make lint part of CI, enforce missing-test failures, and close skipped-suite gaps; retain `test-results/` by owner decision.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Resolved 2026-08-09**
 - [x] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
-- [ ] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
+- [x] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [ ] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-20 — Reduce the initial bundle/style warnings and remove unused legacy styling/dependencies before changing budgets.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-21 — Replace timing assertions in unit tests with a dedicated benchmark workflow against production code.** Severity: **Low** · Priority: **P3** · Difficulty: **Low**

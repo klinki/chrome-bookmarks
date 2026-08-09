@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImportExportService } from '../../../services/import-export.service';
+import { developmentLogger } from '../../../services/development-logger';
 
 @Component({
   selector: 'app-import-export',
@@ -45,9 +46,9 @@ export class ImportExportComponent {
       await action();
       this.message = successMessage;
       this.messageType = 'success';
-    } catch (e: any) {
-      console.error(e);
-      this.message = 'Error: ' + (e.message || 'Unknown error');
+    } catch (error) {
+      developmentLogger.error('bookmarks.import-export.failed', error);
+      this.message = 'Error: ' + (error instanceof Error ? error.message : 'Unknown error');
       this.messageType = 'error';
     } finally {
       this.isLoading = false;

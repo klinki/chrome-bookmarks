@@ -14,6 +14,7 @@ import {injectSelectedFolderSignal, injectSelectItemCallback} from "./selection.
 import {injectMoveMultipleBookmarksCallback} from "./bookmarks-provider.service";
 import {Debouncer} from "../utils/debouncer";
 import {TagsService} from "./tags.service";
+import {developmentLogger} from "./development-logger";
 
 interface NormalizedDragData {
   elements: chrome.bookmarks.BookmarkTreeNode[];
@@ -53,7 +54,6 @@ export class DragAndDropService {
     this.started = true;
 
     fromEvent<Event>(document, 'dragstart').pipe(
-      tap(event => console.log(event)),
       tap(event => this.onDragStart(event)),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
@@ -64,7 +64,6 @@ export class DragAndDropService {
     ).subscribe();
 
     fromEvent<Event>(document, 'dragover').pipe(
-      tap(event => console.log(event)),
       tap(event => this.onDragOver(event)),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
@@ -84,7 +83,6 @@ export class DragAndDropService {
     ).subscribe();
 
     fromEvent<Event>(document, 'dragend').pipe(
-      tap(event => console.log(event)),
       tap(event => this.onDragEnd(event)),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
@@ -254,8 +252,8 @@ export class DragAndDropService {
 
       this.autoExpander!.update(e, overElement, this.dropDestination.position);
       this.dropIndicator!.update(this.dropDestination);
-    } catch (err) {
-      console.error('onDragOver error', err);
+    } catch (error) {
+      developmentLogger.error('bookmarks.drag-over.failed', error);
     }
   }
 
@@ -526,7 +524,7 @@ export class DragAndDropService {
     }
 
     if (overElementItemId == null) {
-      console.error('invalid overElementItemId');
+      developmentLogger.error('bookmarks.drop-target.missing-id');
       return false;
     }
 
@@ -537,7 +535,7 @@ export class DragAndDropService {
     const itemId = bookmarkElement?.attributes?.getNamedItem('itemid')?.value!;
 
     if (itemId == null) {
-      console.error('Unexpected null value');
+      developmentLogger.error('bookmarks.drag-node.missing-id');
     }
 
     // Virtual Node Mocking

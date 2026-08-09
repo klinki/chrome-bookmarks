@@ -1,4 +1,5 @@
 ﻿import { patchState, signalStore, withHooks, withMethods, withState } from '@ngrx/signals';
+import { developmentLogger } from './development-logger';
 
 export interface AiConfig {
   baseUrl: string;
@@ -108,7 +109,7 @@ export const AiStore = signalStore(
         const aiConfig = JSON.parse(saved) as Partial<AiConfig>;
         patchState(store, { aiConfig: { ...store.aiConfig(), ...aiConfig } });
       } catch (error) {
-        console.error('Failed to parse AI config from localStorage', error);
+        developmentLogger.error('ai.config.parse.failed', error);
       }
     }
   })

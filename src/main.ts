@@ -12,12 +12,12 @@ import { BookmarksProviderService, SelectionService } from './app/services';
 import { BookmarksServiceProvider } from './app/shared/providers';
 import { BookmarksFacadeService } from "./app/services/bookmarks-facade.service";
 import { DragAndDropService } from "./app/services/drag-and-drop.service";
+import { developmentLogger } from "./app/services/development-logger";
 
 if (environment.production) {
   enableProdMode();
 }
 
-console.log('isE2E:', (window as any).isE2E);
 
 bootstrapApplication(AppComponent, {
   providers: [
@@ -32,4 +32,4 @@ bootstrapApplication(AppComponent, {
     DragAndDropService,
   ]
 })
-  .catch(err => console.error(err));
+  .catch(error => developmentLogger.error('app.bootstrap.failed', error));

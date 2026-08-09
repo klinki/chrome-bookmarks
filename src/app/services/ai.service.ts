@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { AiStore } from './ai.store';
 import { TagsService } from './tags.service';
+import { developmentLogger } from './development-logger';
 
 export interface AiProvider {
     name: string;
@@ -141,8 +142,8 @@ ${instruction}
                 }
             }
             return output;
-        } catch (e) {
-            console.error('Failed to parse AI response:', content);
+        } catch (error) {
+            developmentLogger.error('ai.response.parse.failed', error);
             throw new Error('AI returned invalid JSON');
         }
     }
