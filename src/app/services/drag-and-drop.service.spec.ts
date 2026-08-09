@@ -19,7 +19,8 @@ describe('DragAndDropService', () => {
   const mockBookmarksFacade = {
     items: signal<chrome.bookmarks.BookmarkTreeNode[]>([]),
     selectedBookmarks: signal<chrome.bookmarks.BookmarkTreeNode[]>([]),
-    searchTerm: signal('')
+    searchTerm: signal(''),
+    bookmarksMap: signal({})
   };
 
   const mockBookmarksProvider = {

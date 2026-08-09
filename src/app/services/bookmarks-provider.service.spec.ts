@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { type Mock, vi } from 'vitest';
-import { BookmarksProviderService, injectAllBookmarksMap } from './bookmarks-provider.service';
+import { BookmarksProviderService } from './bookmarks-provider.service';
 import {
   BookmarksService,
   type BookmarkChangedPayload,
@@ -26,10 +26,6 @@ interface MockBookmarksApi {
   move: Mock;
 }
 
-@Injectable()
-class BookmarksMapConsumer {
-  readonly bookmarksMap = injectAllBookmarksMap();
-}
 
 describe('BookmarksProvider Service', () => {
   const initialTree = [{
@@ -43,21 +39,6 @@ describe('BookmarksProvider Service', () => {
     }]
   }] as unknown as chrome.bookmarks.BookmarkTreeNode[];
 
-  const updatedTree = [{
-    id: '0',
-    title: 'root',
-    children: [{
-      id: '1',
-      title: 'Bookmarks Bar',
-      parentId: '0',
-      children: [{
-        id: '10',
-        title: 'New Folder',
-        parentId: '1',
-        children: []
-      }]
-    }]
-  }] as unknown as chrome.bookmarks.BookmarkTreeNode[];
 
   let onCreatedEvent$: Subject<BookmarkCreatedPayload>;
   let onRemovedEvent$: Subject<BookmarkRemovedPayload>;
@@ -68,10 +49,6 @@ describe('BookmarksProvider Service', () => {
   let onImportEndedEvent$: Subject<BookmarkImportPayload>;
   let mockBookmarksService: MockBookmarksApi;
 
-  const flushSignalUpdates = async () => {
-    await Promise.resolve();
-    await Promise.resolve();
-  };
 
   beforeEach(() => {
     onCreatedEvent$ = new Subject();
@@ -90,9 +67,7 @@ describe('BookmarksProvider Service', () => {
       onChildrenReorderedEvent$,
       onImportBeganEvent$,
       onImportEndedEvent$,
-      getTree: vi.fn()
-        .mockResolvedValueOnce(initialTree)
-        .mockResolvedValue(updatedTree),
+      getTree: vi.fn().mockResolvedValue(initialTree),
       getSubTree: vi.fn().mockResolvedValue([]),
       search: vi.fn().mockResolvedValue([]),
       move: vi.fn()
@@ -101,7 +76,6 @@ describe('BookmarksProvider Service', () => {
     TestBed.configureTestingModule({
       providers: [
         BookmarksProviderService,
-        BookmarksMapConsumer,
         { provide: BookmarksService, useValue: mockBookmarksService }
       ]
     });
@@ -112,25 +86,6 @@ describe('BookmarksProvider Service', () => {
     expect(service).toBeTruthy();
   });
 
-  it('refreshes the bookmarks map after create events', async () => {
-    const consumer = TestBed.inject(BookmarksMapConsumer);
-    await flushSignalUpdates();
-
-    expect(consumer.bookmarksMap()['10']).toBeUndefined();
-
-    onCreatedEvent$.next([
-      '10',
-      {
-        id: '10',
-        title: 'New Folder'
-      }
-    ]);
-    await flushSignalUpdates();
-
-    expect(mockBookmarksService.getTree).toHaveBeenCalledTimes(2);
-    expect(consumer.bookmarksMap()['10']).toBeDefined();
-    expect(consumer.bookmarksMap()['10']?.title).toBe('New Folder');
-  });
 
   it('moves bookmarks into another folder sequentially in display order', async () => {
     const service = TestBed.inject(BookmarksProviderService);

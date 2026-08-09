@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and the first nine Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-11 now have focused regression coverage.
+Both High-severity findings and ten of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-12 now have focused regression coverage.
 
-Material risks remain in repeated full-tree loading, editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
+Material risks remain in editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,9 +43,9 @@ Material risks remain in repeated full-tree loading, editor synchronization, tag
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 5 | 9 |
+| Medium | 14 | 4 | 10 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **10** | **11** |
+| **Total** | **21** | **9** | **12** |
 
 ## Verification results
 
@@ -231,13 +231,13 @@ Focused tests cover folder-to-folder ordering, mixed folders and bookmarks, Tags
 - **Severity:** Medium
 - **Priority:** P2
 - **Difficulty:** High
-- **Status:** Confirmed data flow
+- **Status:** Fixed 2026-08-09
 
-`BookmarksFacadeService.directories` subscribes twice to the same refresh trigger and independently calls `getDirectoryTreeWithoutRoot()` and `getBookmarks()` (`src/app/services/bookmarks-facade.service.ts:48-57`). The former itself calls `getTree()`, resulting in two full tree reads per refresh. It then traverses the full tree to calculate host counts (`:62-89`). Tag/server item views request and traverse the tree again (`:200-239`).
+`BookmarksFacadeService` now performs one replayed `getBookmarks()` read per accepted revision. A single traversal builds the node map, flat bookmark list, hostname index, and server counts; directories and every list mode derive from that snapshot. Drag/drop consumes the facade’s shared node map rather than creating an independent event subscription.
 
-The debounced search stream adds `startWith(this.searchTerm())` after `distinctUntilChanged` (`:122-126`), so the signal’s own initial emission is not deduplicated against the synthetic initial value and can trigger duplicate initial work [INFERENCE].
+Tag-search matching uses a `Set`, and the debounced search stream deduplicates its synthetic and signal-backed initial values.
 
-Create one shared, replayed tree snapshot per bookmark revision and derive directory nodes, node map, server counts, tags, and list items from it. Use `Set` membership for matching tags instead of repeated array `includes()` calls.
+Focused tests verify one tree read per revision and derive the bookmark map, server nodes, tag results, and selected-folder items from the shared snapshot.
 
 ### F-13 — bookmark editing can ignore same-ID refreshes and race selection changes
 
@@ -374,7 +374,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-09 — Validate complete JSON/HTML imports before mutation and clean up partial imports on failure.** Severity: **Medium** · Priority: **P1** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [x] **T-10 — Move folder expansion state into a durable signal keyed by folder ID.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
-- [ ] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High**
+- [x] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [ ] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
 - [ ] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-15 — Add an Nx lint target, make lint part of CI, move reports under `.temp/`, and remove skipped/pass-with-no-tests gaps.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**

@@ -6,6 +6,15 @@ import { fromPromise } from "rxjs/internal/observable/innerFrom";
 import { SelectionService } from "./selection.service";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 
+interface BookmarkTreeSnapshot {
+  tree: chrome.bookmarks.BookmarkTreeNode[];
+  directories: chrome.bookmarks.BookmarkTreeNode[];
+  nodeMap: Readonly<Record<string, chrome.bookmarks.BookmarkTreeNode>>;
+  bookmarks: chrome.bookmarks.BookmarkTreeNode[];
+  hostnameByBookmarkId: ReadonlyMap<string, string>;
+  serverCounts: ReadonlyMap<string, number>;
+}
+
 @Injectable()
 export class BookmarksFacadeService {
   private bookmarkProviderService = inject(BookmarksProviderService);
@@ -45,89 +54,68 @@ export class BookmarksFacadeService {
     shareReplay(1)
   );
 
+  private readonly treeSnapshot$ = this.onBookmarksUpdated$.pipe(
+    switchMap(() => fromPromise(this.bookmarkProviderService.getBookmarks())),
+    map(tree => this.createTreeSnapshot(tree)),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  public bookmarksMap = toSignal(
+    this.treeSnapshot$.pipe(map(snapshot => snapshot.nodeMap)),
+    { initialValue: {} as Readonly<Record<string, chrome.bookmarks.BookmarkTreeNode>> }
+  );
+
   public directories = toSignal(
     combineLatest([
-      this.onBookmarksUpdated$.pipe(
-        switchMap(() => fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot()))
-      ),
-      this.onBookmarksUpdated$.pipe(
-        switchMap(() => fromPromise(this.bookmarkProviderService.getBookmarks()))
-      ),
+      this.treeSnapshot$,
       toObservable(this.tagsService.availableTags)
     ]).pipe(
-      map(([tree, allBookmarksTree, tags]) => {
-        const _tree = tree as chrome.bookmarks.BookmarkTreeNode[];
-        const _tags = tags as string[];
-
-        // Calculate Top 20 Servers
-        const hostnames: Record<string, number> = {};
-        const stack = [...allBookmarksTree];
-        while (stack.length) {
-          const node = stack.pop()!;
-          if (node.url) {
-            try {
-              const hostname = new URL(node.url).hostname;
-              hostnames[hostname] = (hostnames[hostname] || 0) + 1;
-            } catch (e) {
-              // Ignore invalid URLs
-            }
-          }
-          if (node.children) {
-            stack.push(...node.children);
-          }
-        }
-
-        const topServers = Object.entries(hostnames)
-          .sort((a, b) => b[1] - a[1])
+      map(([snapshot, tags]) => {
+        const topServers = Array.from(snapshot.serverCounts)
+          .sort((left, right) => right[1] - left[1])
           .slice(0, 20)
-          .map(([hostname, count]) => ({
+          .map(([hostname]) => ({
             id: 'SERVER_' + hostname,
-            title: hostname, // No count in title as per requirement, but could be added
+            title: hostname,
             url: undefined,
-            children: [],
-            expanded: false
+            children: []
           }));
 
         return [
           {
             id: 'ROOT_TAGS',
             title: 'Tags',
-            children: _tags.map(tag => ({
+            children: tags.map(tag => ({
               id: 'TAG_' + tag,
               title: tag,
               url: undefined,
-              children: [],
-              expanded: false
-            })),
-            expanded: true
+              children: []
+            }))
           },
           {
             id: 'ROOT_SERVERS',
             title: 'Servers (Top 20)',
-            children: topServers,
-            expanded: true
+            children: topServers
           },
           {
             id: 'ROOT_ALL',
             title: 'All Bookmarks',
-            children: _tree,
-            expanded: true
+            children: snapshot.directories
           }
         ];
       })
     ),
-    { initialValue: [] as any[] }
+    { initialValue: [] as chrome.bookmarks.BookmarkTreeNode[] }
   );
 
-  private debouncedSearchTerm$ = toObservable(this.searchTerm).pipe(
-    debounceTime(300),
-    distinctUntilChanged(),
-    startWith(this.searchTerm())
-  );
+  private debouncedSearchTerm$ = merge(
+    of(this.searchTerm()),
+    toObservable(this.searchTerm).pipe(debounceTime(300))
+  ).pipe(distinctUntilChanged());
 
   public items = toSignal(
     combineLatest([
-      this.onBookmarksUpdated$,
+      this.treeSnapshot$,
       toObservable(this.selectionService.selectedDirectory).pipe(
         tap(value => {
           console.log('directory changed', value);
@@ -138,59 +126,37 @@ export class BookmarksFacadeService {
       toObservable(this.tagsService.availableTags),
       toObservable(this.pendingDeletionIds)
     ]).pipe(
-      switchMap(([_, directory, searchTerm, bookmarkTags, availableTags, pendingDeletionIds]) => {
+      switchMap(([snapshot, directory, searchTerm, _bookmarkTags, availableTags, pendingDeletionIds]) => {
         if (searchTerm !== '') {
-          return combineLatest([
-            fromPromise(this.bookmarkProviderService.search(searchTerm)),
-            fromPromise(this.bookmarkProviderService.getBookmarks()), // Need all bookmarks to find tagged ones
-          ]).pipe(
-            map(([searchResults, allBookmarksTree]) => {
-              // 1. Standard Search Results
+          return fromPromise(this.bookmarkProviderService.search(searchTerm)).pipe(
+            map(searchResults => {
               const results = [...searchResults];
-
-              // 2. Tag Search Results
               const normalizedSearchTerm = searchTerm.toLowerCase();
-              const matchingTags = availableTags.filter(tag =>
+              const matchingTags = new Set(availableTags.filter(tag =>
                 tag.toLowerCase().includes(normalizedSearchTerm)
-              );
+              ));
 
-              if (matchingTags.length > 0) {
-                // Flatten the tree to search by ID
-                // TODO: optimization - maybe maintain a map or just iterate better?
-                // reusing logic from previous steps or creating a helper might be good but for now inline is fine
-                const allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
-                const stack = [...allBookmarksTree];
-                while (stack.length) {
-                  const node = stack.pop()!;
-                  if (node.url) allBookmarks.push(node);
-                  if (node.children) stack.push(...node.children);
-                }
-
-                const tagMatches = allBookmarks.filter(b => {
-                  const tags = this.tagsService.getTagsForBookmark(b.id);
-                  return tags.some(t => matchingTags.includes(t));
-                });
-
-                results.push(...tagMatches);
+              if (matchingTags.size > 0) {
+                results.push(...snapshot.bookmarks.filter(bookmark =>
+                  this.tagsService.getTagsForBookmark(bookmark.id)
+                    .some(tag => matchingTags.has(tag))
+                ));
               }
 
-              // 3. Deduplicate
               const uniqueResults = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
-              results.forEach(b => uniqueResults.set(b.id, b));
-              return Array.from(uniqueResults.values()).filter(b => !pendingDeletionIds.has(b.id));
+              results.forEach(bookmark => uniqueResults.set(bookmark.id, bookmark));
+              return Array.from(uniqueResults.values())
+                .filter(bookmark => !pendingDeletionIds.has(bookmark.id));
             })
           );
         }
+
         if (directory == null) {
           return of([]);
         }
 
-        // Handle Virtual Nodes
         if (directory.id === 'ROOT_ALL') {
-          // Show root children (Bookmarks Bar, Other Bookmarks, etc)
-          return fromPromise(this.bookmarkProviderService.getDirectoryTreeWithoutRoot()).pipe(
-            map(items => items.filter(item => !pendingDeletionIds.has(item.id)))
-          );
+          return of(snapshot.directories.filter(item => !pendingDeletionIds.has(item.id)));
         }
 
         if (directory.id === 'ROOT_TAGS' || directory.id === 'ROOT_SERVERS') {
@@ -199,49 +165,22 @@ export class BookmarksFacadeService {
 
         if (directory.id.startsWith('TAG_')) {
           const tagName = directory.title;
-          // Fetch fresh bookmarks to ensure we have the latest state
-          return fromPromise(this.bookmarkProviderService.getBookmarks()).pipe(
-            map(tree => {
-              const allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
-              const stack = [...tree];
-              while (stack.length) {
-                const node = stack.pop()!;
-                if (node.url) allBookmarks.push(node);
-                if (node.children) stack.push(...node.children);
-              }
-              return allBookmarks.filter(b => {
-                const tags = this.tagsService.getTagsForBookmark(b.id);
-                return tags.includes(tagName) && !pendingDeletionIds.has(b.id);
-              });
-            })
-          );
+          return of(snapshot.bookmarks.filter(bookmark =>
+            this.tagsService.getTagsForBookmark(bookmark.id).includes(tagName)
+            && !pendingDeletionIds.has(bookmark.id)
+          ));
         }
 
         if (directory.id.startsWith('SERVER_')) {
           const hostname = directory.title;
-          return fromPromise(this.bookmarkProviderService.getBookmarks()).pipe(
-            map(tree => {
-              const allBookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
-              const stack = [...tree];
-              while (stack.length) {
-                const node = stack.pop()!;
-                if (node.url) {
-                  try {
-                    if (new URL(node.url).hostname === hostname) {
-                      allBookmarks.push(node);
-                    }
-                  } catch (e) { }
-                }
-                if (node.children) stack.push(...node.children);
-              }
-              return allBookmarks.filter(item => !pendingDeletionIds.has(item.id));
-            })
-          );
+          return of(snapshot.bookmarks.filter(bookmark =>
+            snapshot.hostnameByBookmarkId.get(bookmark.id) === hostname
+            && !pendingDeletionIds.has(bookmark.id)
+          ));
         }
 
-        return fromPromise(this.bookmarkProviderService.getChildren(directory.id)).pipe(
-          map(items => items.filter(item => !pendingDeletionIds.has(item.id)))
-        );
+        const children = snapshot.nodeMap[directory.id]?.children ?? [];
+        return of(children.filter(item => !pendingDeletionIds.has(item.id)));
       }),
       tap(items => {
         this.selectionService.items = items;
@@ -267,6 +206,41 @@ export class BookmarksFacadeService {
     ),
     { initialValue: [] }
   );
+
+  private createTreeSnapshot(tree: chrome.bookmarks.BookmarkTreeNode[]): BookmarkTreeSnapshot {
+    const nodeMap: Record<string, chrome.bookmarks.BookmarkTreeNode> = {};
+    const bookmarks: chrome.bookmarks.BookmarkTreeNode[] = [];
+    const hostnameByBookmarkId = new Map<string, string>();
+    const serverCounts = new Map<string, number>();
+    const stack = [...tree];
+
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+      nodeMap[node.id] = node;
+      if (node.url) {
+        bookmarks.push(node);
+        try {
+          const hostname = new URL(node.url).hostname;
+          hostnameByBookmarkId.set(node.id, hostname);
+          serverCounts.set(hostname, (serverCounts.get(hostname) ?? 0) + 1);
+        } catch {
+          // Invalid bookmark URLs remain available outside server views.
+        }
+      }
+      if (node.children) {
+        stack.push(...node.children);
+      }
+    }
+
+    return {
+      tree,
+      directories: this.bookmarkProviderService.filterDirectories(tree[0]?.children ?? []),
+      nodeMap,
+      bookmarks,
+      hostnameByBookmarkId,
+      serverCounts
+    };
+  }
 
   constructor() {
   }
@@ -333,6 +307,10 @@ export function injectSelection() {
 
 export function injectDisplayedItems() {
   return inject(BookmarksFacadeService).items;
+}
+
+export function injectAllBookmarksMap() {
+  return inject(BookmarksFacadeService).bookmarksMap;
 }
 
 export function injectSearchTerm() {

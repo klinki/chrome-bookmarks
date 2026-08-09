@@ -1,8 +1,5 @@
 import {inject, Injectable} from '@angular/core';
 import { BookmarksService } from './chrome';
-import {fromPromise} from "rxjs/internal/observable/innerFrom";
-import {map, merge, startWith, switchMap} from "rxjs";
-import {toSignal} from "@angular/core/rxjs-interop";
 
 @Injectable()
 export class BookmarksProviderService {
@@ -139,47 +136,6 @@ export class BookmarksProviderService {
   }
 }
 
-export function injectAllBookmarksMap() {
-  const service = inject(BookmarksProviderService);
-  const bookmarksChanged$ = merge(
-    service.onCreatedEvent$,
-    service.onRemovedEvent$,
-    service.onChangedEvent$,
-    service.onMovedEvent$,
-    service.onChildrenReorderedEvent$,
-    service.onImportBeganEvent$,
-    service.onImportEndedEvent$
-  ).pipe(
-    startWith(null),
-    switchMap(() => fromPromise(service.getBookmarks())),
-    map(nodes => {
-      const nodeMap: Record<string, chrome.bookmarks.BookmarkTreeNode> = {};
-      const rootNode = nodes[0];
-
-      if (!rootNode) {
-        return nodeMap;
-      }
-
-      const stack = [ rootNode ];
-
-      while (stack.length > 0) {
-        const node = stack.pop()!;
-        nodeMap[node.id] = node;
-        if (!node.children) {
-          continue;
-        }
-
-        node.children.forEach(function(child) {
-          stack.push(child);
-        });
-      }
-
-      return nodeMap;
-    }));
-
-  const emptyRecord: Record<string, chrome.bookmarks.BookmarkTreeNode> = {};
-  return toSignal(bookmarksChanged$, { initialValue: emptyRecord });
-}
 
 export function injectMoveMultipleBookmarksCallback() {
   const service = inject(BookmarksProviderService);

@@ -4,9 +4,14 @@ import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {BookmarkElement, DragData, DropDestination, NodeMap, ObjectMap, TimerProxy} from "./types";
 import {canEditNode, canReorderChildren, hasChildFolders, normalizeNode} from "./util";
 import {DropPosition, ROOT_NODE_ID} from "./constants";
-import {injectDisplayedItems, injectSearchTerm, injectSelection} from "./bookmarks-facade.service";
+import {
+  injectAllBookmarksMap,
+  injectDisplayedItems,
+  injectSearchTerm,
+  injectSelection
+} from "./bookmarks-facade.service";
 import {injectSelectedFolderSignal, injectSelectItemCallback} from "./selection.service";
-import {injectAllBookmarksMap, injectMoveMultipleBookmarksCallback} from "./bookmarks-provider.service";
+import {injectMoveMultipleBookmarksCallback} from "./bookmarks-provider.service";
 import {Debouncer} from "../utils/debouncer";
 import {TagsService} from "./tags.service";
 
