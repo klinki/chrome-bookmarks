@@ -19,7 +19,10 @@ describe('Component: TreeView', () => {
 
   const mockSelectionService = {
     selectedDirectory: signal(null),
-    selectDirectory: vi.fn()
+    selectDirectory: vi.fn(),
+    expandDirectories: vi.fn(),
+    isDirectoryExpanded: vi.fn().mockReturnValue(false),
+    toggleDirectory: vi.fn()
   };
   
   const mockDragAndDropService = {};
@@ -45,6 +48,19 @@ describe('Component: TreeView', () => {
 
   it('should create an instance', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('expands the selected directory path by stable IDs', () => {
+    fixture.componentRef.setInput('directories', [{
+      id: 'parent',
+      title: 'Parent',
+      children: [{ id: 'child', title: 'Child', children: [] }]
+    }]);
+    mockSelectionService.selectedDirectory.set({ id: 'child', title: 'Child' } as any);
+
+    fixture.detectChanges();
+
+    expect(mockSelectionService.expandDirectories).toHaveBeenCalledWith(['parent', 'child']);
   });
 
   it('forwards Delete to folder deletion when the tree has focus', () => {

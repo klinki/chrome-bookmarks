@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and the first seven Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-09 now have focused regression coverage.
+Both High-severity findings and the first eight Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-10 now have focused regression coverage.
 
-Material risks remain in tree expansion state, sorting, repeated full-tree loading, editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
+Material risks remain in sorting, repeated full-tree loading, editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,9 +43,9 @@ Material risks remain in tree expansion state, sorting, repeated full-tree loadi
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 7 | 7 |
+| Medium | 14 | 6 | 8 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **12** | **9** |
+| **Total** | **21** | **11** | **10** |
 
 ## Verification results
 
@@ -209,11 +209,11 @@ Malformed or unsupported files can leave partial imported trees and repeated ret
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Medium
-- **Status:** Confirmed architecture; refresh behavior is [INFERENCE]
+- **Status:** Fixed 2026-08-09
 
-`TreeItemComponent.toggle()` mutates `directory.expanded` directly (`src/app/components/tree-view/tree-item.component.ts:43-50`). Directory refreshes rebuild wrapper nodes using `Object.create(bookmark)` (`src/app/services/bookmarks-provider.service.ts:51-57`), so expansion is not held in durable state. The existing `folderOpenState` state is unused by the rendered tree.
+`TreeItemComponent` now reads and toggles expansion through `SelectionService`, which stores an immutable set of expanded folder IDs. `TreeViewComponent` expands selected ancestor paths by ID, so replacement bookmark node objects preserve expansion without mutation.
 
-Any bookmark event can replace the directory tree and collapse user-expanded folders [INFERENCE]. Store expansion by folder ID in a signal/service and derive `[expanded]` without mutating Chrome API objects.
+Focused component and service tests cover ID-based persistence, path expansion, and the absence of an `expanded` mutation on input nodes.
 
 ### F-11 — sorting has invalid comparator behavior and cannot sort tags
 
@@ -372,7 +372,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-07 — Make multi-item moves order-aware; await drop work and clear drag state in `finally`.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-08 — Add per-run AI cancellation with `AbortController` and operation ownership.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-09 — Validate complete JSON/HTML imports before mutation and clean up partial imports on failure.** Severity: **Medium** · Priority: **P1** · Difficulty: **High** · Status: **Fixed 2026-08-09**
-- [ ] **T-10 — Move folder expansion state into a durable signal keyed by folder ID.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
+- [x] **T-10 — Move folder expansion state into a durable signal keyed by folder ID.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
 - [ ] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High**
 - [ ] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**

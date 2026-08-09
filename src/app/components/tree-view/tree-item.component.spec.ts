@@ -10,7 +10,9 @@ describe('TreeItemComponent', () => {
 
   const mockSelectionService = {
     selectedDirectory: signal(null),
-    selectDirectory: vi.fn()
+    selectDirectory: vi.fn(),
+    isDirectoryExpanded: vi.fn().mockReturnValue(false),
+    toggleDirectory: vi.fn()
   };
 
   beforeEach(async () => {
@@ -77,5 +79,15 @@ describe('TreeItemComponent', () => {
         } as any;
         expect(component.hasSubDirectories(directory)).toBe(false);
       });
+  });
+
+  it('stores expansion by directory ID instead of mutating the input node', () => {
+    const directory = { id: 'folder', title: 'Folder', children: [{ id: 'child', children: [] }] } as any;
+    const event = { stopPropagation: vi.fn() } as any;
+
+    component.toggle(event, directory);
+
+    expect(mockSelectionService.toggleDirectory).toHaveBeenCalledWith('folder');
+    expect(directory.expanded).toBeUndefined();
   });
 });

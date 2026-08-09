@@ -14,6 +14,9 @@ export class SelectionService {
    */
   private _selectedDirectory = signal<chrome.bookmarks.BookmarkTreeNode | null>(null);
   public selectedDirectory = this._selectedDirectory.asReadonly();
+  private _expandedDirectoryIds = signal<ReadonlySet<string>>(new Set());
+  public expandedDirectoryIds = this._expandedDirectoryIds.asReadonly();
+
 
   protected search = {
     term: '',
@@ -93,6 +96,28 @@ export class SelectionService {
     this._selectedDirectory.set(null);
     this.clearSelection(true);
   }
+  public isDirectoryExpanded(directoryId: string): boolean {
+    return this._expandedDirectoryIds().has(directoryId);
+  }
+
+  public toggleDirectory(directoryId: string): void {
+    const expandedIds = new Set(this._expandedDirectoryIds());
+    if (expandedIds.has(directoryId)) {
+      expandedIds.delete(directoryId);
+    } else {
+      expandedIds.add(directoryId);
+    }
+    this._expandedDirectoryIds.set(expandedIds);
+  }
+
+  public expandDirectories(directoryIds: Iterable<string>): void {
+    const expandedIds = new Set(this._expandedDirectoryIds());
+    for (const directoryId of directoryIds) {
+      expandedIds.add(directoryId);
+    }
+    this._expandedDirectoryIds.set(expandedIds);
+  }
+
 
    public getSelectedBookmark() {
     return this.selectedBookmark;

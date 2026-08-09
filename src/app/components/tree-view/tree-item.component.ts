@@ -42,15 +42,15 @@ export class TreeItemComponent implements OnInit {
 
   toggle(event: MouseEvent, directory: BookmarkDirectory) {
     event.stopPropagation();
-    if (directory.children.length === 0)
+    if (directory.children.length === 0) {
       return;
+    }
 
-    console.log(directory);
-    directory.expanded = !directory.expanded;
+    this.bookmarkService.toggleDirectory(directory.id);
   }
 
   expanded(directory: BookmarkDirectory) {
-    return directory.expanded;
+    return this.bookmarkService.isDirectoryExpanded(directory.id);
   }
 
   isVisible(directory: BookmarkDirectory) {

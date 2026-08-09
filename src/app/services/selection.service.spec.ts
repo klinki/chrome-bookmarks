@@ -40,4 +40,22 @@ describe('SelectionService', () => {
 
     expect(service.selection()).toEqual(new Set(['5']));
   });
+
+  it('keeps folder expansion keyed by ID across refreshed node objects', () => {
+    service.toggleDirectory('folder-1');
+    const refreshedNode = item('folder-1');
+
+    expect(service.isDirectoryExpanded(refreshedNode.id)).toBe(true);
+
+    service.toggleDirectory(refreshedNode.id);
+    expect(service.isDirectoryExpanded('folder-1')).toBe(false);
+  });
+
+  it('expands a complete directory path without collapsing existing folders', () => {
+    service.toggleDirectory('existing');
+
+    service.expandDirectories(['ancestor', 'selected']);
+
+    expect(service.expandedDirectoryIds()).toEqual(new Set(['existing', 'ancestor', 'selected']));
+  });
 });

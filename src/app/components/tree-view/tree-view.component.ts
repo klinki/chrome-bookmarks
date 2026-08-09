@@ -30,7 +30,10 @@ export class TreeViewComponent implements OnInit {
       const directories = this.directories();
 
       if (selectedDir && directories) {
-        this.expandToNode(directories, selectedDir.id);
+        const path = this.findDirectoryPath(directories, selectedDir.id);
+        if (path) {
+          this.selectionService.expandDirectories(path);
+        }
       }
     });
   }
@@ -38,22 +41,21 @@ export class TreeViewComponent implements OnInit {
   ngOnInit() {
   }
 
-  private expandToNode(nodes: BookmarkDirectory[], targetId: string): boolean {
+  private findDirectoryPath(nodes: BookmarkDirectory[], targetId: string): string[] | null {
     for (const node of nodes) {
       if (node.id === targetId) {
-        node.expanded = true;
-        return true;
+        return [node.id];
       }
 
-      if (node.children && node.children.length > 0) {
-        const found = this.expandToNode(node.children, targetId);
-        if (found) {
-          node.expanded = true;
-          return true;
+      if (node.children?.length) {
+        const childPath = this.findDirectoryPath(node.children, targetId);
+        if (childPath) {
+          return [node.id, ...childPath];
         }
       }
     }
-    return false;
+
+    return null;
   }
 
   toggle(directory: BookmarkDirectory) {
