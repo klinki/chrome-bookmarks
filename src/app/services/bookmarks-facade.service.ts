@@ -1,8 +1,7 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { BookmarksProviderService } from "./bookmarks-provider.service";
 import { TagsService } from "./tags.service";
-import { Subject, combineLatest, debounceTime, distinctUntilChanged, filter, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
-import { fromPromise } from "rxjs/internal/observable/innerFrom";
+import { Subject, combineLatest, debounceTime, distinctUntilChanged, filter, from, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
 import { SelectionService } from "./selection.service";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 
@@ -55,7 +54,7 @@ export class BookmarksFacadeService {
   );
 
   private readonly treeSnapshot$ = this.onBookmarksUpdated$.pipe(
-    switchMap(() => fromPromise(this.bookmarkProviderService.getBookmarks())),
+    switchMap(() => from(this.bookmarkProviderService.getBookmarks())),
     map(tree => this.createTreeSnapshot(tree)),
     shareReplay({ bufferSize: 1, refCount: true })
   );
@@ -128,7 +127,7 @@ export class BookmarksFacadeService {
     ]).pipe(
       switchMap(([snapshot, directory, searchTerm, _bookmarkTags, availableTags, pendingDeletionIds]) => {
         if (searchTerm !== '') {
-          return fromPromise(this.bookmarkProviderService.search(searchTerm)).pipe(
+          return from(this.bookmarkProviderService.search(searchTerm)).pipe(
             map(searchResults => {
               const results = [...searchResults];
               const normalizedSearchTerm = searchTerm.toLowerCase();

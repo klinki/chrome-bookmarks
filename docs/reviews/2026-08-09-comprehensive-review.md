@@ -33,7 +33,7 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings, thirteen of fourteen Medium-severity findings, and one Low-severity finding are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-16 now have focused regression coverage or an explicit owner disposition.
+Both High-severity findings, thirteen of fourteen Medium-severity findings, and two Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-17 now have focused regression coverage or an explicit owner disposition.
 
 Material risks remain in accessibility, logging, bundle hygiene, and benchmark reliability.
 
@@ -44,8 +44,8 @@ Material risks remain in accessibility, logging, bundle hygiene, and benchmark r
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
 | Medium | 14 | 1 | 13 |
-| Low | 5 | 4 | 1 |
-| **Total** | **21** | **5** | **16** |
+| Low | 5 | 3 | 2 |
+| **Total** | **21** | **4** | **17** |
 
 ## Verification results
 
@@ -299,11 +299,11 @@ Removed unreachable code:
 - **Severity:** Low
 - **Priority:** P2
 - **Difficulty:** Low
-- **Status:** Confirmed
+- **Status:** Fixed 2026-08-09
 
-`bookmarks-facade.service.ts` and `bookmarks-provider.service.ts` import `fromPromise` from `rxjs/internal/observable/innerFrom`. Private paths are not a compatibility contract and can break on an RxJS upgrade.
+`BookmarksFacadeService` now converts Promise-returning provider calls with the public `from()` API. No `rxjs/internal` imports or `fromPromise` calls remain under `src/`.
 
-Use the public `from()` API from `rxjs` for Promises.
+The focused facade suite passes: 5 tests.
 
 ### F-18 — production hot paths emit verbose console output
 
@@ -379,7 +379,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-15 — Add an Nx lint target, make lint part of CI, enforce missing-test failures, and close skipped-suite gaps; retain `test-results/` by owner decision.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Resolved 2026-08-09**
 - [x] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
+- [x] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [ ] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
 - [ ] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-20 — Reduce the initial bundle/style warnings and remove unused legacy styling/dependencies before changing budgets.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
