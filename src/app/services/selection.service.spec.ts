@@ -58,4 +58,13 @@ describe('SelectionService', () => {
 
     expect(service.expandedDirectoryIds()).toEqual(new Set(['existing', 'ancestor', 'selected']));
   });
+
+  it('does not publish a new expansion set when the path is already expanded', () => {
+    service.expandDirectories(['ancestor', 'selected']);
+    const expandedIds = service.expandedDirectoryIds();
+
+    service.expandDirectories(['ancestor', 'selected']);
+
+    expect(service.expandedDirectoryIds()).toBe(expandedIds);
+  });
 });

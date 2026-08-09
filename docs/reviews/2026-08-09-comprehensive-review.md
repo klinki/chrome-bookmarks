@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings, thirteen of fourteen Medium-severity findings, and three Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-18 now have focused regression coverage or an explicit owner disposition.
+Both High-severity findings, all fourteen Medium-severity findings, and three Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-19 now have focused regression coverage or an explicit owner disposition.
 
-Material risks remain in accessibility, bundle hygiene, and benchmark reliability.
+Material risks remain in bundle hygiene and benchmark reliability.
 
 ### Finding status
 
@@ -43,9 +43,9 @@ Material risks remain in accessibility, bundle hygiene, and benchmark reliabilit
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 1 | 13 |
+| Medium | 14 | 0 | 14 |
 | Low | 5 | 2 | 3 |
-| **Total** | **21** | **3** | **18** |
+| **Total** | **21** | **2** | **19** |
 
 ## Verification results
 
@@ -321,11 +321,11 @@ Focused logging and affected-consumer suites pass: 40 tests. Lint confirms no pr
 - **Severity:** Medium
 - **Priority:** P2
 - **Difficulty:** Medium
-- **Status:** Confirmed template structure; accessibility impact is [INFERENCE]
+- **Status:** Fixed 2026-08-09
 
-List rows and headers are mouse-clickable `<tr>`/`<th>` elements without keyboard activation, focusability, button semantics, or `aria-sort` (`src/app/components/list-view/list-view.component.html:1-43`). Tree items declare `role="treeitem"`, but the container lacks `role="tree"`, items are not individually focusable, and arrow-key navigation is absent (`tree-item.component.html:1-35`; `tree-view.component.html:1-12`). The AI modal lacks dialog semantics and focus management (`ai-settings.component.html:75-120`).
+List headers now use keyboard-operable buttons with `aria-sort`, and focusable rows expose selection state and support Space/Enter. The folder sidebar now implements labelled tree/treeitem/group semantics, roving tab stops, and arrow/Home/End keyboard navigation. The AI discovery modal now exposes dialog semantics, traps focus, handles Escape, and restores focus to its trigger.
 
-Keyboard-only and assistive-technology workflows are incomplete [INFERENCE]. Add semantic controls/ARIA, roving tabindex and tree keyboard behavior, modal focus trapping/restoration, and accessibility-oriented E2E checks.
+Focused unit and Playwright scenarios cover all three interaction surfaces. During browser verification, keyboard selection exposed a signal-effect loop in expansion updates; `SelectionService.expandDirectories()` now avoids tracked reads and no-op publications.
 
 ### F-20 — production budgets already warn and legacy styles add weight
 
@@ -381,6 +381,6 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
-- [ ] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**
+- [x] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-20 — Reduce the initial bundle/style warnings and remove unused legacy styling/dependencies before changing budgets.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-21 — Replace timing assertions in unit tests with a dedicated benchmark workflow against production code.** Severity: **Low** · Priority: **P3** · Difficulty: **Low**

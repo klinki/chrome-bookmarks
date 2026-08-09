@@ -116,6 +116,14 @@ export class ListViewComponent {
     }
   }
 
+  public getAriaSort(column: BookmarkSortColumn): 'ascending' | 'descending' | 'none' {
+    if (this.orderProperties().column !== column) {
+      return 'none';
+    }
+
+    return this.orderProperties().asc ? 'ascending' : 'descending';
+  }
+
   public getColumnValue(
     item: chrome.bookmarks.BookmarkTreeNode,
     column: BookmarkSortColumn
@@ -165,6 +173,31 @@ export class ListViewComponent {
 
     e.stopPropagation();
     e.preventDefault();
+  }
+
+  public onItemKeydown(
+    event: KeyboardEvent,
+    item: chrome.bookmarks.BookmarkTreeNode
+  ): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.itemDoubleClick(item);
+      return;
+    }
+
+    if (event.key !== ' ' && event.key !== 'Spacebar') {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    const additive = event.metaKey || event.ctrlKey;
+    this.selectionService.select(item, {
+      clear: !additive,
+      range: event.shiftKey,
+      toggle: additive && !event.shiftKey
+    });
   }
 
   public itemDoubleClick(item: chrome.bookmarks.BookmarkTreeNode) {

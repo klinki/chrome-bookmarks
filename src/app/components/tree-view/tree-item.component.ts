@@ -22,6 +22,7 @@ export class TreeItemComponent {
   public directory = input<any>();
   public level = input<number>(0);
   public selectedItem = input<any>(null);
+  public focusable = input(false);
   @Input() public menu: any;
   @Input() public menuComponent: any;
 
@@ -55,7 +56,8 @@ export class TreeItemComponent {
     return directory && !directory.url;
   }
 
-  open(directory: BookmarkDirectory) {
+  open(event: MouseEvent, directory: BookmarkDirectory) {
+    (event.currentTarget as HTMLElement).parentElement?.focus();
     const component = this.menuComponent;
     if (component != null) {
       component.folder = directory;
@@ -64,10 +66,11 @@ export class TreeItemComponent {
   }
 
   onRightClick(event: MouseEvent, directory: BookmarkDirectory) {
+    (event.currentTarget as HTMLElement).parentElement?.focus();
     this.bookmarkService.selectDirectory(directory);
   }
 
   hasSubDirectories(directory: chrome.bookmarks.BookmarkTreeNode) {
-    return directory?.children?.some((child) => (child as any).hasOwnProperty('children')) ?? false;
+    return directory?.children?.some(child => Object.hasOwn(child, 'children')) ?? false;
   }
 }

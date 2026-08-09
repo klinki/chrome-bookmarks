@@ -7,6 +7,25 @@ table {
   width: 100%;
 }
 
+.sort-button {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: inherit;
+  padding: 0.5rem;
+  text-align: start;
+  width: 100%;
+}
+
+.sort-button:focus-visible,
+tr:focus-visible {
+  outline: 2px solid var(--interactive-color, #1976d2);
+  outline-offset: -2px;
+}
+
 list > [selected],
 grid > [selected],
 tr[selected] {

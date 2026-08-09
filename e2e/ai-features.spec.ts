@@ -146,3 +146,24 @@ test('AI Categorize with allowNewTags=false only applies existing tags', async (
 
     await newPage.close();
 });
+
+
+test('Model discovery dialog traps focus and restores the trigger', async ({ page }) => {
+    await page.locator('a.settings-link').click();
+    await page.locator('nav').getByText('AI Categorization').click();
+
+    const trigger = page.getByRole('button', { name: 'Discover local models' });
+    await trigger.focus();
+    await trigger.click();
+
+    const dialog = page.getByRole('dialog', { name: 'Discover Local Models' });
+    await expect(dialog).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Close model discovery' })).toBeFocused();
+
+    await page.keyboard.press('Shift+Tab');
+    await expect(dialog.locator(':focus')).toHaveCount(1);
+
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
+    await expect(trigger).toBeFocused();
+});

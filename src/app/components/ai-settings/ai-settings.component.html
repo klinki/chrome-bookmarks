@@ -4,7 +4,13 @@
             <span>{{ progress().currentBatch }}</span>
             <span>{{ progress().processed }} / {{ progress().total }}</span>
         </div>
-        <div class="progress-bar">
+        <div
+            class="progress-bar"
+            role="progressbar"
+            aria-label="Bookmark categorization progress"
+            [attr.aria-valuemin]="0"
+            [attr.aria-valuemax]="progress().total"
+            [attr.aria-valuenow]="progress().processed">
             <div class="progress-fill" [style.width.%]="(progress().processed / progress().total) * 100"></div>
         </div>
         <div class="progress-controls">
@@ -23,7 +29,7 @@
     <section class="config-section">
         <div class="section-header">
             <h3>LLM Configuration</h3>
-            <button class="discovery-trigger-btn" (click)="openDiscovery()">Discover local models</button>
+            <button type="button" class="discovery-trigger-btn" (click)="openDiscovery($event)">Discover local models</button>
         </div>
         <form [formGroup]="configForm" (ngSubmit)="saveConfig()">
             <div class="form-group">
@@ -58,15 +64,16 @@
         <p class="hint">These tags will be suggested to the AI for categorization.</p>
 
         <div class="tag-input-group">
-            <input #tagInput type="text" placeholder="Add new tag..." (keyup.enter)="addTag(tagInput)">
-            <button (click)="addTag(tagInput)">Add</button>
+            <label class="visually-hidden" for="newTag">New tag</label>
+            <input #tagInput id="newTag" type="text" placeholder="Add new tag..." (keyup.enter)="addTag(tagInput)">
+            <button type="button" (click)="addTag(tagInput)">Add</button>
         </div>
 
         <div class="tags-list">
             @for (tag of availableTags(); track tag) {
             <div class="tag-item">
                 <span>{{ tag }}</span>
-                <button class="remove-tag" (click)="removeTag(tag)">×</button>
+                <button type="button" class="remove-tag" (click)="removeTag(tag)" [attr.aria-label]="'Remove tag ' + tag">×</button>
             </div>
             }
         </div>
@@ -74,37 +81,50 @@
 
     <!-- Model Discovery Modal -->
     <div *ngIf="showDiscoveryModal()" class="modal-overlay">
-        <div class="modal-content">
+        <div
+            class="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="discovery-dialog-title"
+            cdkTrapFocus
+            [cdkTrapFocusAutoCapture]="true"
+            (keydown.escape)="closeDiscovery()">
             <div class="modal-header">
-                <h3>Discover Local Models</h3>
-                <button class="close-btn" (click)="closeDiscovery()">×</button>
+                <h3 id="discovery-dialog-title">Discover Local Models</h3>
+                <button #discoveryClose type="button" class="close-btn" aria-label="Close model discovery" (click)="closeDiscovery()">×</button>
             </div>
 
             <div class="modal-body">
                 <div class="form-group">
-                    <label>Provider</label>
-                    <select [ngModel]="selectedProvider()" (ngModelChange)="onProviderChange($event)"
+                    <label for="discoveryProvider">Provider</label>
+                    <select
+                        id="discoveryProvider"
+                        [ngModel]="selectedProvider()"
+                        (ngModelChange)="onProviderChange($event)"
                         [compareWith]="compareProviders">
                         <option *ngFor="let provider of providers" [ngValue]="provider">{{ provider.name }}</option>
                     </select>
                 </div>
 
                 <div class="form-group">
-                    <label>Base URL</label>
-                    <input type="text" [value]="selectedProvider().discoveryUrl" readonly>
+                    <label for="discoveryBaseUrl">Base URL</label>
+                    <input id="discoveryBaseUrl" type="text" [value]="selectedProvider().discoveryUrl" readonly>
                 </div>
 
                 <button class="action-btn" (click)="discoverModels()" [disabled]="isDiscovering()">
                     {{ isDiscovering() ? 'Discovering...' : 'Discover models' }}
                 </button>
 
-                <div *ngIf="discoveryError()" class="error-msg">
+                <div *ngIf="discoveryError()" class="error-msg" role="alert">
                     {{ discoveryError() }}
                 </div>
 
                 <div *ngIf="discoveredModels().length > 0" class="form-group results-group">
-                    <label>Available Models</label>
-                    <select [ngModel]="selectedDiscoveredModel()" (ngModelChange)="selectedDiscoveredModel.set($event)">
+                    <label for="discoveredModel">Available Models</label>
+                    <select
+                        id="discoveredModel"
+                        [ngModel]="selectedDiscoveredModel()"
+                        (ngModelChange)="selectedDiscoveredModel.set($event)">
                         <option *ngFor="let model of discoveredModels()" [value]="model">{{ model }}</option>
                     </select>
                 </div>

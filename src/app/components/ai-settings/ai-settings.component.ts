@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, resource, computed, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, resource, signal, untracked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -6,11 +6,12 @@ import { AiStore } from '../../services/ai.store';
 import { TagsService } from '../../services/tags.service';
 import { AiService, AiProvider } from '../../services/ai.service';
 import { BookmarksProviderService } from '../../services/bookmarks-provider.service';
+import { A11yModule } from '@angular/cdk/a11y';
 
 @Component({
   selector: 'app-ai-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule, A11yModule],
   templateUrl: './ai-settings.component.html',
   styleUrl: './ai-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,6 +22,7 @@ export class AiSettingsComponent {
   private tagsService = inject(TagsService);
   private aiService = inject(AiService);
   private provider = inject(BookmarksProviderService);
+  private discoveryTriggerElement: HTMLElement | null = null;
 
   public availableTags = this.tagsService.availableTags;
   public progress = this.store.progress;
@@ -95,13 +97,17 @@ export class AiSettingsComponent {
     this.tagsService.removeAvailableTag(tag);
   }
 
-  public openDiscovery() {
+  public openDiscovery(event?: Event) {
+    if (event?.currentTarget instanceof HTMLElement) {
+      this.discoveryTriggerElement = event.currentTarget;
+    }
     this.showDiscoveryModal.set(true);
   }
 
   public closeDiscovery() {
     this.showDiscoveryModal.set(false);
     this.discoveryTrigger.set(0);
+    queueMicrotask(() => this.discoveryTriggerElement?.focus());
   }
 
   public onProviderChange(provider: AiProvider) {

@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, untracked } from '@angular/core';
 import { inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
@@ -108,11 +108,15 @@ export class SelectionService {
   }
 
   public expandDirectories(directoryIds: Iterable<string>): void {
-    const expandedIds = new Set(this._expandedDirectoryIds());
+    const currentIds = untracked(this._expandedDirectoryIds);
+    const expandedIds = new Set(currentIds);
     for (const directoryId of directoryIds) {
       expandedIds.add(directoryId);
     }
-    this._expandedDirectoryIds.set(expandedIds);
+
+    if (expandedIds.size !== currentIds.size) {
+      this._expandedDirectoryIds.set(expandedIds);
+    }
   }
 
 

@@ -189,4 +189,41 @@ describe('Component: ListView', () => {
 
     expect(component.visibleItems().map(item => item.id)).toEqual(['2', '1']);
   });
+
+  it('exposes sort state and keyboard-operable column headers', () => {
+    component.orderBy('title');
+    fixture.detectChanges();
+
+    const titleHeader = fixture.nativeElement.querySelector('th[aria-sort="ascending"]');
+    const sortButton = titleHeader.querySelector('button');
+
+    expect(sortButton.textContent).toContain('Title');
+    expect(sortButton.getAttribute('aria-label')).toBe('Sort by Title');
+  });
+
+  it('selects a focused row with Space', () => {
+    const bookmark = {
+      id: '1',
+      title: 'Alpha',
+      url: 'https://example.com/1'
+    } as chrome.bookmarks.BookmarkTreeNode;
+    const event = {
+      key: ' ',
+      metaKey: false,
+      ctrlKey: false,
+      shiftKey: false,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    component.onItemKeydown(event, bookmark);
+
+    expect(mockSelectionService.select).toHaveBeenCalledWith(bookmark, {
+      clear: true,
+      range: false,
+      toggle: false
+    });
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
 });

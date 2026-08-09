@@ -8,6 +8,7 @@ import { BookmarksProviderService } from '../../services/bookmarks-provider.serv
 import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { CdkTrapFocus } from '@angular/cdk/a11y';
 
 describe('AiSettingsComponent', () => {
   let component: AiSettingsComponent;
@@ -40,7 +41,11 @@ describe('AiSettingsComponent', () => {
   };
 
   const mockAiService = {
-    providers: [],
+    providers: [{
+      name: 'Ollama',
+      discoveryUrl: 'http://localhost:11434',
+      completionUrl: 'http://localhost:11434/v1'
+    }],
     discoverProviderModels: vi.fn().mockResolvedValue([])
   };
 
@@ -73,5 +78,23 @@ describe('AiSettingsComponent', () => {
     const tagElements = fixture.debugElement.queryAll(By.css('.tag-item'));
     expect(tagElements.length).toBe(3);
     expect(tagElements[0].nativeElement.textContent).toContain('tag1');
+  });
+
+  it('traps discovery dialog focus and restores it to the trigger', async () => {
+    const trigger = fixture.nativeElement.querySelector('.discovery-trigger-btn') as HTMLButtonElement;
+    trigger.click();
+    fixture.detectChanges();
+
+    const dialog = fixture.nativeElement.querySelector('[role="dialog"]') as HTMLElement;
+    expect(dialog.getAttribute('aria-modal')).toBe('true');
+    expect(fixture.debugElement.query(By.directive(CdkTrapFocus))).toBeTruthy();
+
+    const triggerFocus = vi.spyOn(trigger, 'focus');
+    const close = dialog.querySelector('.close-btn') as HTMLButtonElement;
+    close.click();
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    expect(triggerFocus).toHaveBeenCalled();
   });
 });

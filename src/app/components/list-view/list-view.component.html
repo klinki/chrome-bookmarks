@@ -1,12 +1,18 @@
-<table>
+<table role="grid" aria-label="Bookmarks" aria-multiselectable="true">
   <thead>
     <tr>
       @for (column of displayedColumns; track column) {
-        <th (click)="orderBy(column.name)">
-          <span [style.visibility]="orderProperties().column == column.name ? 'visible' : 'hidden'">
-            {{ orderProperties().asc ? '▲' : '▼' }}
-          </span>
-          {{column.title}}
+        <th [attr.aria-sort]="getAriaSort(column.name)">
+          <button
+            type="button"
+            class="sort-button"
+            (click)="orderBy(column.name)"
+            [attr.aria-label]="'Sort by ' + column.title">
+            <span aria-hidden="true" [style.visibility]="orderProperties().column === column.name ? 'visible' : 'hidden'">
+              {{ orderProperties().asc ? '▲' : '▼' }}
+            </span>
+            {{column.title}}
+          </button>
         </th>
       }
     </tr>
@@ -14,9 +20,12 @@
   <tbody>
     @for (item of visibleItems(); track item.id) {
       <tr
+        tabindex="0"
         (dblclick)="itemDoubleClick(item)"
         (click)="itemClick($event, item)"
+        (keydown)="onItemKeydown($event, item)"
         [attr.selected]="isSelected(item) ? true : null"
+        [attr.aria-selected]="isSelected(item)"
         [attr.itemId]="item.id"
         draggable="true"
         [cdkContextMenuTriggerFor]="bookmarkMenu.menu.menu"

@@ -56,27 +56,138 @@ export class TreeViewComponent {
     return null;
   }
 
-  toggle(directory: BookmarkDirectory) {
-    if (directory.children.length === 0)
+  public focusTree(event?: FocusEvent) {
+    const container = this.treeContainer.nativeElement;
+    if (event && event.target !== container) {
       return;
+    }
 
-    directory.expanded = !directory.expanded;
+    const visibleDirectories = this.getVisibleDirectories();
+    const target = this.selectedDirectory() ?? visibleDirectories[0];
+    if (!target) {
+      return;
+    }
+
+    if (!this.selectedDirectory()) {
+      this.selectionService.selectDirectory(target);
+    }
+    this.focusDirectory(target.id);
   }
 
-  expanded(directory: BookmarkDirectory) {
-    return directory.expanded;
+  public onTreeKeydown(event: KeyboardEvent): void {
+    const handledKeys = new Set(['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft', 'Home', 'End', 'Enter', ' ', 'Spacebar']);
+    if (!handledKeys.has(event.key)) {
+      return;
+    }
+
+    const visibleDirectories = this.getVisibleDirectories();
+    if (visibleDirectories.length === 0) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const focusedId = (event.target as HTMLElement)
+      .closest<HTMLElement>('[role="treeitem"]')
+      ?.dataset['treeId'];
+    const selectedId = this.selectedDirectory()?.id;
+    let index = visibleDirectories.findIndex(directory => directory.id === (focusedId ?? selectedId));
+    if (index < 0) {
+      index = 0;
+    }
+
+    const current = visibleDirectories[index];
+    let target = current;
+
+    switch (event.key) {
+      case 'ArrowDown':
+        target = visibleDirectories[Math.min(index + 1, visibleDirectories.length - 1)];
+        break;
+      case 'ArrowUp':
+        target = visibleDirectories[Math.max(index - 1, 0)];
+        break;
+      case 'Home':
+        target = visibleDirectories[0];
+        break;
+      case 'End':
+        target = visibleDirectories[visibleDirectories.length - 1];
+        break;
+      case 'ArrowRight': {
+        const children = this.getFolderChildren(current);
+        if (children.length === 0) {
+          break;
+        }
+        if (!this.selectionService.isDirectoryExpanded(current.id)) {
+          this.selectionService.toggleDirectory(current.id);
+        } else {
+          target = children[0];
+        }
+        break;
+      }
+      case 'ArrowLeft': {
+        if (this.selectionService.isDirectoryExpanded(current.id)) {
+          this.selectionService.toggleDirectory(current.id);
+        } else {
+          target = this.findParentDirectory(this.directories() ?? [], current.id) ?? current;
+        }
+        break;
+      }
+    }
+
+    this.selectionService.selectDirectory(target);
+    this.focusDirectory(target.id);
   }
 
-  isVisible(directory: BookmarkDirectory) {
-    return directory && !directory.url;
+  private getVisibleDirectories(): BookmarkDirectory[] {
+    const visible: BookmarkDirectory[] = [];
+    const visit = (directories: BookmarkDirectory[]) => {
+      for (const directory of directories) {
+        visible.push(directory);
+        if (this.selectionService.isDirectoryExpanded(directory.id)) {
+          visit(this.getFolderChildren(directory));
+        }
+      }
+    };
+
+    visit(this.directories() ?? []);
+    return visible;
   }
 
-  open(directory: BookmarkDirectory) {
-    this.selectionService.selectDirectory(directory);
+  private getFolderChildren(directory: BookmarkDirectory): BookmarkDirectory[] {
+    return (directory.children ?? []).filter((child: BookmarkDirectory) => !child.url);
   }
 
-  public focusTree() {
-    this.treeContainer.nativeElement.focus();
+  private findParentDirectory(
+    directories: BookmarkDirectory[],
+    targetId: string,
+    parent: BookmarkDirectory | null = null
+  ): BookmarkDirectory | null {
+    for (const directory of directories) {
+      if (directory.id === targetId) {
+        return parent;
+      }
+
+      const found = this.findParentDirectory(
+        this.getFolderChildren(directory),
+        targetId,
+        directory
+      );
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+  private focusDirectory(directoryId: string): void {
+    queueMicrotask(() => {
+      const item = Array.from(
+        this.treeContainer.nativeElement.querySelectorAll<HTMLElement>('[role="treeitem"]')
+      ).find(element => element.dataset['treeId'] === directoryId);
+      item?.focus();
+    });
   }
 
   @HostListener('window:keydown', ['$event'])

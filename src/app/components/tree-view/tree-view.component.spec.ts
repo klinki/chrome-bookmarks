@@ -41,6 +41,11 @@ describe('Component: TreeView', () => {
   }));
 
   beforeEach(() => {
+    mockSelectionService.selectedDirectory.set(null);
+    mockSelectionService.selectDirectory.mockReset();
+    mockSelectionService.expandDirectories.mockReset();
+    mockSelectionService.isDirectoryExpanded.mockReset().mockReturnValue(false);
+    mockSelectionService.toggleDirectory.mockReset();
     fixture = TestBed.createComponent(TreeViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -64,17 +69,19 @@ describe('Component: TreeView', () => {
   });
 
   it('forwards Delete to folder deletion when the tree has focus', () => {
-    mockSelectionService.selectedDirectory.set({
+    const directory = {
       id: '123',
       parentId: '1',
       title: 'Empty Folder',
       children: []
-    } as any);
+    } as any;
+    fixture.componentRef.setInput('directories', [directory]);
+    mockSelectionService.selectedDirectory.set(directory);
     fixture.detectChanges();
 
     const deleteSpy = vi.spyOn((component as any).rightClickMenu, 'deleteSelectedFolder').mockResolvedValue(undefined);
-    const treeContainer: HTMLDivElement = fixture.nativeElement.querySelector('#tree-container');
-    treeContainer.focus();
+    const treeItem: HTMLDivElement = fixture.nativeElement.querySelector('[role="treeitem"]');
+    treeItem.focus();
 
     const event = {
       key: 'Delete',
@@ -88,5 +95,65 @@ describe('Component: TreeView', () => {
     expect(deleteSpy).toHaveBeenCalledTimes(1);
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a labelled tree with one initial tab stop', () => {
+    fixture.componentRef.setInput('directories', [{
+      id: 'parent',
+      title: 'Parent',
+      children: [{ id: 'child', title: 'Child', children: [] }]
+    }]);
+    fixture.detectChanges();
+
+    const tree = fixture.nativeElement.querySelector('[role="tree"]');
+    const items = fixture.nativeElement.querySelectorAll('[role="treeitem"]');
+
+    expect(tree.getAttribute('aria-label')).toBe('Bookmark folders');
+    expect(items[0].getAttribute('tabindex')).toBe('0');
+    expect(items[1].getAttribute('tabindex')).toBe('-1');
+  });
+
+  it('moves selection through visible folders with ArrowDown', () => {
+    const child = { id: 'child', title: 'Child', children: [] };
+    fixture.componentRef.setInput('directories', [{
+      id: 'parent',
+      title: 'Parent',
+      children: [child]
+    }]);
+    mockSelectionService.isDirectoryExpanded.mockImplementation((id: string) => id === 'parent');
+    fixture.detectChanges();
+    const parentItem = fixture.nativeElement.querySelector('[data-tree-id="parent"]');
+    const event = {
+      key: 'ArrowDown',
+      target: parentItem,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    component.onTreeKeydown(event);
+
+    expect(mockSelectionService.selectDirectory).toHaveBeenCalledWith(child);
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
+  it('expands a collapsed folder with ArrowRight', () => {
+    fixture.componentRef.setInput('directories', [{
+      id: 'parent',
+      title: 'Parent',
+      children: [{ id: 'child', title: 'Child', children: [] }]
+    }]);
+    fixture.detectChanges();
+    const parentItem = fixture.nativeElement.querySelector('[data-tree-id="parent"]');
+    const event = {
+      key: 'ArrowRight',
+      target: parentItem,
+      preventDefault: vi.fn(),
+      stopPropagation: vi.fn()
+    } as unknown as KeyboardEvent;
+
+    component.onTreeKeydown(event);
+
+    expect(mockSelectionService.toggleDirectory).toHaveBeenCalledWith('parent');
   });
 });

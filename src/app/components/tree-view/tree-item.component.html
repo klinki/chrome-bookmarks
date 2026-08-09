@@ -1,15 +1,19 @@
 <div
   class="tree-item"
   role="treeitem"
+  [attr.data-tree-id]="directory().id"
+  [attr.aria-level]="level() + 1"
+  [attr.aria-selected]="isSelected()"
+  [attr.aria-expanded]="hasSubDirectories(directory()) ? expanded(directory()) : null"
+  [attr.tabindex]="isSelected() || focusable() ? 0 : -1"
   [attr.has-children]="hasSubDirectories(directory()) ? true : null"
   [attr.may-have-children]="hasSubDirectories(directory()) ? true : null"
   [attr.selected]="isSelected() ? true : null"
-  [attr.expanded]="expanded(directory()) ? true : null"
-  >
+  [attr.expanded]="expanded(directory()) ? true : null">
   <div class="tree-row"
     [cdkContextMenuTriggerFor]="menu || null"
     [cdkContextMenuTriggerData]="directory()"
-    (click)="open(directory())"
+    (click)="open($event, directory())"
     (contextmenu)="onRightClick($event, directory())"
     (dblclick)="toggle($event, directory())"
     [attr.may-have-children]="hasSubDirectories(directory()) ? true : null"
@@ -20,12 +24,13 @@
     <app-folder-icon [item]="directory()" [expanded]="expanded(directory())"></app-folder-icon>
     <span class="tree-label">{{directory().title}}</span>
   </div>
-  <div class="tree-children" [attr.expanded]="expanded(directory()) ? true : null">
+  <div class="tree-children" role="group" [attr.expanded]="expanded(directory()) ? true : null">
     @for (child of directory().children; track child.id) {
       <app-tree-item
         [directory]="child"
         [level]="level() + 1"
         [selectedItem]="selectedItem()"
+        [focusable]="false"
         [menu]="menu"
         [menuComponent]="menuComponent"
         >

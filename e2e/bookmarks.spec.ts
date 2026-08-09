@@ -52,6 +52,37 @@ test('Tree View structure is correct and expands', async ({ page }) => {
     await expect(treeView.getByText('Mixed Content')).toBeVisible();
 });
 
+test('Tree View supports roving keyboard navigation', async ({ page }) => {
+    const tree = page.getByRole('tree', { name: 'Bookmark folders' });
+    const allBookmarks = tree.locator('[role="treeitem"][data-tree-id="ROOT_ALL"]');
+    await allBookmarks.focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(allBookmarks).toHaveAttribute('aria-expanded', 'true');
+
+    await page.keyboard.press('ArrowDown');
+    const bookmarksBar = tree.locator('[role="treeitem"][data-tree-id="1"]');
+    await expect(bookmarksBar).toBeFocused();
+    await page.keyboard.press('ArrowDown');
+    const onlyBookmarks = tree.locator('[role="treeitem"][data-tree-id="3"]');
+    await expect(onlyBookmarks).toBeFocused();
+    await expect(onlyBookmarks).toHaveAttribute('aria-selected', 'true');
+});
+
+test('List sorting and row selection are keyboard operable', async ({ page }) => {
+    await expandFolder(page, 'All Bookmarks');
+    await expandFolder(page, 'Bookmarks Bar');
+    await selectTreeFolder(page, 'Only Bookmarks');
+
+    const titleHeader = page.getByRole('columnheader', { name: /Title/ });
+    await page.getByRole('button', { name: 'Sort by Title' }).click();
+    await expect(titleHeader).toHaveAttribute('aria-sort', 'ascending');
+
+    const bookmarkRow = page.getByRole('row', { name: /Bookmark B1/ });
+    await bookmarkRow.focus();
+    await page.keyboard.press('Space');
+    await expect(bookmarkRow).toHaveAttribute('aria-selected', 'true');
+});
+
 test('Folder with only bookmarks', async ({ page }) => {
     await expandFolder(page, 'Bookmarks Bar');
     await selectTreeFolder(page, 'Only Bookmarks');

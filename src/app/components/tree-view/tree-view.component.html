@@ -1,11 +1,17 @@
 <app-folder-menu #rightClickMenu [folder]="selectedDirectory()"></app-folder-menu>
-<div id="tree-container" #treeContainer tabindex="0" (click)="focusTree()">
-  @for (dir of directories(); track dir.id) {
+<div
+  id="tree-container"
+  #treeContainer
+  role="tree"
+  aria-label="Bookmark folders"
+  (keydown)="onTreeKeydown($event)">
+  @for (dir of directories(); track dir.id; let first = $first) {
     <app-tree-item
       [directory]="dir"
       [level]="0"
       [selectedItem]="selectedDirectory()"
-      [menu]="rightClickMenu.menu?.menu"
+      [focusable]="first && selectedDirectory() === null"
+      [menu]="rightClickMenu.menu.menu"
       [menuComponent]="rightClickMenu"
     ></app-tree-item>
   }
