@@ -1,18 +1,65 @@
-/* tslint:disable:no-unused-variable */
+import { BookmarkSortValueAccessor, OrderByPipe } from './order-by.pipe';
 
-import {
-  waitForAsync, inject, TestBed
-} from '@angular/core/testing';
-import { OrderByPipe } from './order-by.pipe';
+describe('OrderByPipe', () => {
+  const pipe = new OrderByPipe();
 
-describe('OrderBy Pipe', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      providers: [OrderByPipe]
-    });
+  function node(
+    id: string,
+    title: string,
+    values: Partial<chrome.bookmarks.BookmarkTreeNode> = {}
+  ): chrome.bookmarks.BookmarkTreeNode {
+    return { id, title, ...values };
+  }
+
+  it('sorts equivalent folder nodes antisymmetrically by the selected value', () => {
+    const folders = [
+      node('2', 'Beta', { children: [] }),
+      node('1', 'Alpha', { children: [] })
+    ];
+
+    expect(pipe.transform(folders, { column: 'title', asc: true }).map(item => item.id))
+      .toEqual(['1', '2']);
+    expect(pipe.transform(folders, { column: 'title', asc: false }).map(item => item.id))
+      .toEqual(['2', '1']);
   });
 
-  it('should create an instance', inject([OrderByPipe], (pipe: OrderByPipe) => {
-    expect(pipe).toBeTruthy();
-  }));
+  it('keeps folders before bookmarks while sorting each kind', () => {
+    const items = [
+      node('bookmark-b', 'Beta', { url: 'https://b.example' }),
+      node('folder-b', 'Beta', { children: [] }),
+      node('bookmark-a', 'Alpha', { url: 'https://a.example' }),
+      node('folder-a', 'Alpha', { children: [] })
+    ];
+
+    expect(pipe.transform(items, { column: 'title', asc: true }).map(item => item.id))
+      .toEqual(['folder-a', 'folder-b', 'bookmark-a', 'bookmark-b']);
+  });
+
+  it('sorts the computed Tags column through its typed accessor', () => {
+    const items = [
+      node('1', 'First', { url: 'https://first.example' }),
+      node('2', 'Second', { url: 'https://second.example' })
+    ];
+    const tags = new Map([['1', 'Work'], ['2', 'Archive']]);
+    const accessor: BookmarkSortValueAccessor = (item, column) =>
+      column === 'tags' ? tags.get(item.id) : item[column];
+
+    expect(pipe.transform(items, { column: 'tags', asc: true }, accessor).map(item => item.id))
+      .toEqual(['2', '1']);
+    expect(pipe.transform(items, { column: 'tags', asc: false }, accessor).map(item => item.id))
+      .toEqual(['1', '2']);
+  });
+
+  it('places missing dates last in both directions', () => {
+    const items = [
+      node('missing', 'Missing', { url: 'https://missing.example' }),
+      node('old', 'Old', { url: 'https://old.example', dateAdded: 1 }),
+      node('new', 'New', { url: 'https://new.example', dateAdded: 2 })
+    ];
+
+    expect(pipe.transform(items, { column: 'dateAdded', asc: true }).map(item => item.id))
+      .toEqual(['old', 'new', 'missing']);
+    expect(pipe.transform(items, { column: 'dateAdded', asc: false }).map(item => item.id))
+      .toEqual(['new', 'old', 'missing']);
+  });
 });

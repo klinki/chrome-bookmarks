@@ -5,7 +5,12 @@ import { DatePipe } from '@angular/common';
 import { CdkContextMenuTrigger } from "@angular/cdk/menu";
 
 import { SelectionService, BookmarksFacadeService, TagsService } from "../../services";
-import { OrderByPipe } from "../../pipes/order-by.pipe";
+import {
+  BookmarkSortColumn,
+  BookmarkSortValueAccessor,
+  OrderByPipe,
+  OrderProperties
+} from "../../pipes/order-by.pipe";
 import { FaviconPipe } from "../../pipes/favicon.pipe";
 import { BookmarkMenuComponent } from '../menus/bookmark-menu/bookmark-menu.component';
 import { FolderIconComponent } from '../folder-icon/folder-icon.component';
@@ -33,12 +38,12 @@ export class ListViewComponent implements OnInit, OnChanges {
 
   public contextMenuBookmark: chrome.bookmarks.BookmarkTreeNode | null = null;
 
-  public orderProperties = signal({
+  public orderProperties = signal<OrderProperties>({
     column: '',
     asc: true
   });
 
-  public availableColumns = [
+  public availableColumns: ReadonlyArray<{ title: string; name: BookmarkSortColumn }> = [
     {
       title: 'Title',
       name: 'title'
@@ -73,10 +78,16 @@ export class ListViewComponent implements OnInit, OnChanges {
   protected bookmarksFacade = inject(BookmarksFacadeService);
   protected tagsService = inject(TagsService);
   private readonly orderByPipe = new OrderByPipe();
+  private readonly sortValueAccessor: BookmarkSortValueAccessor =
+    (item, column) => this.getColumnValue(item, column);
   public deleteProgress = this.bookmarksFacade.deleteProgress;
 
   public visibleItems = computed(() => {
-    return this.orderByPipe.transform(this.items() ?? [], this.orderProperties());
+    return this.orderByPipe.transform(
+      this.items() ?? [],
+      this.orderProperties(),
+      this.sortValueAccessor
+    );
   });
 
   private readonly syncSelectionItems = effect(() => {
@@ -96,7 +107,7 @@ export class ListViewComponent implements OnInit, OnChanges {
     console.log(changes);
   }
 
-  public orderBy(column: string) {
+  public orderBy(column: BookmarkSortColumn) {
     const current = this.orderProperties();
     if (!current || column !== current.column) {
       this.orderProperties.set({
@@ -111,14 +122,15 @@ export class ListViewComponent implements OnInit, OnChanges {
     }
   }
 
-  public getColumnValue(item: chrome.bookmarks.BookmarkTreeNode, column: string): string | number | undefined | chrome.bookmarks.BookmarkTreeNode[] {
-    const value = (item as any)[column];
+  public getColumnValue(
+    item: chrome.bookmarks.BookmarkTreeNode,
+    column: BookmarkSortColumn
+  ): string | number | undefined {
     if (column === 'tags') {
-      const tags = this.tagsService.getTagsForBookmark(item.id);
-      return tags.join(', ');
+      return this.tagsService.getTagsForBookmark(item.id).join(', ');
     }
 
-    return value;
+    return item[column];
   }
 
   private getSelectedBookmarksForAction() {

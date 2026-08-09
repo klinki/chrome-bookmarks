@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and the first eight Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-10 now have focused regression coverage.
+Both High-severity findings and the first nine Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-11 now have focused regression coverage.
 
-Material risks remain in sorting, repeated full-tree loading, editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
+Material risks remain in repeated full-tree loading, editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,9 +43,9 @@ Material risks remain in sorting, repeated full-tree loading, editor synchroniza
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 6 | 8 |
+| Medium | 14 | 5 | 9 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **11** | **10** |
+| **Total** | **21** | **10** | **11** |
 
 ## Verification results
 
@@ -220,11 +220,11 @@ Focused component and service tests cover ID-based persistence, path expansion, 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Low
-- **Status:** Confirmed code-path defect
+- **Status:** Fixed 2026-08-09
 
-`OrderByPipe` reads the selected column directly from `BookmarkTreeNode` (`src/app/pipes/order-by.pipe.ts:19-37`). The visible `tags` column is computed by `TagsService` and does not exist on the node, so clicking Tags cannot produce a meaningful ordering. For two folders, the comparator returns `-order` in both argument directions, violating comparator antisymmetry and allowing unstable results.
+`OrderByPipe` now accepts the five displayed columns as a typed union and obtains values through a typed accessor. `ListViewComponent` supplies computed tag values from `TagsService`; folders remain ahead of bookmarks, equivalent values return `0`, and missing values sort last.
 
-Provide a typed sort-value accessor for every displayed column, return `0` for equivalent values, and add tests covering two folders, mixed folders/bookmarks, tags, missing dates, and ascending/descending order.
+Focused tests cover folder-to-folder ordering, mixed folders and bookmarks, Tags, missing dates, and both directions.
 
 ### F-12 — one bookmark event triggers redundant full-tree reads and traversals
 
@@ -373,7 +373,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-08 — Add per-run AI cancellation with `AbortController` and operation ownership.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-09 — Validate complete JSON/HTML imports before mutation and clean up partial imports on failure.** Severity: **Medium** · Priority: **P1** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [x] **T-10 — Move folder expansion state into a durable signal keyed by folder ID.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
+- [x] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [ ] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High**
 - [ ] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
 - [ ] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**

@@ -58,6 +58,7 @@ describe('Component: ListView', () => {
     mockSelectionService.selectAllActive.set(false);
     mockSelectionService.select.mockReset();
     mockSelectionService.selectAll.mockReset();
+    mockTagsService.getTagsForBookmark.mockReset().mockReturnValue([]);
     fixture = TestBed.createComponent(ListViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -171,5 +172,21 @@ describe('Component: ListView', () => {
     expect(mockSelectionService.selectAll).toHaveBeenCalledTimes(1);
     expect(event.stopPropagation).toHaveBeenCalledTimes(1);
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it('sorts the visible Tags column using persisted tag values', () => {
+    const bookmarks = [
+      { id: '1', title: 'First', url: 'https://first.example' },
+      { id: '2', title: 'Second', url: 'https://second.example' }
+    ] as chrome.bookmarks.BookmarkTreeNode[];
+    mockTagsService.getTagsForBookmark.mockImplementation((id: string) =>
+      id === '1' ? ['Work'] : ['Archive']
+    );
+    fixture.componentRef.setInput('items', bookmarks);
+
+    component.orderBy('tags');
+    fixture.detectChanges();
+
+    expect(component.visibleItems().map(item => item.id)).toEqual(['2', '1']);
   });
 });
