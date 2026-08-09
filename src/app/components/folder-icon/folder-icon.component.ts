@@ -3,7 +3,7 @@ import { Component, input, computed, ChangeDetectionStrategy } from '@angular/co
 @Component({
   standalone: true,
   selector: 'app-folder-icon',
-  template: `<span class="tree-icon material-icons" aria-hidden="true">{{ icon() }}</span>`,
+  template: `<span class="tree-icon material-icons" aria-hidden="true" [attr.data-icon]="icon()"></span>`,
   styleUrls: ['./folder-icon.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

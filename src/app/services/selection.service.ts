@@ -14,7 +14,7 @@ export class SelectionService {
    */
   private _selectedDirectory = signal<chrome.bookmarks.BookmarkTreeNode | null>(null);
   public selectedDirectory = this._selectedDirectory.asReadonly();
-  private _expandedDirectoryIds = signal<ReadonlySet<string>>(new Set());
+  private _expandedDirectoryIds = signal<ReadonlySet<string>>(new Set(['ROOT_ALL']));
   public expandedDirectoryIds = this._expandedDirectoryIds.asReadonly();
 
 

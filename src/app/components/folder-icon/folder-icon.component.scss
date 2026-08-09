@@ -11,3 +11,7 @@
   vertical-align: middle;
   color: #5f6368;
 }
+
+.tree-icon::before {
+  content: attr(data-icon);
+}

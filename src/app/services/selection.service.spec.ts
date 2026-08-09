@@ -56,7 +56,11 @@ describe('SelectionService', () => {
 
     service.expandDirectories(['ancestor', 'selected']);
 
-    expect(service.expandedDirectoryIds()).toEqual(new Set(['existing', 'ancestor', 'selected']));
+    expect(service.expandedDirectoryIds()).toEqual(new Set(['ROOT_ALL', 'existing', 'ancestor', 'selected']));
+  });
+
+  it('shows the native bookmark roots below All Bookmarks by default', () => {
+    expect(service.isDirectoryExpanded('ROOT_ALL')).toBe(true);
   });
 
   it('does not publish a new expansion set when the path is already expanded', () => {

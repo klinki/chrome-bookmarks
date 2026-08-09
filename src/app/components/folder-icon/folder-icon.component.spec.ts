@@ -18,35 +18,35 @@ describe('FolderIconComponent', () => {
     fixture.componentRef.setInput('item', { id: 'ROOT_ALL' });
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('bookmarks');
+    expect(icon.getAttribute('data-icon')).toBe('bookmarks');
   });
 
   it('should display "label" for TAG_ prefixed IDs', () => {
     fixture.componentRef.setInput('item', { id: 'TAG_123' });
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('label');
+    expect(icon.getAttribute('data-icon')).toBe('label');
   });
 
   it('should display "label" for ROOT_TAGS', () => {
     fixture.componentRef.setInput('item', { id: 'ROOT_TAGS' });
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('label');
+    expect(icon.getAttribute('data-icon')).toBe('label');
   });
 
   it('should display "dns" for SERVER_ prefixed IDs', () => {
     fixture.componentRef.setInput('item', { id: 'SERVER_456' });
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('dns');
+    expect(icon.getAttribute('data-icon')).toBe('dns');
   });
 
   it('should display "dns" for ROOT_SERVERS', () => {
     fixture.componentRef.setInput('item', { id: 'ROOT_SERVERS' });
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('dns');
+    expect(icon.getAttribute('data-icon')).toBe('dns');
   });
 
   it('should display "folder" for regular items when collapsed', () => {
@@ -54,7 +54,7 @@ describe('FolderIconComponent', () => {
     fixture.componentRef.setInput('expanded', false);
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('folder');
+    expect(icon.getAttribute('data-icon')).toBe('folder');
   });
 
   it('should display "folder_open" for regular items when expanded', () => {
@@ -62,6 +62,6 @@ describe('FolderIconComponent', () => {
     fixture.componentRef.setInput('expanded', true);
     fixture.detectChanges();
     const icon = fixture.nativeElement.querySelector('.tree-icon');
-    expect(icon.textContent.trim()).toBe('folder_open');
+    expect(icon.getAttribute('data-icon')).toBe('folder_open');
   });
 });

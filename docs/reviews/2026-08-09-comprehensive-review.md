@@ -51,11 +51,12 @@ No confirmed review findings remain open.
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 27 files passed; 137 tests passed with missing-test failures enabled after unreachable suites and wrappers were removed. |
-| Playwright E2E | **Pass** | 36 tests passed, including recursive folder opening, empty-list drops, and search-result drag rejection. |
-| Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 48 existing warnings; CI runs `npm run lint`. |
+| Unit tests | **Pass** | 29 files passed; 148 tests passed with missing-test failures enabled after unreachable suites and wrappers were removed. |
+| Playwright E2E | **Pass** | 39 tests passed, including recursive folder opening, keyboard/ARIA behavior, empty-list drops, and search-result drag rejection. |
+| Nx lint | **Pass with warnings** | `npm run lint` completes with 0 errors and 40 existing warnings; CI runs the same command. |
 | Production build | **Pass** | Initial bundle 711.83 kB against a 725 kB warning gate; largest component stylesheet 4.47 kB against a 5 kB warning gate; no application build warnings. |
-| Working-tree whitespace | **Pass** | `git diff --check` passed after the T-04 through T-09 fixes. |
+| Production benchmark | **Pass** | `npm run benchmark` measured a 123.04 ns median for `FaviconPipe.transform`, below the 1,000 ns gate. |
+| Working-tree whitespace | **Pass** | `git diff --check` passed after all review fixes. |
 
 ## Positive observations
 
@@ -345,7 +346,7 @@ The production initial bundle fell from 852.60 kB to 711.83 kB (16.5%), main Jav
 - **Difficulty:** Low
 - **Status:** Fixed 2026-08-09
 
-The duplicated one-shot favicon timing assertion was removed from the unit suite. `npm run benchmark` now runs `FaviconPipe.transform` itself after 50,000 warm-up operations, records nine samples of 200,000 operations, consumes each result, and enforces a 1,000 ns median budget. The local verification median was 122.91 ns per operation.
+The duplicated one-shot favicon timing assertion was removed from the unit suite. `npm run benchmark` now runs `FaviconPipe.transform` itself after 50,000 warm-up operations, records nine samples of 200,000 operations, consumes each result, and enforces a 1,000 ns median budget. The final verification median was 123.04 ns per operation.
 
 The deterministic OnPush assertions remain unit tests under `*.change-detection.spec.ts`, and favicon URL correctness has direct unit coverage. The Windows-only, hard-coded flaky-suite script was removed.
 

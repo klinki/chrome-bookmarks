@@ -56,8 +56,6 @@ test('Tree View supports roving keyboard navigation', async ({ page }) => {
     const tree = page.getByRole('tree', { name: 'Bookmark folders' });
     const allBookmarks = tree.locator('[role="treeitem"][data-tree-id="ROOT_ALL"]');
     await allBookmarks.focus();
-    await page.keyboard.press('ArrowRight');
-    await expect(allBookmarks).toHaveAttribute('aria-expanded', 'true');
 
     await page.keyboard.press('ArrowDown');
     const bookmarksBar = tree.locator('[role="treeitem"][data-tree-id="1"]');
@@ -69,7 +67,6 @@ test('Tree View supports roving keyboard navigation', async ({ page }) => {
 });
 
 test('List sorting and row selection are keyboard operable', async ({ page }) => {
-    await expandFolder(page, 'All Bookmarks');
     await expandFolder(page, 'Bookmarks Bar');
     await selectTreeFolder(page, 'Only Bookmarks');
 
