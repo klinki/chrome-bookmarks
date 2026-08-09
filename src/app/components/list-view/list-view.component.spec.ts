@@ -56,6 +56,8 @@ describe('Component: ListView', () => {
     mockBookmarksFacade.deleteBookmarks.mockReset();
     mockSelectionService.selection.set(new Set());
     mockSelectionService.selectAllActive.set(false);
+    mockSelectionService.select.mockReset();
+    mockSelectionService.selectAll.mockReset();
     fixture = TestBed.createComponent(ListViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -127,5 +129,47 @@ describe('Component: ListView', () => {
 
     expect(mockBookmarksFacade.deleteBookmarks).toHaveBeenCalledTimes(1);
     expect(mockBookmarksFacade.deleteBookmarks).toHaveBeenCalledWith(bookmarks);
+  });
+
+  it('uses Meta+click for additive selection on macOS', () => {
+    const bookmark = {
+      id: '1',
+      title: 'Alpha',
+      url: 'https://example.com/1'
+    } as chrome.bookmarks.BookmarkTreeNode;
+    const event = {
+      detail: 1,
+      metaKey: true,
+      ctrlKey: false,
+      shiftKey: false,
+      stopPropagation: vi.fn(),
+      preventDefault: vi.fn()
+    } as unknown as MouseEvent;
+
+    component.itemClick(event, bookmark);
+
+    expect(mockSelectionService.select).toHaveBeenCalledWith(bookmark, {
+      clear: false,
+      range: false,
+      toggle: true
+    });
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it('uses Meta+A for Select All on macOS', () => {
+    const event = {
+      key: 'a',
+      metaKey: true,
+      ctrlKey: false,
+      stopPropagation: vi.fn(),
+      preventDefault: vi.fn(),
+      target: { localName: 'body' }
+    } as unknown as KeyboardEvent;
+
+    expect(component.onKeyup(event)).toBe(false);
+    expect(mockSelectionService.selectAll).toHaveBeenCalledTimes(1);
+    expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+    expect(event.preventDefault).toHaveBeenCalledTimes(1);
   });
 });

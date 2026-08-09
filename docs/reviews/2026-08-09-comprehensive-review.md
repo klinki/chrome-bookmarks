@@ -33,28 +33,28 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-The repository is not release-ready on macOS: the E2E suite has **six deterministic selection failures** caused by hard-coded Windows/Linux modifier handling. The other release-blocking concern is the Chrome API adapter: every callback wrapper accepts a `reject` function but never uses it, so Chrome API failures cannot propagate to callers. This undermines save, move, delete, import, and progress/error behavior.
+The initial review found six deterministic macOS selection failures caused by hard-coded Windows/Linux modifier handling. **F-01 was fixed on 2026-08-09 and the full E2E suite is now green.** The remaining release-blocking concern is the Chrome API adapter: every callback wrapper accepts a `reject` function but never uses it, so Chrome API failures cannot propagate to callers. This undermines save, move, delete, import, and progress/error behavior.
 
 Additional material risks exist in the development bookmark mock, drag-and-drop target detection, AI cancellation, import validation, tree expansion state, sorting, and repeated full-tree loading. The repository also has no configured Nx lint target.
 
-### Finding count
+### Finding status
 
-| Severity | Count |
-|---|---:|
-| Critical | 0 |
-| High | 2 |
-| Medium | 14 |
-| Low | 5 |
-| **Total** | **21** |
+| Severity | Original | Open | Fixed |
+|---|---:|---:|---:|
+| Critical | 0 | 0 | 0 |
+| High | 2 | 1 | 1 |
+| Medium | 14 | 14 | 0 |
+| Low | 5 | 5 | 0 |
+| **Total** | **21** | **20** | **1** |
 
 ## Verification results
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 28 files passed; 75 tests passed. |
-| Playwright E2E | **Fail** | 27 passed; 6 failed. Failures cover multi-select, Meta+click, Meta+A, and deselection on macOS. |
+| Unit tests | **Pass** | 28 files passed; 77 tests passed, including new Meta+click and Meta+A regressions. |
+| Playwright E2E | **Pass** | 33 tests passed after the macOS modifier fix; the six initially failing selection scenarios now pass. |
 | Nx lint | **Unavailable** | `nx lint bookmarks` fails with `Cannot find configuration for task bookmarks:lint`. |
-| Production build | **Pass with warnings** | Initial bundle 847.04 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
+| Production build | **Pass with warnings** | Initial bundle 847.08 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
 | Commit whitespace | **Pass** | `git diff --check HEAD^ HEAD` passed before this review. |
 
 ## Positive observations
@@ -71,21 +71,21 @@ Additional material risks exist in the development bookmark mock, drag-and-drop 
 
 ## Detailed findings
 
-### F-01 — macOS multi-selection and Select All are broken
+### F-01 — macOS multi-selection and Select All were broken
 
 - **Severity:** High
 - **Priority:** P0
 - **Difficulty:** Low
-- **Status:** Confirmed by E2E execution
+- **Status:** Fixed and verified on 2026-08-09
 
-`ListViewComponent.itemClick()` hard-codes `isMac = false`, so `Meta+click` is treated as an ordinary click (`src/app/components/list-view/list-view.component.ts:135-146`). The global Select All handler only checks `event.ctrlKey` (`:164-175`). `ListViewMatTableComponent` repeats both patterns (`src/app/components/list-view-mat-table/list-view-mat-table.component.ts:131-142,172-178`).
+At review time, `ListViewComponent.itemClick()` hard-coded `isMac = false`, so `Meta+click` was treated as an ordinary click (`src/app/components/list-view/list-view.component.ts:135-146`). The global Select All handler checked only `event.ctrlKey` (`:164-175`). `ListViewMatTableComponent` repeated both patterns (`src/app/components/list-view-mat-table/list-view-mat-table.component.ts:131-142,172-178`).
 
-The Playwright suite correctly chooses `Meta` on Darwin. Six tests failed after all configured retries:
+The initial Playwright run correctly chose `Meta` on Darwin. Six tests failed after all configured retries:
 
 - `bookmarks.spec.ts`: multiple folders, multiple bookmarks, and mixed selection.
 - `selection-extended.spec.ts`: modifier range selection, Select All, and Select All then deselect one.
 
-Use `event.metaKey || event.ctrlKey` for additive selection and Select All. Keep the behavior platform-independent rather than branching on a hard-coded platform flag.
+**Resolution:** Both list implementations now treat `event.metaKey || event.ctrlKey` as the additive/Select All modifier. Unit regressions cover Meta+click and Meta+A, the 15 targeted selection E2E tests pass, and the full E2E suite passes 33/33.
 
 ### F-02 — Chrome API failures never reject
 
@@ -341,7 +341,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 
 ## Recommended remediation sequence
 
-1. Restore a green cross-platform E2E baseline and configure lint.
+1. Keep the restored cross-platform E2E baseline green and configure lint.
 2. Fix Chrome API rejection semantics, then update every fire-and-forget caller to handle failures.
 3. Repair the development mock so local/manual testing reflects production behavior.
 4. Correct drag/drop target detection, search guards, multi-move ordering, and async cleanup.
@@ -351,7 +351,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 
 ## TODO checklist
 
-- [ ] **T-01 — Support `Meta` and `Control` consistently for additive selection and Select All.** Severity: **High** · Priority: **P0** · Difficulty: **Low**
+- [x] **T-01 — Support `Meta` and `Control` consistently for additive selection and Select All.** Severity: **High** · Priority: **P0** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [ ] **T-02 — Replace callback-only Chrome bookmark/storage wrappers with rejecting Promise adapters and add failure-path tests.** Severity: **High** · Priority: **P0** · Difficulty: **Medium**
 - [ ] **T-03 — Rebuild `MockBookmarksService` to honor create, move, update, remove, removeTree, search, recent, index, parent, and event contracts.** Severity: **Medium** · Priority: **P1** · Difficulty: **High**
 - [ ] **T-04 — Implement or remove the folder “Open all bookmarks” action.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**

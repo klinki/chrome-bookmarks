@@ -132,8 +132,7 @@ export class ListViewMatTableComponent {
     // Ignore double clicks so that Ctrl double-clicking an item won't deselect
     // the item before opening.
     if (e.detail !== 2) {
-      const isMac = false;
-      const addKey = isMac ? e.metaKey : e.ctrlKey;
+      const addKey = e.metaKey || e.ctrlKey;
 
       this.selectionService.select(item, {
         clear: !addKey,
@@ -171,7 +170,7 @@ export class ListViewMatTableComponent {
 
   @HostListener('window:keydown', ['$event'])
   onKeyup(event: KeyboardEvent) {
-    if (event.ctrlKey && event.key == 'a') {
+    if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a') {
       event.preventDefault();
       event.stopPropagation();
       this.selectionService.selectAll();
