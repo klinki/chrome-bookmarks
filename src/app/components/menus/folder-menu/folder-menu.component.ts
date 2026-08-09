@@ -7,6 +7,7 @@ import { Icons } from '../../../shared/icons';
 import { Router } from "@angular/router";
 import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.service";
 import { SelectionService } from '../../../services';
+import { firstValueFrom, timer } from 'rxjs';
 
 @Component({
   selector: 'app-folder-menu',
@@ -44,26 +45,38 @@ export class FolderMenuComponent {
     window.open(this.getUrl(), "_blank");
   }
 
-  createNewFolder() {
-     const name = prompt("Enter folder name");
-     if (name) {
-         this.bookmarksService.create({
-             parentId: this.folder.id,
-             title: name
-         });
-     }
+  async createNewFolder() {
+    const name = prompt("Enter folder name");
+    if (!name) {
+      return;
+    }
+
+    try {
+      await this.bookmarksService.create({
+        parentId: this.folder.id,
+        title: name
+      });
+    } catch {
+      alert('Failed to create folder.');
+    }
   }
 
-  createNewBookmark() {
-     const name = prompt("Enter bookmark name");
-     const url = prompt("Enter bookmark URL", "https://");
-     if (name && url) {
-         this.bookmarksService.create({
-             parentId: this.folder.id,
-             title: name,
-             url: url
-         });
-     }
+  async createNewBookmark() {
+    const name = prompt("Enter bookmark name");
+    const url = prompt("Enter bookmark URL", "https://");
+    if (!name || !url) {
+      return;
+    }
+
+    try {
+      await this.bookmarksService.create({
+        parentId: this.folder.id,
+        title: name,
+        url
+      });
+    } catch {
+      alert('Failed to create bookmark.');
+    }
   }
 
   public async deleteSelectedFolder() {
@@ -86,17 +99,20 @@ export class FolderMenuComponent {
       return;
     }
 
-    const parentFolder = await this.getParentFolder(folder.parentId);
+    try {
+      const parentFolder = await this.getParentFolder(folder.parentId);
+      await firstValueFrom(timer(0));
+      await this.bookmarksService.remove(folder.id);
 
-    await new Promise(resolve => window.setTimeout(resolve, 0));
-    await this.bookmarksService.remove(folder.id);
+      if (parentFolder) {
+        this.selectionService.selectDirectory(parentFolder);
+        return;
+      }
 
-    if (parentFolder) {
-      this.selectionService.selectDirectory(parentFolder);
-      return;
+      this.selectionService.clearDirectorySelection();
+    } catch {
+      alert('Failed to delete folder.');
     }
-
-    this.selectionService.clearDirectorySelection();
   }
 
   private getUrl() {

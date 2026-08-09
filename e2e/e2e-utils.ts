@@ -151,45 +151,93 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                 },
                 storage: {
                     local: {
-                        get: (keys: any, callback: any) => {
+                        get: (
+                            keys?: string|string[]|Record<string, unknown>,
+                            callback?: (items: Record<string, unknown>) => void
+                        ) => {
+                            let result: Record<string, unknown>;
                             if (typeof keys === 'string') {
-                                callback({ [keys]: storageData[keys] });
+                                result = { [keys]: storageData[keys] };
                             } else if (Array.isArray(keys)) {
-                                const res: any = {};
-                                keys.forEach(k => res[k] = storageData[k]);
-                                callback(res);
+                                result = {};
+                                keys.forEach(key => result[key] = storageData[key]);
                             } else {
-                                callback(storageData);
+                                result = { ...storageData };
                             }
+
+                            if (callback) {
+                                callback(result);
+                                return;
+                            }
+
+                            return Promise.resolve(result);
                         },
-                        set: (data: any, callback: any) => {
+                        set: (data: Record<string, unknown>, callback?: () => void) => {
                             Object.assign(storageData, data);
-                            if (callback) callback();
+                            if (callback) {
+                                callback();
+                                return;
+                            }
+
+                            return Promise.resolve();
                         }
                     }
                 },
                 bookmarks: {
-                    getTree: (callback: any) => {
-                        callback([JSON.parse(JSON.stringify(rootNodeArg))]);
+                    getTree: (callback?: (nodes: chrome.bookmarks.BookmarkTreeNode[]) => void) => {
+                        const result = [JSON.parse(JSON.stringify(rootNodeArg))];
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    getChildren: (id: string, callback: any) => {
+                    getChildren: (id: string, callback?: (nodes: chrome.bookmarks.BookmarkTreeNode[]) => void) => {
                         const node = findNode(rootNodeArg, id);
-                        callback(JSON.parse(JSON.stringify(node?.children || [])));
+                        const result = JSON.parse(JSON.stringify(node?.children || []));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    get: (idOrIds: string|string[], callback: any) => {
+                    get: (
+                        idOrIds: string|string[],
+                        callback?: (nodes: chrome.bookmarks.BookmarkTreeNode[]) => void
+                    ) => {
                         const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
-                        const results = ids.map(id => findNode(rootNodeArg, id)).filter(n => !!n);
-                        callback(JSON.parse(JSON.stringify(results)));
+                        const nodes = ids.map(id => findNode(rootNodeArg, id)).filter(node => !!node);
+                        const result = JSON.parse(JSON.stringify(nodes));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    search: (query: any, callback: any) => {
+                    search: (
+                        query: string|chrome.bookmarks.BookmarkSearchQuery,
+                        callback?: (nodes: chrome.bookmarks.BookmarkTreeNode[]) => void
+                    ) => {
                         const results: any[] = [];
                         const queryString = typeof query === 'string' ? query : (query.query || query.title || query.url || '');
                         if (queryString) {
                             recursiveSearch(rootNodeArg, queryString, results);
                         }
-                        callback(JSON.parse(JSON.stringify(results)));
+                        const result = JSON.parse(JSON.stringify(results));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    create: (bookmark: any, callback: any) => {
+                    create: (
+                        bookmark: chrome.bookmarks.BookmarkCreateArg,
+                        callback?: (node: chrome.bookmarks.BookmarkTreeNode) => void
+                    ) => {
                         const newId = String(Math.floor(Math.random() * 1000000));
                         const parentId = bookmark.parentId || '1'; // Default to Bookmarks Bar
                         const newNode: any = {
@@ -220,21 +268,47 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                             listeners.onCreated.forEach((l: any) => l(newId, newNode));
                         }
 
-                        if (callback) callback(JSON.parse(JSON.stringify(newNode)));
+                        const result = JSON.parse(JSON.stringify(newNode));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    move: (id: string, destination: any, callback?: any) => {
+                    move: (
+                        id: string,
+                        destination: chrome.bookmarks.BookmarkDestinationArg,
+                        callback?: (node: chrome.bookmarks.BookmarkTreeNode) => void
+                    ) => {
                         moveNode(id, destination);
-                        if (callback) callback(JSON.parse(JSON.stringify(findNode(rootNodeArg, id))));
+                        const result = JSON.parse(JSON.stringify(findNode(rootNodeArg, id)));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    update: (id: string, changes: any, callback?: any) => {
+                    update: (
+                        id: string,
+                        changes: chrome.bookmarks.BookmarkChangesArg,
+                        callback?: (node: chrome.bookmarks.BookmarkTreeNode) => void
+                    ) => {
                         const node = findNode(rootNodeArg, id);
                         if (node) {
                             Object.assign(node, changes);
                             listeners.onChanged.forEach((l: any) => l(id, changes));
                         }
-                        if (callback) callback(JSON.parse(JSON.stringify(node)));
+                        const result = JSON.parse(JSON.stringify(node));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
                     },
-                    remove: (id: string, callback?: any) => {
+                    remove: (id: string, callback?: () => void) => {
                         const node = findNode(rootNodeArg, id);
                         if (node) {
                             const parent = findNode(rootNodeArg, node.parentId);
@@ -246,7 +320,12 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                                 }
                             }
                         }
-                        if (callback) callback();
+                        if (callback) {
+                            callback();
+                            return;
+                        }
+
+                        return Promise.resolve();
                     },
                     onCreated: { addListener: (l: any) => listeners.onCreated.push(l), removeListener: () => {} },
                     onRemoved: { addListener: (l: any) => listeners.onRemoved.push(l), removeListener: () => {} },

@@ -42,19 +42,19 @@ Additional material risks exist in the development bookmark mock, drag-and-drop 
 | Severity | Original | Open | Fixed |
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
-| High | 2 | 1 | 1 |
+| High | 2 | 0 | 2 |
 | Medium | 14 | 14 | 0 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **20** | **1** |
+| **Total** | **21** | **19** | **2** |
 
 ## Verification results
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 28 files passed; 77 tests passed, including new Meta+click and Meta+A regressions. |
+| Unit tests | **Pass** | 29 files passed; 97 tests passed, including native bookmark/storage rejection propagation and menu failure handling. |
 | Playwright E2E | **Pass** | 33 tests passed after the macOS modifier fix; the six initially failing selection scenarios now pass. |
 | Nx lint | **Unavailable** | `nx lint bookmarks` fails with `Cannot find configuration for task bookmarks:lint`. |
-| Production build | **Pass with warnings** | Initial bundle 847.08 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
+| Production build | **Pass with warnings** | Initial bundle 847.20 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
 | Commit whitespace | **Pass** | `git diff --check HEAD^ HEAD` passed before this review. |
 
 ## Positive observations
@@ -87,14 +87,14 @@ The initial Playwright run correctly chose `Meta` on Darwin. Six tests failed af
 
 **Resolution:** Both list implementations now treat `event.metaKey || event.ctrlKey` as the additive/Select All modifier. Unit regressions cover Meta+click and Meta+A, the 15 targeted selection E2E tests pass, and the full E2E suite passes 33/33.
 
-### F-02 — Chrome API failures never reject
+### F-02 — Chrome API failures did not reject
 
 - **Severity:** High
 - **Priority:** P0
 - **Difficulty:** Medium
-- **Status:** Confirmed code-path defect; failure impact is [INFERENCE]
+- **Status:** Fixed and verified on 2026-08-09
 
-Every method in `BookmarksService` creates a `Promise`, accepts `reject`, and passes only `resolve` to a Chrome callback (`src/app/services/chrome/bookmarks/bookmarks.service.ts:51-180`). `StorageArea` repeats the pattern (`src/app/services/chrome/storage/storage-area.class.ts:35-119`). Callback failures are exposed through `chrome.runtime.lastError`; the wrappers never inspect it. The installed Chrome types also expose native Manifest V3 Promise overloads for bookmarks operations.
+At review time, every method in `BookmarksService` created a `Promise`, accepted `reject`, and passed only `resolve` to a Chrome callback (`src/app/services/chrome/bookmarks/bookmarks.service.ts:51-180`). `StorageArea` repeated the pattern (`src/app/services/chrome/storage/storage-area.class.ts:35-119`). Callback failures were exposed through `chrome.runtime.lastError`; the wrappers never inspected it.
 
 Consequences [INFERENCE]:
 
@@ -103,7 +103,7 @@ Consequences [INFERENCE]:
 - Drag/drop, import, and folder deletion can report completion or leave inconsistent UI state.
 - A callback result omitted on error can flow as `undefined`, causing secondary destructuring/type errors.
 
-Prefer the native Promise overloads (`chrome.bookmarks.get(...)`, `remove(...)`, and so on without callbacks). If callback compatibility is required, centralize a wrapper that rejects when `chrome.runtime.lastError` is present. See the [Chrome bookmarks API](https://developer.chrome.com/docs/extensions/reference/api/bookmarks).
+**Resolution:** The bookmark and storage adapters now return Chrome's native Manifest V3 promises, preserving native rejection semantics without custom callback wrappers. Folder/bookmark menu mutations await these promises and report failures instead of creating unhandled rejections. Sixteen adapter regressions verify rejection propagation, and the full unit, E2E, and production-build checks pass.
 
 ### F-03 — the development bookmark mock does not implement Chrome semantics
 
@@ -342,7 +342,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 ## Recommended remediation sequence
 
 1. Keep the restored cross-platform E2E baseline green and configure lint.
-2. Fix Chrome API rejection semantics, then update every fire-and-forget caller to handle failures.
+2. Keep Chrome API failure-path coverage green as mutation flows evolve.
 3. Repair the development mock so local/manual testing reflects production behavior.
 4. Correct drag/drop target detection, search guards, multi-move ordering, and async cleanup.
 5. Make AI runs cancellable and imports validate before mutation.
@@ -352,7 +352,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 ## TODO checklist
 
 - [x] **T-01 — Support `Meta` and `Control` consistently for additive selection and Select All.** Severity: **High** · Priority: **P0** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
-- [ ] **T-02 — Replace callback-only Chrome bookmark/storage wrappers with rejecting Promise adapters and add failure-path tests.** Severity: **High** · Priority: **P0** · Difficulty: **Medium**
+- [x] **T-02 — Replace callback-only Chrome bookmark/storage wrappers with rejecting Promise adapters and add failure-path tests.** Severity: **High** · Priority: **P0** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-03 — Rebuild `MockBookmarksService` to honor create, move, update, remove, removeTree, search, recent, index, parent, and event contracts.** Severity: **Medium** · Priority: **P1** · Difficulty: **High**
 - [ ] **T-04 — Implement or remove the folder “Open all bookmarks” action.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
 - [ ] **T-05 — Recognize the actual `APP-LIST-VIEW` drag target and cover drops into empty folders.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**

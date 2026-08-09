@@ -34,9 +34,15 @@ export class BookmarkMenuComponent {
     }
   }
   
-  delete() {
-    if (this.bookmark?.id) {
-      this.bookmarksService.remove(this.bookmark.id);
+  async delete() {
+    if (!this.bookmark?.id) {
+      return;
+    }
+
+    try {
+      await this.bookmarksService.remove(this.bookmark.id);
+    } catch {
+      alert('Failed to delete bookmark.');
     }
   }
 }

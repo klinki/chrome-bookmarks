@@ -49,9 +49,9 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
   public get(bookmarkId: string|string[]): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.get(bookmarkId as any, resolve);
-    });
+    return Array.isArray(bookmarkId)
+      ? chrome.bookmarks.get(bookmarkId)
+      : chrome.bookmarks.get(bookmarkId);
   }
 
   /**
@@ -61,9 +61,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
   public getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.getChildren(id, resolve);
-    });
+    return chrome.bookmarks.getChildren(id);
   }
 
   /**
@@ -73,9 +71,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
   public getRecent(count: number): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.getRecent(count, resolve);
-    });
+    return chrome.bookmarks.getRecent(count);
   }
 
   /**
@@ -84,9 +80,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
   public getTree(): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-        return chrome.bookmarks.getTree(resolve);
-    });
+    return chrome.bookmarks.getTree();
   }
 
   /**
@@ -97,9 +91,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode[]>}
    */
   public getSubTree(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.getSubTree(id, resolve);
-    });
+    return chrome.bookmarks.getSubTree(id);
   }
 
 	/**
@@ -109,9 +101,9 @@ export class BookmarksService {
    * @param term
    */
   public search(term: string|chrome.bookmarks.BookmarkSearchQuery): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.search(term as any, resolve);
-    });
+    return typeof term === 'string'
+      ? chrome.bookmarks.search(term)
+      : chrome.bookmarks.search(term);
   }
 
   /**
@@ -121,9 +113,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode>}
    */
   public create(bookmark: chrome.bookmarks.BookmarkCreateArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.create(bookmark, resolve);
-    });
+    return chrome.bookmarks.create(bookmark);
   }
 
   /**
@@ -134,9 +124,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode>}
    */
   public move(id: string, destination: chrome.bookmarks.BookmarkDestinationArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.move(id, destination, resolve);
-    });
+    return chrome.bookmarks.move(id, destination);
   }
 
   /**
@@ -149,9 +137,7 @@ export class BookmarksService {
    * @returns {Promise<chrome.bookmarks.BookmarkTreeNode>}
    */
   public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.update(id, changes, resolve);
-    });
+    return chrome.bookmarks.update(id, changes);
   }
 
 
@@ -159,12 +145,10 @@ export class BookmarksService {
    * Removes a bookmark or an empty bookmark folder.
    *
    * @param {string} id
-   * @returns {Promise<any>}
+   * @returns {Promise<void>}
    */
-  public remove(id: string): Promise<any> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.remove(id, resolve as any);
-    });
+  public remove(id: string): Promise<void> {
+    return chrome.bookmarks.remove(id);
   }
 
 
@@ -172,11 +156,9 @@ export class BookmarksService {
    * Recursively removes a bookmark folder.
    *
    * @param {string} id
-   * @returns {Promise<any>}
+   * @returns {Promise<void>}
    */
-  public removeTree(id: string): Promise<any> {
-    return new Promise(function(resolve, reject) {
-      return chrome.bookmarks.removeTree(id, resolve);
-    });
+  public removeTree(id: string): Promise<void> {
+    return chrome.bookmarks.removeTree(id);
   }
 }

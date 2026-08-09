@@ -32,11 +32,7 @@ export class StorageArea {
    */
   public getBytesInUse(keys: string[]): Promise<number>;
   public getBytesInUse(keys?: string|string[]): Promise<number> {
-    if (keys === undefined) {
-      return new Promise((resolve, error) => this.storage.getBytesInUse(resolve));
-    } else {
-      return new Promise((resolve, error) => this.storage.getBytesInUse(keys as any, resolve));
-    }
+    return this.storage.getBytesInUse(keys);
   }
 
   /**
@@ -44,8 +40,8 @@ export class StorageArea {
    *
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public clear(): Promise<any> {
-    return new Promise((resolve, error) => this.storage.clear(resolve as any));
+  public clear(): Promise<void> {
+    return this.storage.clear();
   }
 
   /**
@@ -56,9 +52,9 @@ export class StorageArea {
    *          with the exception of Array (serializes as expected), Date, and Regex (serialize using their String representation).
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public set(items: Object): Promise<any> {
-    return new Promise((resolve, error) => this.storage.set(items, resolve as any));
-  };
+  public set(items: Record<string, unknown>): Promise<void> {
+    return this.storage.set(items);
+  }
 
   /**
    * Removes one item from storage.
@@ -66,7 +62,7 @@ export class StorageArea {
    * @param key A single key for items to remove.
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public remove(key: string): Promise<any>;
+  public remove(key: string): Promise<void>;
 
   /**
    * Removes items from storage.
@@ -74,9 +70,9 @@ export class StorageArea {
    * @param keys A list of keys for items to remove.
    * @returns {Promise<void>} on success, or on failure (in which case runtime.lastError will be set).
    */
-  public remove(keys: string[]): Promise<any>;
-  public remove(keys: string|string[]): Promise<any> {
-    return new Promise((resolve, error) => this.storage.remove(keys as any, resolve as any));
+  public remove(keys: string[]): Promise<void>;
+  public remove(keys: string|string[]): Promise<void> {
+    return this.storage.remove(keys);
   }
 
   /**
@@ -85,7 +81,7 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  public get(): Promise<{ [key: string]: any }>;
+  public get(): Promise<Record<string, unknown>>;
 
   /**
    * Gets one or more items from storage.
@@ -94,7 +90,7 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  public get(key: string): Promise<{ [key: string]: any }>;
+  public get(key: string): Promise<Record<string, unknown>>;
   /**
    * Gets one or more items from storage.
    *
@@ -102,7 +98,7 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  public get(keys: string[]): Promise<{ [key: string]: any }>;
+  public get(keys: string[]): Promise<Record<string, unknown>>;
   /**
    * Gets one or more items from storage.
    *
@@ -110,13 +106,9 @@ export class StorageArea {
    * @returns {Promise} Callback with storage items, or on failure (in which case runtime.lastError will be set).
    *                    Parameter items: Object with items in their key-value mappings.
    */
-  public get(keys: Object): Promise<{ [key: string]: any }>;
+  public get(keys: Record<string, unknown>): Promise<Record<string, unknown>>;
 
-  public get(keys?: string|string[]|Object): Promise<{ [key: string]: any }> {
-    if (keys === undefined) {
-      return new Promise((resolve, error) => this.storage.get(resolve));
-    } else {
-      return new Promise((resolve, error) => this.storage.get(keys, resolve));
-    }
+  public get(keys?: string|string[]|Record<string, unknown>): Promise<Record<string, unknown>> {
+    return this.storage.get(keys);
   }
 }
