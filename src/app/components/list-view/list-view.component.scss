@@ -26,8 +26,6 @@ tr:focus-visible {
   outline-offset: -2px;
 }
 
-list > [selected],
-grid > [selected],
 tr[selected] {
   background-color: var(--active-bg, hsl(0, 0%, 90%));
   background-image: none;
@@ -35,36 +33,11 @@ tr[selected] {
   z-index: 2;
 }
 
-list:focus > [selected],
-grid:focus > [selected],
 tr:focus[selected] {
   background-color: var(--active-bg, hsl(214, 91%, 89%));
   border-color: transparent;
 }
 
-mat-row {
-  line-height: 20px;
-}
-
-.mat-mdc-row:hover .mat-mdc-cell {
-  background-color: var(--hover-bg, hsl(214, 91%, 97%));
-  border-color: transparent;
-  z-index: 1;
-}
-
-
-list:not([disabled]) > :hover,
-grid:not([disabled]) > :hover {
-
-}
-
-list:focus > [lead][selected],
-list > [selected]:hover,
-grid:focus > [lead][selected],
-grid > [selected]:hover {
-  background-color: var(--active-bg, hsl(214, 91%, 87%));
-  border-color: transparent;
-}
 
 tr:hover {
   background-color: var(--hover-bg, hsl(214, 91%, 97%));

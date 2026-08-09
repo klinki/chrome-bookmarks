@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings, all fourteen Medium-severity findings, and three Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-19 now have focused regression coverage or an explicit owner disposition.
+Both High-severity findings, all fourteen Medium-severity findings, and four Low-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-20 now have focused regression coverage or an explicit owner disposition.
 
-Material risks remain in bundle hygiene and benchmark reliability.
+The remaining material risk is benchmark reliability.
 
 ### Finding status
 
@@ -44,8 +44,8 @@ Material risks remain in bundle hygiene and benchmark reliability.
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
 | Medium | 14 | 0 | 14 |
-| Low | 5 | 2 | 3 |
-| **Total** | **21** | **2** | **19** |
+| Low | 5 | 1 | 4 |
+| **Total** | **21** | **1** | **20** |
 
 ## Verification results
 
@@ -54,7 +54,7 @@ Material risks remain in bundle hygiene and benchmark reliability.
 | Unit tests | **Pass** | 27 files passed; 137 tests passed with missing-test failures enabled after unreachable suites and wrappers were removed. |
 | Playwright E2E | **Pass** | 36 tests passed, including recursive folder opening, empty-list drops, and search-result drag rejection. |
 | Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 48 existing warnings; CI runs `npm run lint`. |
-| Production build | **Pass with warnings** | Initial bundle 848.23 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
+| Production build | **Pass** | Initial bundle 711.83 kB against a 725 kB warning gate; largest component stylesheet 4.47 kB against a 5 kB warning gate; no application build warnings. |
 | Working-tree whitespace | **Pass** | `git diff --check` passed after the T-04 through T-09 fixes. |
 
 ## Positive observations
@@ -332,11 +332,11 @@ Focused unit and Playwright scenarios cover all three interaction surfaces. Duri
 - **Severity:** Low
 - **Priority:** P2
 - **Difficulty:** Medium
-- **Status:** Confirmed by production build
+- **Status:** Fixed 2026-08-09
 
-The production build reports an 847.04 kB initial bundle against a 500 kB warning budget and a 4.30 kB AI settings stylesheet against a 2 kB component-style warning budget. `project.json` globally includes legacy `src/style/tree.css` and `src/style/list.css` while tree/list components also carry component styles.
+The legacy tree styles were reduced to the rules the live tree uses and moved into its component; the obsolete list and icon styles and their duplicate HTML/build inclusion were removed. The sole `MatIcon` use now renders with the existing Material Icons font, allowing the unused Angular Material theme/runtime plus `@ngrx/operators`, `chrome-types`, and `@angular/platform-browser-dynamic` direct dependencies to be removed. Unused bookmark-menu CDK imports and dead list selectors were removed as well.
 
-Audit whether the legacy global styles are still required, remove unused Angular Material/CDK code and dead components, and track bundle composition before raising budgets. Treat the current warnings as a baseline regression gate rather than normal output.
+The production initial bundle fell from 852.60 kB to 711.83 kB (16.5%), main JavaScript from 702.91 kB to 670.90 kB (4.6%), and global CSS from 111.49 kB to 2.72 kB (97.6%). After that reduction, budgets were reset to useful regression gates: 725/750 kB for warning/error on initial output and 5/6 kB for component styles. The production build now passes those gates without application warnings.
 
 ### F-21 — timing-based “performance” tests are brittle and do not protect a product budget
 
@@ -382,5 +382,5 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-20 — Reduce the initial bundle/style warnings and remove unused legacy styling/dependencies before changing budgets.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
+- [x] **T-20 — Reduce the initial bundle/style warnings and remove unused legacy styling/dependencies before changing budgets.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-21 — Replace timing assertions in unit tests with a dedicated benchmark workflow against production code.** Severity: **Low** · Priority: **P3** · Difficulty: **Low**

@@ -1,6 +1,5 @@
 import { Component, inject, Input, ViewChild } from '@angular/core';
 
-import {CdkMenu, CdkMenuItem, CdkMenuTrigger} from "@angular/cdk/menu";
 import {ContextMenuComponent} from "../context-menu/context-menu.component";
 import {ContextMenuGroupDirective} from "../context-menu/context-menu-group.component";
 import {ContextMenuItemComponent} from "../context-menu/context-menu-item.component";
@@ -10,7 +9,7 @@ import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.ser
 @Component({
   selector: 'app-bookmark-menu',
   standalone: true,
-  imports: [CdkMenu, CdkMenuItem, CdkMenuTrigger, ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],
+  imports: [ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],
   templateUrl: './bookmark-menu.component.html',
   styleUrl: './bookmark-menu.component.css'
 })

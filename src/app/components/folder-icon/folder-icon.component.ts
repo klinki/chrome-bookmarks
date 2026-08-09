@@ -1,11 +1,9 @@
 import { Component, input, computed, ChangeDetectionStrategy } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   standalone: true,
   selector: 'app-folder-icon',
-  imports: [MatIconModule],
-  template: `<mat-icon class="tree-icon" [fontIcon]="icon()"></mat-icon>`,
+  template: `<span class="tree-icon material-icons" aria-hidden="true">{{ icon() }}</span>`,
   styleUrls: ['./folder-icon.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })

@@ -3,6 +3,50 @@
   user-select: none;
 }
 
+.tree-row {
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  color: var(--text-color, black);
+  cursor: default;
+  line-height: 28px;
+  padding: 0 3px;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tree-row:hover {
+  background-color: var(--hover-bg, hsl(214, 91%, 97%));
+}
+
+.tree-row[selected] {
+  background-color: var(--active-bg, hsl(0, 0%, 90%));
+  background-image: none;
+}
+
+.tree-row[selected]:hover,
+.tree-item:focus > .tree-row[selected] {
+  background-color: var(--active-bg, hsl(214, 91%, 89%));
+}
+
+.tree-children {
+  display: none;
+}
+
+.tree-children[expanded] {
+  display: block;
+}
+
+.tree-row > * {
+  box-sizing: border-box;
+  display: inline-block;
+}
+
+.tree-label:empty::after {
+  content: ' ';
+  white-space: pre;
+}
+
 :host.drag-on .tree-row {
   background-color: rgba(33, 150, 243, 0.1);
   outline: 2px solid #2196F3;
