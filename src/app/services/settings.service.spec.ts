@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { SettingsService } from './settings.service';
+import { expect } from 'vitest';
 
 describe('SettingsService', () => {
   let service: SettingsService;
@@ -25,5 +26,16 @@ describe('SettingsService', () => {
 
   it('should have default language', () => {
     expect(service.language()).toBe('en');
+  });
+
+  it('should update body class when theme changes', () => {
+    TestBed.flushEffects();
+    service.setTheme('dark');
+    TestBed.flushEffects();
+    expect(document.body.classList.contains('dark-theme')).toBe(true);
+
+    service.setTheme('default');
+    TestBed.flushEffects();
+    expect(document.body.classList.contains('dark-theme')).toBe(false);
   });
 });

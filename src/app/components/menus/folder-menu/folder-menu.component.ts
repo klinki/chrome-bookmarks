@@ -86,8 +86,16 @@ export class FolderMenuComponent {
       return;
     }
 
+    const parentFolder = await this.getParentFolder(folder.parentId);
+
     await new Promise(resolve => window.setTimeout(resolve, 0));
     await this.bookmarksService.remove(folder.id);
+
+    if (parentFolder) {
+      this.selectionService.selectDirectory(parentFolder);
+      return;
+    }
+
     this.selectionService.clearDirectorySelection();
   }
 
@@ -102,5 +110,14 @@ export class FolderMenuComponent {
       || folder.id.startsWith('ROOT_')
       || folder.id.startsWith('TAG_')
       || folder.id.startsWith('SERVER_');
+  }
+
+  private async getParentFolder(parentId: string | undefined) {
+    if (!parentId) {
+      return null;
+    }
+
+    const [parentFolder] = await this.bookmarksService.get(parentId);
+    return parentFolder ?? null;
   }
 }
