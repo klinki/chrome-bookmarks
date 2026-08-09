@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and ten of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-12 now have focused regression coverage.
+Both High-severity findings and eleven of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-13 now have focused regression coverage.
 
-Material risks remain in editor synchronization, tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
+Material risks remain in tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,9 +43,9 @@ Material risks remain in editor synchronization, tag persistence, accessibility,
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 4 | 10 |
+| Medium | 14 | 3 | 11 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **9** | **12** |
+| **Total** | **21** | **8** | **13** |
 
 ## Verification results
 
@@ -244,11 +244,11 @@ Focused tests verify one tree read per revision and derive the bookmark map, ser
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Medium
-- **Status:** Confirmed code path; user-visible timing is [INFERENCE]
+- **Status:** Fixed 2026-08-09
 
-The bookmark-detail effect patches the form only when the selected ID changes (`src/app/components/bookmark-detail/bookmark-detail.component.ts:37-55`). A refreshed node with the same ID but changed title/URL is ignored. During `saveChanges()`, the selected item is captured, but the completion always marks the current form pristine (`:58-74`). If the user selects another bookmark before the save resolves, that second form can be marked pristine by the first bookmark’s completion [INFERENCE].
+The bookmark-detail effect now synchronizes same-ID refreshes field by field: pristine controls accept current bookmark values while dirty controls preserve local edits. Changing selection resets the form to the newly selected node.
 
-Track the selected node revision/value while preserving genuinely dirty user edits. On completion, mark pristine only when the current selection still matches the saved ID and submitted values.
+Save completion marks the form pristine only when both the selected bookmark ID and current form values still match the submitted operation. Focused tests cover same-ID refreshes, dirty-field preservation, and selection changes during an unresolved save.
 
 ### F-14 — tag persistence is unvalidated, accumulates stale IDs, and writes repeatedly
 
@@ -375,7 +375,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-10 — Move folder expansion state into a durable signal keyed by folder ID.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High** · Status: **Fixed 2026-08-09**
-- [ ] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
+- [x] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-15 — Add an Nx lint target, make lint part of CI, move reports under `.temp/`, and remove skipped/pass-with-no-tests gaps.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
 - [ ] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**

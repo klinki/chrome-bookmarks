@@ -35,22 +35,33 @@ export class BookmarkDetailComponent {
   private currentId: string | null = null;
 
   constructor() {
-    // Update form when selection changes
     effect(() => {
       const sel = this.selection();
-      if (sel && sel.length === 1) {
-        const item = sel[0];
-        // Only update if the selected item has changed to avoid overwriting form state
-        if (item.id !== this.currentId) {
-          this.currentId = item.id;
-          this.editForm.patchValue({
-            title: item.title,
-            url: item.url ?? ''
-          });
-          this.editForm.markAsPristine();
-        }
-      } else {
+      if (!sel || sel.length !== 1) {
         this.currentId = null;
+        return;
+      }
+
+      const item = sel[0];
+      const incoming = {
+        title: item.title,
+        url: item.url ?? ''
+      };
+      if (item.id !== this.currentId) {
+        this.currentId = item.id;
+        this.editForm.reset(incoming);
+        return;
+      }
+
+      const patch: Partial<typeof incoming> = {};
+      if (this.editForm.controls.title.pristine) {
+        patch.title = incoming.title;
+      }
+      if (this.editForm.controls.url.pristine) {
+        patch.url = incoming.url;
+      }
+      if (Object.keys(patch).length > 0) {
+        this.editForm.patchValue(patch);
       }
     });
   }
@@ -59,13 +70,28 @@ export class BookmarkDetailComponent {
     const sel = this.selection();
     if (!sel || sel.length !== 1) return;
 
+    const savedId = sel[0].id;
+    const submitted = {
+      title: this.editForm.value.title ?? '',
+      url: this.editForm.value.url ?? ''
+    };
     this.isSaving.set(true);
     try {
-      await this.bookmarksFacade.updateBookmark(sel[0].id, {
-        title: this.editForm.value.title ?? undefined,
-        url: this.editForm.value.url ?? undefined
+      await this.bookmarksFacade.updateBookmark(savedId, {
+        title: submitted.title || undefined,
+        url: submitted.url || undefined
       });
-      this.editForm.markAsPristine();
+
+      const currentSelection = this.selection();
+      const currentValue = this.editForm.getRawValue();
+      if (
+        currentSelection?.length === 1
+        && currentSelection[0].id === savedId
+        && currentValue.title === submitted.title
+        && currentValue.url === submitted.url
+      ) {
+        this.editForm.markAsPristine();
+      }
     } catch (e) {
       console.error('Failed to save bookmark:', e);
       alert('Failed to save bookmark. Check console for details.');
