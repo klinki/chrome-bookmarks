@@ -104,3 +104,32 @@ test('Move Bookmark to Tag in Tree View', async ({ page }) => {
     await selectTreeFolder(page, 'test-tag');
     await expect(listView.getByText('Bookmark B1', { exact: true })).toBeVisible();
 });
+
+test('Move a tree folder into an empty selected list', async ({ page }) => {
+    await expandFolder(page, 'Bookmarks Bar');
+    await expandFolder(page, 'Only Subfolders');
+    await selectTreeFolder(page, 'Subfolder S2');
+
+    const sourceFolder = page.locator('app-tree-item[itemid="401"]');
+    const listView = page.locator('app-list-view');
+    await expect(listView.locator('tbody tr')).toHaveCount(0);
+
+    await sourceFolder.dragTo(listView);
+
+    await expect(listView.getByText('Subfolder S1', { exact: true })).toBeVisible();
+});
+
+test('Search results reject bookmark reordering', async ({ page }) => {
+    const searchBox = page.getByPlaceholder('Search in bookmarks');
+    await searchBox.fill('Duplicate Item');
+
+    const listView = page.locator('app-list-view');
+    const source = listView.locator('tr[itemid="search-1"] td').first();
+    const target = listView.locator('tr[itemid="search-2"] td').first();
+    await source.dragTo(target);
+
+    await searchBox.fill('');
+    await selectTreeFolder(page, 'Other Bookmarks');
+    await expect(listView.getByText('https://example.com/d1', { exact: true })).toHaveCount(0);
+    await expect(listView.getByText('https://example.com/d2', { exact: true })).toBeVisible();
+});

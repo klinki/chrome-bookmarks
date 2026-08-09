@@ -78,9 +78,60 @@ export class BookmarksProviderService {
     return this.bookmarksService.removeTree(id);
   }
 
-  public moveMultiple(ids: string[], destination: chrome.bookmarks.BookmarkDestinationArg) {
-    const promises = ids.map(x => this.move(x, destination));
-    return Promise.all(promises);
+  public async moveMultiple(ids: string[], destination: chrome.bookmarks.BookmarkDestinationArg) {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    if (destination.index == null || destination.parentId == null) {
+      const moved: chrome.bookmarks.BookmarkTreeNode[] = [];
+      for (const id of ids) {
+        moved.push(await this.move(id, destination));
+      }
+      return moved;
+    }
+
+    const tree = await this.getBookmarks();
+    const stack = [...tree];
+    let destinationFolder: chrome.bookmarks.BookmarkTreeNode | undefined;
+    const draggedNodes = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
+    const draggedIds = new Set(ids);
+
+    while (stack.length > 0 && (!destinationFolder || draggedNodes.size < draggedIds.size)) {
+      const node = stack.pop()!;
+      if (node.id === destination.parentId) {
+        destinationFolder = node;
+      }
+      if (draggedIds.has(node.id)) {
+        draggedNodes.set(node.id, node);
+      }
+      if (node.children) {
+        stack.push(...node.children);
+      }
+    }
+
+    const destinationChildren = destinationFolder?.children ?? [];
+    const movedBeforeDestination = destinationChildren
+      .slice(0, destination.index)
+      .filter(node => draggedIds.has(node.id))
+      .length;
+    const insertionIndex = destination.index - movedBeforeDestination;
+    const allFromDestination = ids.every(id => draggedNodes.get(id)?.parentId === destination.parentId);
+    const firstSourceIndex = destinationChildren.findIndex(node => draggedIds.has(node.id));
+    const indexes = ids.map((_, index) => index);
+
+    if (allFromDestination && firstSourceIndex !== -1 && insertionIndex > firstSourceIndex) {
+      indexes.reverse();
+    }
+
+    const moved = new Array<chrome.bookmarks.BookmarkTreeNode>(ids.length);
+    for (const sourceIndex of indexes) {
+      moved[sourceIndex] = await this.move(ids[sourceIndex], {
+        parentId: destination.parentId,
+        index: insertionIndex + sourceIndex
+      });
+    }
+    return moved;
   }
 
   public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg) {

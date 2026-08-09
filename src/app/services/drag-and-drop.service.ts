@@ -1,10 +1,10 @@
 import {DestroyRef, inject, Injectable} from '@angular/core';
-import {fromEvent, tap} from "rxjs";
+import {EMPTY, catchError, concatMap, from, fromEvent, tap} from "rxjs";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {BookmarkElement, DragData, DropDestination, NodeMap, ObjectMap, TimerProxy} from "./types";
-import {canEditNode, canReorderChildren, hasChildFolders, isShowingSearch, normalizeNode} from "./util";
+import {canEditNode, canReorderChildren, hasChildFolders, normalizeNode} from "./util";
 import {DropPosition, ROOT_NODE_ID} from "./constants";
-import {injectDisplayedItems, injectSelection} from "./bookmarks-facade.service";
+import {injectDisplayedItems, injectSearchTerm, injectSelection} from "./bookmarks-facade.service";
 import {injectSelectedFolderSignal, injectSelectItemCallback} from "./selection.service";
 import {injectAllBookmarksMap, injectMoveMultipleBookmarksCallback} from "./bookmarks-provider.service";
 import {Debouncer} from "../utils/debouncer";
@@ -30,6 +30,7 @@ export class DragAndDropService {
 
   selectedItems = injectSelection();
   displayedItems = injectDisplayedItems();
+  searchTerm = injectSearchTerm();
   selectedFolder = injectSelectedFolderSignal();
   bookmarksMap = injectAllBookmarksMap();
 
@@ -62,10 +63,13 @@ export class DragAndDropService {
       tap(event => this.onDragLeave(event)),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
-
     fromEvent<Event>(document, 'drop').pipe(
-      tap(event => console.log(event)),
-      tap(event => this.onDrop(event)),
+      concatMap(event => from(this.onDrop(event)).pipe(
+        catchError(() => {
+          alert('Failed to move bookmarks.');
+          return EMPTY;
+        })
+      )),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
 
@@ -162,10 +166,13 @@ export class DragAndDropService {
     if (isTextInputElement(e.composedPath()[0] as HTMLElement)) {
       return;
     }
-
     e.preventDefault();
 
-    if (this.dropDestination) {
+    try {
+      if (!this.dropDestination) {
+        return;
+      }
+
       const dropInfo = this.calculateDropInfo(this.dropDestination);
       const index = dropInfo.index !== -1 ? dropInfo.index : undefined;
       const shouldHighlight = shouldHighlightDest(this.dropDestination);
@@ -187,16 +194,16 @@ export class DragAndDropService {
       } else {
         await this.moveMultipleCallback(dropIds, {
           parentId: dropInfo.parentId,
-          index: index
+          index
         });
       }
 
       // BookmarkManagerApiProxyImpl.getInstance()
       //   .drop(dropInfo.parentId, index)
       //   .then(shouldHighlight ? highlightUpdatedItems : undefined);
+    } finally {
+      this.clearDragData();
     }
-
-    this.clearDragData();
   }
 
   private onDragEnter(e: Event) {
@@ -379,21 +386,19 @@ export class DragAndDropService {
   private calculateValidDropPositions(overElement: BookmarkElement): number {
     const dragInfo = this.dragInfo!;
     const nodesMap = this.bookmarksMap();
-    let itemId = overElement?.attributes?.getNamedItem('itemid')?.value;
+    const listTarget = isBookmarkList(overElement);
+
+    // Search results do not have stable sibling positions in the bookmark tree.
+    if ((listTarget || isBookmarkItem(overElement)) && this.searchTerm().trim() !== '') {
+      return DropPosition.NONE;
+    }
+
+    const itemId = listTarget
+      ? this.selectedFolder()?.id
+      : overElement?.attributes?.getNamedItem('itemid')?.value;
 
     if (itemId == null) {
-      console.error('null');
       return DropPosition.NONE;
-    }
-
-    // Drags aren't allowed onto the search result list.
-    if ((isBookmarkList(overElement) || isBookmarkItem(overElement)) &&
-      isShowingSearch({ search: { results: [], term: '', inProgress: false } })) {
-      return DropPosition.NONE;
-    }
-
-    if (isBookmarkList(overElement)) {
-      itemId = this.selectedFolder()!.id;
     }
 
     // Virtual Node Check for Tags
@@ -494,9 +499,9 @@ export class DragAndDropService {
     // Allow dragging onto empty bookmark lists.
     if (isBookmarkList(overElement)) {
       const selectedFolder = this.selectedFolder();
-      const nodesMap = this.bookmarksMap()!;
-      return selectedFolder != null
-        && nodesMap[selectedFolder.id]!.children!.length === 0;
+      const nodesMap = this.bookmarksMap();
+      const folder = selectedFolder ? nodesMap[selectedFolder.id] : undefined;
+      return folder != null && (folder.children?.length ?? 0) === 0;
     }
 
     const node = this.getBookmarkNode(overElement);
@@ -559,7 +564,8 @@ function isBookmarkFolderNode(element: Element): boolean {
 }
 
 function isBookmarkList(element: Element): boolean {
-  return element.tagName === 'BOOKMARKS-LIST';
+  return element.tagName === 'APP-LIST-VIEW'
+    || element.tagName === 'APP-LIST-VIEW-MAT-TABLE';
 }
 
 function isTextInputElement(element: HTMLElement): boolean {

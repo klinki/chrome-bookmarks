@@ -334,3 +334,7 @@ export function injectSelection() {
 export function injectDisplayedItems() {
   return inject(BookmarksFacadeService).items;
 }
+
+export function injectSearchTerm() {
+  return inject(BookmarksFacadeService).searchTerm;
+}
