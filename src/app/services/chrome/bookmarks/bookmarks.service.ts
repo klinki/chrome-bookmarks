@@ -1,9 +1,18 @@
 import {Injectable} from '@angular/core';
 import {fromEventPattern, Observable, Subject} from 'rxjs';
 
-const fromChromeEventPattern = <T, U extends Function>(source: chrome.events.Event<U>) => fromEventPattern<T>(
-  (handler) => source.addListener(handler as any),
-  (handler) => source.removeListener(handler as any)
+export type BookmarkCreatedPayload = [id: string, bookmark: chrome.bookmarks.BookmarkTreeNode];
+export type BookmarkRemovedPayload = [id: string, removeInfo: chrome.bookmarks.BookmarkRemoveInfo];
+export type BookmarkChangedPayload = [id: string, changeInfo: chrome.bookmarks.BookmarkChangeInfo];
+export type BookmarkMovedPayload = [id: string, moveInfo: chrome.bookmarks.BookmarkMoveInfo];
+export type BookmarkChildrenReorderedPayload = [id: string, reorderInfo: chrome.bookmarks.BookmarkReorderInfo];
+export type BookmarkImportPayload = [];
+
+const fromChromeEventPattern = <T, U extends (...args: never[]) => void>(
+  source: chrome.events.Event<U>
+) => fromEventPattern<T>(
+  (handler) => source.addListener(handler as unknown as U),
+  (handler) => source.removeListener(handler as unknown as U)
 );
 
 
@@ -14,23 +23,42 @@ const fromChromeEventPattern = <T, U extends Function>(source: chrome.events.Eve
  */
 @Injectable()
 export class BookmarksService {
-  public onCreatedEvent$: Observable<chrome.bookmarks.BookmarkCreatedEvent>;
-  public onRemovedEvent$: Observable<chrome.bookmarks.BookmarkRemovedEvent>;
-  public onChangedEvent$: Observable<chrome.bookmarks.BookmarkChangedEvent>;
-  public onMovedEvent$: Observable<chrome.bookmarks.BookmarkMovedEvent>;
-  public onChildrenReorderedEvent$: Observable<chrome.bookmarks.BookmarkChildrenReordered>;
-  public onImportBeganEvent$: Observable<chrome.bookmarks.BookmarkImportBeganEvent>;
-  public onImportEndedEvent$: Observable<chrome.bookmarks.BookmarkImportEndedEvent>;
+  public onCreatedEvent$: Observable<BookmarkCreatedPayload>;
+  public onRemovedEvent$: Observable<BookmarkRemovedPayload>;
+  public onChangedEvent$: Observable<BookmarkChangedPayload>;
+  public onMovedEvent$: Observable<BookmarkMovedPayload>;
+  public onChildrenReorderedEvent$: Observable<BookmarkChildrenReorderedPayload>;
+  public onImportBeganEvent$: Observable<BookmarkImportPayload>;
+  public onImportEndedEvent$: Observable<BookmarkImportPayload>;
 
   constructor() {
     if (chrome.bookmarks) {
-      this.onCreatedEvent$ = fromChromeEventPattern(chrome.bookmarks.onCreated);
-      this.onRemovedEvent$ = fromChromeEventPattern(chrome.bookmarks.onRemoved);
-      this.onChangedEvent$ = fromChromeEventPattern(chrome.bookmarks.onChanged);
-      this.onMovedEvent$ = fromChromeEventPattern(chrome.bookmarks.onMoved);
-      this.onChildrenReorderedEvent$ = fromChromeEventPattern(chrome.bookmarks.onChildrenReordered);
-      this.onImportBeganEvent$ = fromChromeEventPattern(chrome.bookmarks.onImportBegan);
-      this.onImportEndedEvent$ = fromChromeEventPattern(chrome.bookmarks.onImportEnded);
+      this.onCreatedEvent$ = fromChromeEventPattern<
+        BookmarkCreatedPayload,
+        (id: string, bookmark: chrome.bookmarks.BookmarkTreeNode) => void
+      >(chrome.bookmarks.onCreated);
+      this.onRemovedEvent$ = fromChromeEventPattern<
+        BookmarkRemovedPayload,
+        (id: string, removeInfo: chrome.bookmarks.BookmarkRemoveInfo) => void
+      >(chrome.bookmarks.onRemoved);
+      this.onChangedEvent$ = fromChromeEventPattern<
+        BookmarkChangedPayload,
+        (id: string, changeInfo: chrome.bookmarks.BookmarkChangeInfo) => void
+      >(chrome.bookmarks.onChanged);
+      this.onMovedEvent$ = fromChromeEventPattern<
+        BookmarkMovedPayload,
+        (id: string, moveInfo: chrome.bookmarks.BookmarkMoveInfo) => void
+      >(chrome.bookmarks.onMoved);
+      this.onChildrenReorderedEvent$ = fromChromeEventPattern<
+        BookmarkChildrenReorderedPayload,
+        (id: string, reorderInfo: chrome.bookmarks.BookmarkReorderInfo) => void
+      >(chrome.bookmarks.onChildrenReordered);
+      this.onImportBeganEvent$ = fromChromeEventPattern<BookmarkImportPayload, () => void>(
+        chrome.bookmarks.onImportBegan
+      );
+      this.onImportEndedEvent$ = fromChromeEventPattern<BookmarkImportPayload, () => void>(
+        chrome.bookmarks.onImportEnded
+      );
     } else {
       this.onCreatedEvent$ = new Subject();
       this.onRemovedEvent$ = new Subject();

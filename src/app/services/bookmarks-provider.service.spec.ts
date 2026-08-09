@@ -1,9 +1,29 @@
 import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
+import { type Mock, vi } from 'vitest';
 import { BookmarksProviderService, injectAllBookmarksMap } from './bookmarks-provider.service';
-import { BookmarksService } from './chrome/bookmarks/bookmarks.service';
+import {
+  BookmarksService,
+  type BookmarkChangedPayload,
+  type BookmarkChildrenReorderedPayload,
+  type BookmarkCreatedPayload,
+  type BookmarkImportPayload,
+  type BookmarkMovedPayload,
+  type BookmarkRemovedPayload
+} from './chrome/bookmarks/bookmarks.service';
 import { Subject } from 'rxjs';
+interface MockBookmarksApi {
+  onCreatedEvent$: Subject<BookmarkCreatedPayload>;
+  onRemovedEvent$: Subject<BookmarkRemovedPayload>;
+  onChangedEvent$: Subject<BookmarkChangedPayload>;
+  onMovedEvent$: Subject<BookmarkMovedPayload>;
+  onChildrenReorderedEvent$: Subject<BookmarkChildrenReorderedPayload>;
+  onImportBeganEvent$: Subject<BookmarkImportPayload>;
+  onImportEndedEvent$: Subject<BookmarkImportPayload>;
+  getTree: Mock;
+  getSubTree: Mock;
+  search: Mock;
+}
 
 @Injectable()
 class BookmarksMapConsumer {
@@ -38,14 +58,14 @@ describe('BookmarksProvider Service', () => {
     }]
   }] as unknown as chrome.bookmarks.BookmarkTreeNode[];
 
-  let onCreatedEvent$: Subject<chrome.bookmarks.BookmarkCreatedEvent>;
-  let onRemovedEvent$: Subject<chrome.bookmarks.BookmarkRemovedEvent>;
-  let onChangedEvent$: Subject<chrome.bookmarks.BookmarkChangedEvent>;
-  let onMovedEvent$: Subject<chrome.bookmarks.BookmarkMovedEvent>;
-  let onChildrenReorderedEvent$: Subject<chrome.bookmarks.BookmarkChildrenReordered>;
-  let onImportBeganEvent$: Subject<chrome.bookmarks.BookmarkImportBeganEvent>;
-  let onImportEndedEvent$: Subject<chrome.bookmarks.BookmarkImportEndedEvent>;
-  let mockBookmarksService: any;
+  let onCreatedEvent$: Subject<BookmarkCreatedPayload>;
+  let onRemovedEvent$: Subject<BookmarkRemovedPayload>;
+  let onChangedEvent$: Subject<BookmarkChangedPayload>;
+  let onMovedEvent$: Subject<BookmarkMovedPayload>;
+  let onChildrenReorderedEvent$: Subject<BookmarkChildrenReorderedPayload>;
+  let onImportBeganEvent$: Subject<BookmarkImportPayload>;
+  let onImportEndedEvent$: Subject<BookmarkImportPayload>;
+  let mockBookmarksService: MockBookmarksApi;
 
   const flushSignalUpdates = async () => {
     await Promise.resolve();
@@ -96,13 +116,13 @@ describe('BookmarksProvider Service', () => {
 
     expect(consumer.bookmarksMap()['10']).toBeUndefined();
 
-    onCreatedEvent$.next({
-      id: '10',
-      bookmark: {
+    onCreatedEvent$.next([
+      '10',
+      {
         id: '10',
         title: 'New Folder'
-      } as chrome.bookmarks.BookmarkTreeNode
-    } as chrome.bookmarks.BookmarkCreatedEvent);
+      }
+    ]);
     await flushSignalUpdates();
 
     expect(mockBookmarksService.getTree).toHaveBeenCalledTimes(2);

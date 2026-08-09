@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-The initial review found six deterministic macOS selection failures caused by hard-coded Windows/Linux modifier handling. **F-01 was fixed on 2026-08-09 and the full E2E suite is now green.** The remaining release-blocking concern is the Chrome API adapter: every callback wrapper accepts a `reject` function but never uses it, so Chrome API failures cannot propagate to callers. This undermines save, move, delete, import, and progress/error behavior.
+Both High-severity findings are fixed: cross-platform selection now recognizes macOS modifiers, and the Chrome bookmark/storage adapters propagate native Promise rejections to callers. The full unit and E2E suites are green.
 
-Additional material risks exist in the development bookmark mock, drag-and-drop target detection, AI cancellation, import validation, tree expansion state, sorting, and repeated full-tree loading. The repository also has no configured Nx lint target.
+Material risks remain in drag-and-drop target detection, AI cancellation, import validation, tree expansion state, sorting, and repeated full-tree loading. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,18 +43,18 @@ Additional material risks exist in the development bookmark mock, drag-and-drop 
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 14 | 0 |
+| Medium | 14 | 13 | 1 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **19** | **2** |
+| **Total** | **21** | **18** | **3** |
 
 ## Verification results
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 29 files passed; 97 tests passed, including native bookmark/storage rejection propagation and menu failure handling. |
+| Unit tests | **Pass** | 30 files passed; 108 tests passed, including native adapter rejection propagation and 11 development-mock contract tests. |
 | Playwright E2E | **Pass** | 33 tests passed after the macOS modifier fix; the six initially failing selection scenarios now pass. |
 | Nx lint | **Unavailable** | `nx lint bookmarks` fails with `Cannot find configuration for task bookmarks:lint`. |
-| Production build | **Pass with warnings** | Initial bundle 847.20 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
+| Production build | **Pass with warnings** | Initial bundle 849.16 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
 | Commit whitespace | **Pass** | `git diff --check HEAD^ HEAD` passed before this review. |
 
 ## Positive observations
@@ -105,14 +105,14 @@ Consequences [INFERENCE]:
 
 **Resolution:** The bookmark and storage adapters now return Chrome's native Manifest V3 promises, preserving native rejection semantics without custom callback wrappers. Folder/bookmark menu mutations await these promises and report failures instead of creating unhandled rejections. Sixteen adapter regressions verify rejection propagation, and the full unit, E2E, and production-build checks pass.
 
-### F-03 — the development bookmark mock does not implement Chrome semantics
+### F-03 — the development bookmark mock did not implement Chrome semantics
 
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** High
-- **Status:** Confirmed by static inspection
+- **Status:** Fixed and verified on 2026-08-09
 
-`MockBookmarksService` is the default non-production service, but key methods materially differ from the real API (`src/app/services/chrome/bookmarks/mock-bookmarks.service.ts`):
+At review time, `MockBookmarksService` was the default non-production service, but key methods materially differed from the real API (`src/app/services/chrome/bookmarks/mock-bookmarks.service.ts`):
 
 - `getRecent()` ignores `count` and sorts oldest-first (`:123-134`).
 - Object-query search uses `includes('')`, so omitted query fields match almost every node (`:145-159`).
@@ -122,7 +122,7 @@ Consequences [INFERENCE]:
 - `removeTree()` does not recursively remove descendants (`:236-238`).
 - `remove()` resolves before performing work; exceptions after the first resolve are swallowed (`:221-233`).
 
-This makes manual development behavior unreliable and allows tests against the mock to validate contracts that production does not have. Replace it with a deterministic in-memory tree implementation and shared contract tests for the mock and Chrome adapter.
+**Resolution:** `MockBookmarksService` is now a deterministic indexed tree. It returns detached snapshots; honors default parents and insertion indices; maintains parent/index invariants; implements newest-first bounded recent results and all-field object search; recursively removes trees; rejects invalid operations atomically; and emits the same tuple payloads as the Chrome event adapter for create, move, change, and removal events. Eleven contract tests cover these behaviors.
 
 ### F-04 — “Open all bookmarks” opens an undefined URL
 
@@ -343,7 +343,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 
 1. Keep the restored cross-platform E2E baseline green and configure lint.
 2. Keep Chrome API failure-path coverage green as mutation flows evolve.
-3. Repair the development mock so local/manual testing reflects production behavior.
+3. Keep the development mock contract suite aligned with Chrome behavior.
 4. Correct drag/drop target detection, search guards, multi-move ordering, and async cleanup.
 5. Make AI runs cancellable and imports validate before mutation.
 6. Consolidate tree snapshots/state, expansion state, and duplicate legacy store code.
@@ -353,7 +353,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 
 - [x] **T-01 — Support `Meta` and `Control` consistently for additive selection and Select All.** Severity: **High** · Priority: **P0** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-02 — Replace callback-only Chrome bookmark/storage wrappers with rejecting Promise adapters and add failure-path tests.** Severity: **High** · Priority: **P0** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-03 — Rebuild `MockBookmarksService` to honor create, move, update, remove, removeTree, search, recent, index, parent, and event contracts.** Severity: **Medium** · Priority: **P1** · Difficulty: **High**
+- [x] **T-03 — Rebuild `MockBookmarksService` to honor create, move, update, remove, removeTree, search, recent, index, parent, and event contracts.** Severity: **Medium** · Priority: **P1** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [ ] **T-04 — Implement or remove the folder “Open all bookmarks” action.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
 - [ ] **T-05 — Recognize the actual `APP-LIST-VIEW` drag target and cover drops into empty folders.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
 - [ ] **T-06 — Wire drag restrictions to real search state and test search-result dragging.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low**
