@@ -109,6 +109,17 @@
       "options": {
         "config": "vitest.config.ts"
       }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "src/**/*.ts",
+          "src/**/*.html",
+          "e2e/**/*.ts",
+          "*.ts"
+        ]
+      }
     }
   }
 }

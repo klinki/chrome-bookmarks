@@ -9,6 +9,8 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 class MockSelectionService {
   selectedDirectory = signal(null);
   selectDirectory() {}
+  isDirectoryExpanded() { return false; }
+  toggleDirectory() {}
 }
 
 @Component({

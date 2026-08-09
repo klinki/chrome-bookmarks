@@ -10,8 +10,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
+import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
 
-describe.skip('Component: BookmarksView', () => {
+describe('Component: BookmarksView', () => {
   let component: BookmarksViewComponent;
   let fixture: ComponentFixture<BookmarksViewComponent>;
 
@@ -19,11 +20,36 @@ describe.skip('Component: BookmarksView', () => {
     selectedBookmarkIds: signal(new Set()),
     directories: signal([]),
     items: signal([]),
-    selectedBookmarks: signal([])
+    selectedBookmarks: signal([]),
+    deleteProgress: signal({ active: false, total: 0, completed: 0 }),
+    search: vi.fn(),
+    updateBookmark: vi.fn()
   };
 
   const mockDragAndDropService = {
     init: vi.fn()
+  };
+
+  const mockSelectionService = {
+    selectedDirectory: signal(null),
+    selection: signal(new Set()),
+    selectAllActive: signal(false),
+    selectDirectory: vi.fn(),
+    expandDirectories: vi.fn(),
+    isDirectoryExpanded: vi.fn().mockReturnValue(false),
+    toggleDirectory: vi.fn(),
+    clearSelection: vi.fn(),
+    select: vi.fn(),
+    selectAll: vi.fn(),
+    items: []
+  };
+
+  const mockTagsService = {
+    getTagsForBookmark: vi.fn().mockReturnValue([]),
+    availableTags: signal([]),
+    bookmarkTags: signal({}),
+    setTagsForBookmarks: vi.fn(),
+    addAvailableTags: vi.fn()
   };
 
 
@@ -34,9 +60,10 @@ describe.skip('Component: BookmarksView', () => {
         provideRouter([]),
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
         { provide: DragAndDropService, useValue: mockDragAndDropService },
-        { provide: SelectionService, useValue: {} },
+        { provide: SelectionService, useValue: mockSelectionService },
+        { provide: BookmarksService, useValue: { get: vi.fn(), remove: vi.fn() } },
         { provide: AiService, useValue: { suggestTags: vi.fn() } },
-        { provide: TagsService, useValue: { getTagsForBookmark: () => [], availableTags: signal([]) } }
+        { provide: TagsService, useValue: mockTagsService }
       ]
     })
     .compileComponents();

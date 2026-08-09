@@ -9,7 +9,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['src/test-setup.ts'],
     include: ['src/**/*.spec.ts'],
-    passWithNoTests: true,
     reporters: ['default', 'junit'],
     outputFile: {
       junit: 'test-results/junit-report.xml',

@@ -1,24 +1,36 @@
+import { Component, ViewChild } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ContextMenuGroupDirective } from './context-menu-group.component';
 import { ContextMenuItemComponent } from './context-menu-item.component';
-import { QueryList } from '@angular/core';
 
-describe.skip('ContextMenuGroupDirective', () => {
-  let component: ContextMenuGroupDirective;
-  let fixture: ComponentFixture<ContextMenuGroupDirective>;
+@Component({
+  standalone: true,
+  imports: [ContextMenuGroupDirective, ContextMenuItemComponent],
+  template: `
+    <app-context-menu-group>
+      <app-context-menu-item label="Visible"></app-context-menu-item>
+      <app-context-menu-item label="Hidden" [hidden]="true"></app-context-menu-item>
+    </app-context-menu-group>
+  `
+})
+class ContextMenuGroupHost {
+  @ViewChild(ContextMenuGroupDirective) group!: ContextMenuGroupDirective;
+}
+
+describe('ContextMenuGroupDirective', () => {
+  let fixture: ComponentFixture<ContextMenuGroupHost>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ ContextMenuGroupDirective, ContextMenuItemComponent ]
-    })
-    .compileComponents();
+      imports: [ContextMenuGroupHost]
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(ContextMenuGroupDirective);
-    component = fixture.componentInstance;
+    fixture = TestBed.createComponent(ContextMenuGroupHost);
     fixture.detectChanges();
   });
 
-  it('should create', () => {
-    expect(component).toBeTruthy();
+  it('exposes only visible menu items', () => {
+    expect(fixture.componentInstance.group.visibleMenuItems.map(item => item.label))
+      .toEqual(['Visible']);
   });
 });

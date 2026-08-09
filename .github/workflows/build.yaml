@@ -28,6 +28,9 @@ jobs:
       # The "--stop-agents-after" is optional, but allows idle agents to shut down once the "e2e-ci" targets have been requested
       # - run: npx nx-cloud start-ci-run --distribute-on="5 linux-medium-js" --stop-agents-after="e2e-ci"
       - run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: npm run lint
+
 
       - run: npm run build
       - name: Run Unit Tests

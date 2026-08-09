@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and twelve of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-14 now have focused regression coverage.
+Both High-severity findings and thirteen of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-15 now have focused regression coverage or an explicit owner disposition.
 
-Material risks remain in accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
+Material risks remain in accessibility, logging, and bundle hygiene.
 
 ### Finding status
 
@@ -43,17 +43,17 @@ Material risks remain in accessibility, logging, and bundle/test hygiene. The re
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 2 | 12 |
+| Medium | 14 | 1 | 13 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **7** | **14** |
+| **Total** | **21** | **6** | **15** |
 
 ## Verification results
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 31 files passed; 122 tests passed, including open-all traversal, empty-list/search drag guards, ordered moves and cleanup, owned AI cancellation, full import validation, and rollback. |
+| Unit tests | **Pass** | 30 files passed; 143 tests passed with missing-test failures enabled. Previously skipped BookmarkView and context-menu suites now execute; the obsolete list-table placeholder suite was removed. |
 | Playwright E2E | **Pass** | 36 tests passed, including recursive folder opening, empty-list drops, and search-result drag rejection. |
-| Nx lint | **Unavailable** | `nx lint bookmarks` fails with `Cannot find configuration for task bookmarks:lint`. |
+| Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 79 existing warnings; CI now runs `npm run lint`. |
 | Production build | **Pass with warnings** | Initial bundle 850.76 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
 | Working-tree whitespace | **Pass** | `git diff --check` passed after the T-04 through T-09 fixes. |
 
@@ -266,15 +266,14 @@ Batch APIs update bookmark-tag records and available tags once per collection. A
 - **Severity:** Medium
 - **Priority:** P1
 - **Difficulty:** Medium
-- **Status:** Confirmed by commands/configuration
+- **Status:** Resolved 2026-08-09 (generated report locations retained by owner decision)
 
-- `nx lint bookmarks` cannot run because `project.json` has no lint target.
-- The E2E suite currently fails six tests, so `npm test` is not green on this workstation.
-- Vitest writes JUnit output to `test-results/junit-report.xml` (`vitest.config.ts:13-16`) and Playwright writes JUnit output to `test-results/e2e-junit.xml` (`playwright.config.ts:9`), contrary to the repository rule that artifacts belong under `.temp/`.
-- `ListViewMatTableComponent` has an entirely skipped suite (`src/app/components/list-view-mat-table/list-view-mat-table.component.spec.ts:10`).
-- `passWithNoTests: true` weakens detection of accidental test discovery failures (`vitest.config.ts:12`).
+- `bookmarks:lint` now runs through the Nx ESLint executor, and CI invokes `npm run lint`.
+- The full unit suite passes with `passWithNoTests` removed.
+- The skipped BookmarkView and context-menu suites now execute behavior checks; the obsolete list-table placeholder suite was removed.
+- Vitest and Playwright continue writing under `test-results/` by explicit owner decision; those paths remain gitignored and are accepted project artifacts.
 
-Add a real lint target and CI command, move all generated reports under `.temp/`, remove or re-enable skipped suites, and make missing tests fail unless a specific target intentionally permits none.
+No further change required.
 
 ### F-16 — duplicated state systems and unreachable implementations increase maintenance cost
 
@@ -377,7 +376,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [x] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-15 — Add an Nx lint target, make lint part of CI, move reports under `.temp/`, and remove skipped/pass-with-no-tests gaps.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
+- [x] **T-15 — Add an Nx lint target, make lint part of CI, enforce missing-test failures, and close skipped-suite gaps; retain `test-results/` by owner decision.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Resolved 2026-08-09**
 - [ ] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
 - [ ] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
