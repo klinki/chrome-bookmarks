@@ -44,9 +44,6 @@ importers:
       '@ngrx/signals':
         specifier: 21.0.1
         version: 21.0.1(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2)
-      '@ngx-nova/material-extensions-table-virtual-scroll':
-        specifier: ^2.0.2
-        version: 2.0.2(@angular/cdk@21.0.5(@angular/common@21.0.7(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/material@21.0.5(72fab646248b9bf08149dfb75eb79bea))
       '@types/chrome':
         specifier: ^0.0.246
         version: 0.0.246
@@ -2222,13 +2219,6 @@ packages:
       '@angular/compiler-cli': ^21.0.0
       typescript: '>=5.9 <6.0'
       webpack: ^5.54.0
-
-  '@ngx-nova/material-extensions-table-virtual-scroll@2.0.2':
-    resolution: {integrity: sha512-4s13Vz1I74ZTAkDc4FpDpN+bzBYT+tHlW2rx9GNFzPiBrb0cdY0QUpPr+V83ddi/oKtdZfqQyAdPTr4sZy4PHg==}
-    peerDependencies:
-      '@angular/cdk': ^17.0.0
-      '@angular/core': ^17.0.0
-      '@angular/material': ^17.0.0
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -9901,13 +9891,6 @@ snapshots:
       '@angular/compiler-cli': 21.0.7(@angular/compiler@21.0.7)(typescript@5.9.3)
       typescript: 5.9.3
       webpack: 5.104.0(esbuild@0.26.0)
-
-  '@ngx-nova/material-extensions-table-virtual-scroll@2.0.2(@angular/cdk@21.0.5(@angular/common@21.0.7(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(@angular/material@21.0.5(72fab646248b9bf08149dfb75eb79bea))':
-    dependencies:
-      '@angular/cdk': 21.0.5(@angular/common@21.0.7(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2))(@angular/core@21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0))(rxjs@7.8.2)
-      '@angular/core': 21.0.7(@angular/compiler@21.0.7)(rxjs@7.8.2)(zone.js@0.16.0)
-      '@angular/material': 21.0.5(72fab646248b9bf08149dfb75eb79bea)
-      tslib: 2.8.1
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:

@@ -2,7 +2,7 @@ import {DestroyRef, inject, Injectable} from '@angular/core';
 import {EMPTY, catchError, concatMap, from, fromEvent, tap} from "rxjs";
 import {takeUntilDestroyed} from "@angular/core/rxjs-interop";
 import {BookmarkElement, DragData, DropDestination, NodeMap, ObjectMap, TimerProxy} from "./types";
-import {canEditNode, canReorderChildren, hasChildFolders, normalizeNode} from "./util";
+import {canEditNode, canReorderChildren, hasChildFolders} from "./util";
 import {DropPosition, ROOT_NODE_ID} from "./constants";
 import {
   injectAllBookmarksMap,
@@ -43,8 +43,15 @@ export class DragAndDropService {
   moveMultipleCallback = injectMoveMultipleBookmarksCallback();
 
   private tagsService = inject(TagsService);
+  private started = false;
 
-  constructor() {
+
+  public start(): void {
+    if (this.started) {
+      return;
+    }
+    this.started = true;
+
     fromEvent<Event>(document, 'dragstart').pipe(
       tap(event => console.log(event)),
       tap(event => this.onDragStart(event)),
@@ -52,7 +59,6 @@ export class DragAndDropService {
     ).subscribe();
 
     fromEvent<Event>(document, 'dragenter').pipe(
-      // tap(event => console.log(event)),
       tap(event => this.onDragEnter(event)),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
@@ -64,7 +70,6 @@ export class DragAndDropService {
     ).subscribe();
 
     fromEvent<Event>(document, 'dragleave').pipe(
-      // tap(event => console.log(event)),
       tap(event => this.onDragLeave(event)),
       takeUntilDestroyed(this.destroy)
     ).subscribe();
@@ -85,7 +90,6 @@ export class DragAndDropService {
     ).subscribe();
   }
 
-  public init() { }
 
   getBookmarkElement(path?: EventTarget[]): BookmarkElement | null {
     if (path == null) {
@@ -597,7 +601,7 @@ export class DragInfo {
   setNativeDragData(newDragData: DragData) {
     this.dragData = {
       sameProfile: newDragData.sameProfile,
-      elements: newDragData.elements ?? [] // !.map((x) => normalizeNode(x)),
+      elements: newDragData.elements ?? []
     };
   }
 

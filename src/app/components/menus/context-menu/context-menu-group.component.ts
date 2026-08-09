@@ -1,11 +1,11 @@
-import {ContentChildren, Directive, forwardRef, OnInit, QueryList} from '@angular/core';
+import {ContentChildren, Directive, forwardRef, QueryList} from '@angular/core';
 import {ContextMenuItemComponent} from "./context-menu-item.component";
 
 @Directive({
   selector: 'app-context-menu-group',
   standalone: true
 })
-export class ContextMenuGroupDirective implements OnInit {
+export class ContextMenuGroupDirective {
   @ContentChildren(forwardRef(() => ContextMenuItemComponent))
   groupItems!: QueryList<ContextMenuItemComponent>;
 
@@ -13,8 +13,4 @@ export class ContextMenuGroupDirective implements OnInit {
     return this.groupItems?.toArray()?.filter(item => !item.hidden) ?? [];
   }
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 }

@@ -27,7 +27,7 @@ describe('Component: BookmarksView', () => {
   };
 
   const mockDragAndDropService = {
-    init: vi.fn()
+    start: vi.fn()
   };
 
   const mockSelectionService = {
@@ -70,12 +70,14 @@ describe('Component: BookmarksView', () => {
   }));
 
   beforeEach(() => {
+    mockDragAndDropService.start.mockClear();
     fixture = TestBed.createComponent(BookmarksViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create an instance', () => {
+  it('starts document drag handling when created', () => {
     expect(component).toBeTruthy();
+    expect(mockDragAndDropService.start).toHaveBeenCalledOnce();
   });
 });

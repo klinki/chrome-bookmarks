@@ -1,4 +1,4 @@
-import { Component, OnInit, input, Input, HostBinding, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, Input, HostBinding, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { SelectionService } from '../../services';
 import { BookmarkDirectory } from "./tree-view.component";
 
@@ -16,7 +16,7 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
   styleUrls: ['./tree-item.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TreeItemComponent implements OnInit {
+export class TreeItemComponent {
   private bookmarkService: SelectionService = inject(SelectionService);
 
   public directory = input<any>();
@@ -37,8 +37,6 @@ export class TreeItemComponent implements OnInit {
     return this.selectedItem()?.id === this.directory()?.id;
   });
 
-  ngOnInit() {
-  }
 
   toggle(event: MouseEvent, directory: BookmarkDirectory) {
     event.stopPropagation();

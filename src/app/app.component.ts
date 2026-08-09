@@ -14,6 +14,4 @@ import { SettingsService } from './services/settings.service';
 export class AppComponent {
   private settingsService = inject(SettingsService);
 
-  constructor() {
-  }
 }

@@ -62,6 +62,17 @@ describe('DragAndDropService', () => {
     expect(service).toBeTruthy();
   });
 
+  it('registers document listeners only once', () => {
+    const addEventListener = vi.spyOn(document, 'addEventListener');
+
+    service.start();
+    const listenerCount = addEventListener.mock.calls.length;
+    service.start();
+
+    expect(listenerCount).toBeGreaterThan(0);
+    expect(addEventListener).toHaveBeenCalledTimes(listenerCount);
+  });
+
   it('recognizes list component hosts as bookmark drop targets', () => {
     const list = document.createElement('app-list-view');
 

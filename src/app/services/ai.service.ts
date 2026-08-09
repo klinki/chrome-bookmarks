@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { BookmarksStore } from './bookmarks.store';
+import { AiStore } from './ai.store';
 import { TagsService } from './tags.service';
 
 export interface AiProvider {
@@ -12,7 +12,7 @@ export interface AiProvider {
     providedIn: 'root'
 })
 export class AiService {
-    private store = inject(BookmarksStore);
+    private store = inject(AiStore);
     private tagsService = inject(TagsService);
     private activeCategorization: AbortController | null = null;
 
@@ -34,7 +34,7 @@ export class AiService {
         availableTags: string[],
         signal?: AbortSignal
     ): Promise<Record<string, string[]>> {
-        const config = this.store.prefs.aiConfig();
+        const config = this.store.aiConfig();
         if (!config.baseUrl) {
             throw new Error('AI Base URL is not configured');
         }

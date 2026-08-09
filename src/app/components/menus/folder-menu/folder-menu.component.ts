@@ -1,10 +1,9 @@
-import { ChangeDetectorRef, Component, inject, Input, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, inject, Input, ViewChild } from '@angular/core';
 
 import { ContextMenuComponent } from "../context-menu/context-menu.component";
 import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.component";
 import { ContextMenuItemComponent } from "../context-menu/context-menu-item.component";
 import { Icons } from '../../../shared/icons';
-import { Router } from "@angular/router";
 import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.service";
 import { SelectionService } from '../../../services';
 import { firstValueFrom, timer } from 'rxjs';
@@ -17,7 +16,8 @@ import { firstValueFrom, timer } from 'rxjs';
   styleUrl: './folder-menu.component.scss'
 })
 export class FolderMenuComponent {
-  Icons = Icons;
+  protected readonly Icons = Icons;
+
 
   @Input() public folder: any | null = null;
 
@@ -26,16 +26,6 @@ export class FolderMenuComponent {
 
   private bookmarksService = inject(BookmarksService);
   private selectionService = inject(SelectionService);
-
-  private cdr = inject(ChangeDetectorRef);
-  private router = inject(Router);
-
-  ngOnInit(): void {
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    this.cdr.detectChanges(); // this is needed to re-render deeply nested menu items
-  }
 
   async openAllBookmarks() {
     const folder = this.folder;

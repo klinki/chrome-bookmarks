@@ -1,4 +1,4 @@
-import {AfterContentInit, Component, ContentChildren, Input, OnInit, QueryList, TemplateRef, ViewChild } from '@angular/core';
+import {AfterContentInit, Component, ContentChildren, Input, QueryList, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {CdkMenu, CdkMenuItem, CdkMenuTrigger} from "@angular/cdk/menu";
 import { ContextMenuGroupDirective } from './context-menu-group.component';
@@ -11,7 +11,7 @@ import { Icons } from '../../../shared/icons';
   templateUrl: './context-menu.component.html',
   styleUrl: './context-menu.component.scss'
 })
-export class ContextMenuComponent implements OnInit, AfterContentInit {
+export class ContextMenuComponent implements AfterContentInit {
   Icons = Icons;
 
   @ContentChildren(ContextMenuGroupDirective)
@@ -32,10 +32,6 @@ export class ContextMenuComponent implements OnInit, AfterContentInit {
   @ViewChild('cdkMenu')
   cdkMenu!: CdkMenu;
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 
   ngAfterContentInit() {
     // contentChildren is set

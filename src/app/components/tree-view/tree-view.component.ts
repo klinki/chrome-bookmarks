@@ -1,4 +1,4 @@
-import { Component, OnInit, input, inject, effect, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, input, inject, effect, ElementRef, HostListener, ViewChild } from '@angular/core';
 import { SelectionService } from '../../services';
 import { TreeItemComponent } from "./tree-item.component";
 import { FolderMenuComponent } from "../menus/folder-menu/folder-menu.component";
@@ -15,7 +15,7 @@ export type BookmarkDirectory = any;
     FolderMenuComponent
   ]
 })
-export class TreeViewComponent implements OnInit {
+export class TreeViewComponent {
   private selectionService = inject(SelectionService);
   @ViewChild('treeContainer', { static: true }) private treeContainer!: ElementRef<HTMLDivElement>;
   @ViewChild('rightClickMenu', { static: true }) private rightClickMenu!: FolderMenuComponent;
@@ -38,8 +38,6 @@ export class TreeViewComponent implements OnInit {
     });
   }
 
-  ngOnInit() {
-  }
 
   private findDirectoryPath(nodes: BookmarkDirectory[], targetId: string): string[] | null {
     for (const node of nodes) {

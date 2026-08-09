@@ -41,8 +41,6 @@ export class SelectionService {
     this._items.set(items ?? []);
   }
 
-  constructor() {
-  }
 
   public select(bookmark: chrome.bookmarks.BookmarkTreeNode, config: {
     clear?: boolean,

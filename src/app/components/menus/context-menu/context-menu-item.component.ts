@@ -1,11 +1,11 @@
-import {ContentChildren, Directive, EventEmitter, forwardRef, Input, OnInit, Output, QueryList} from '@angular/core';
+import {ContentChildren, Directive, EventEmitter, forwardRef, Input, Output, QueryList} from '@angular/core';
 import {ContextMenuGroupDirective} from "./context-menu-group.component";
 
 @Directive({
   selector: 'app-context-menu-item',
   standalone: true
 })
-export class ContextMenuItemComponent implements OnInit {
+export class ContextMenuItemComponent {
   @Input()
   label: string = '';
 
@@ -34,8 +34,4 @@ export class ContextMenuItemComponent implements OnInit {
     return this.menuGroups?.toArray()?.length > 0;
   }
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 }

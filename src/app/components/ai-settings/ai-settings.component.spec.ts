@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AiSettingsComponent } from './ai-settings.component';
-import { BookmarksStore } from '../../services/bookmarks.store';
+import { AiStore } from '../../services/ai.store';
 import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
 import { BookmarksProviderService } from '../../services/bookmarks-provider.service';
@@ -14,13 +14,12 @@ describe('AiSettingsComponent', () => {
   let fixture: ComponentFixture<AiSettingsComponent>;
 
   const mockStore = {
-    prefs: {
-      aiConfig: signal({
-        baseUrl: 'http://localhost:11434/v1',
-        apiKey: 'test-key',
-        model: 'llama3:8b'
-      })
-    },
+    aiConfig: signal({
+      baseUrl: 'http://localhost:11434/v1',
+      apiKey: 'test-key',
+      model: 'llama3:8b',
+      allowNewTags: false
+    }),
     progress: signal({
       total: 10,
       processed: 5,
@@ -53,7 +52,7 @@ describe('AiSettingsComponent', () => {
     await TestBed.configureTestingModule({
       imports: [AiSettingsComponent, ReactiveFormsModule, FormsModule],
       providers: [
-        { provide: BookmarksStore, useValue: mockStore },
+        { provide: AiStore, useValue: mockStore },
         { provide: TagsService, useValue: mockTagsService },
         { provide: AiService, useValue: mockAiService },
         { provide: BookmarksProviderService, useValue: mockProviderService },

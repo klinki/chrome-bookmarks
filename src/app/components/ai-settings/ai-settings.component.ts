@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal, resource, computed,
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { BookmarksStore } from '../../services/bookmarks.store';
+import { AiStore } from '../../services/ai.store';
 import { TagsService } from '../../services/tags.service';
 import { AiService, AiProvider } from '../../services/ai.service';
 import { BookmarksProviderService } from '../../services/bookmarks-provider.service';
@@ -17,7 +17,7 @@ import { BookmarksProviderService } from '../../services/bookmarks-provider.serv
 })
 export class AiSettingsComponent {
   private fb = inject(FormBuilder);
-  private store = inject(BookmarksStore);
+  private store = inject(AiStore);
   private tagsService = inject(TagsService);
   private aiService = inject(AiService);
   private provider = inject(BookmarksProviderService);
@@ -57,10 +57,10 @@ export class AiSettingsComponent {
   public discoveryError = computed(() => this.discoveryResource.error() ? 'Failed to discover models' : '');
 
   public configForm = this.fb.group({
-    baseUrl: [this.store.prefs.aiConfig().baseUrl],
-    apiKey: [this.store.prefs.aiConfig().apiKey],
-    model: [this.store.prefs.aiConfig().model],
-    allowNewTags: [this.store.prefs.aiConfig().allowNewTags]
+    baseUrl: [this.store.aiConfig().baseUrl],
+    apiKey: [this.store.aiConfig().apiKey],
+    model: [this.store.aiConfig().model],
+    allowNewTags: [this.store.aiConfig().allowNewTags]
   });
 
   public saveConfig() {

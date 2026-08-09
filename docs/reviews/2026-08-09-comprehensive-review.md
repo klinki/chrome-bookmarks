@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and thirteen of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-15 now have focused regression coverage or an explicit owner disposition.
+Both High-severity findings, thirteen of fourteen Medium-severity findings, and one Low-severity finding are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-16 now have focused regression coverage or an explicit owner disposition.
 
-Material risks remain in accessibility, logging, and bundle hygiene.
+Material risks remain in accessibility, logging, bundle hygiene, and benchmark reliability.
 
 ### Finding status
 
@@ -44,17 +44,17 @@ Material risks remain in accessibility, logging, and bundle hygiene.
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
 | Medium | 14 | 1 | 13 |
-| Low | 5 | 5 | 0 |
-| **Total** | **21** | **6** | **15** |
+| Low | 5 | 4 | 1 |
+| **Total** | **21** | **5** | **16** |
 
 ## Verification results
 
 | Check | Result | Evidence |
 |---|---|---|
-| Unit tests | **Pass** | 30 files passed; 143 tests passed with missing-test failures enabled. Previously skipped BookmarkView and context-menu suites now execute; the obsolete list-table placeholder suite was removed. |
+| Unit tests | **Pass** | 27 files passed; 137 tests passed with missing-test failures enabled after unreachable suites and wrappers were removed. |
 | Playwright E2E | **Pass** | 36 tests passed, including recursive folder opening, empty-list drops, and search-result drag rejection. |
-| Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 79 existing warnings; CI now runs `npm run lint`. |
-| Production build | **Pass with warnings** | Initial bundle 850.76 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
+| Nx lint | **Pass with warnings** | `nx lint bookmarks` completes with 0 errors and 52 existing warnings; CI runs `npm run lint`. |
+| Production build | **Pass with warnings** | Initial bundle 848.23 kB versus 500 kB warning budget; AI settings CSS 4.30 kB versus 2 kB warning budget; Angular reports unused CDK imports and a redundant optional chain. |
 | Working-tree whitespace | **Pass** | `git diff --check` passed after the T-04 through T-09 fixes. |
 
 ## Positive observations
@@ -280,18 +280,19 @@ No further change required.
 - **Severity:** Low
 - **Priority:** P2
 - **Difficulty:** Medium
-- **Status:** Confirmed by reference search
+- **Status:** Fixed 2026-08-09
 
-The active UI uses `BookmarksFacadeService` plus `SelectionService`, while `BookmarksStore` still contains legacy bookmark nodes, selected-folder, search, and folder-open state that is not used by the rendered bookmark view (`src/app/services/bookmarks.store.ts:60-124`). The store is currently needed mainly for AI preferences/progress.
+Bookmark UI state now has one path: `BookmarksFacadeService` derives bookmark data and `SelectionService` owns selection/expansion. The former `BookmarksStore` was reduced and renamed to `AiStore`; it now owns only AI configuration and categorization progress.
 
-Other unreachable or vestigial code includes:
+Removed unreachable code:
 
-- `ListViewMatTableComponent`, referenced only by its skipped test.
-- `FilterBookmarksPipe`, with no template or source consumer.
-- `StorageService`/`StorageArea`, referenced only by their test.
-- Empty lifecycle hooks, the no-op `DragAndDropService.init()`, unused component inputs, and unused injected services such as `Router` in `FolderMenuComponent`.
+- `ListViewMatTableComponent` and its unused virtual-scroll dependency.
+- `FilterBookmarksPipe`.
+- `StorageService` and `StorageArea`.
+- Dead bookmark/search/selection state types and utility functions.
+- Empty lifecycle hooks and constructors, the no-op drag initialization path, obsolete list inputs, and the unused `Router`/change-detector injections in `FolderMenuComponent`.
 
-Choose one state architecture, migrate live behavior, and delete the abandoned path rather than maintaining parallel models.
+`DragAndDropService.start()` now registers document listeners explicitly and idempotently. Focused tests verify startup, state consumers, drag behavior, and folder menus; the full unit suite and production build pass.
 
 ### F-17 — application code imports private RxJS internals
 
@@ -300,7 +301,7 @@ Choose one state architecture, migrate live behavior, and delete the abandoned p
 - **Difficulty:** Low
 - **Status:** Confirmed
 
-`bookmarks-facade.service.ts`, `bookmarks-provider.service.ts`, and `bookmarks.store.ts` import `fromPromise` from `rxjs/internal/observable/innerFrom`. Private paths are not a compatibility contract and can break on an RxJS upgrade.
+`bookmarks-facade.service.ts` and `bookmarks-provider.service.ts` import `fromPromise` from `rxjs/internal/observable/innerFrom`. Private paths are not a compatibility contract and can break on an RxJS upgrade.
 
 Use the public `from()` API from `rxjs` for Promises.
 
@@ -377,7 +378,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [x] **T-15 — Add an Nx lint target, make lint part of CI, enforce missing-test failures, and close skipped-suite gaps; retain `test-results/` by owner decision.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Resolved 2026-08-09**
-- [ ] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
+- [x] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
 - [ ] **T-18 — Remove production console logging or gate it behind a development logger.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
 - [ ] **T-19 — Add keyboard/ARIA behavior for list sorting, row selection, tree navigation, and modal focus.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**

@@ -76,12 +76,11 @@ describe('Performance: getFavicon', () => {
 
 
 @Component({
-  template: `<app-list-view [items]="items" [columns]="columns"></app-list-view>`,
+  template: `<app-list-view [items]="items"></app-list-view>`,
   imports: [ListViewComponent]
 })
 class HostComponent {
   items: chrome.bookmarks.BookmarkTreeNode[] = [];
-  columns: string[] = ['title', 'url', 'dateAdded', 'dateLastUsed', 'tags'];
 }
 
 describe('ListViewComponent Performance', () => {

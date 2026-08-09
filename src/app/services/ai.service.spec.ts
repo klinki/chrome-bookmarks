@@ -1,23 +1,21 @@
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { AiService } from './ai.service';
-import { BookmarksStore } from './bookmarks.store';
+import { AiStore } from './ai.store';
 import { TagsService } from './tags.service';
 
 describe('AiService', () => {
     let service: AiService;
-    let mockBookmarksStore: any;
+    let mockAiStore: any;
     let mockTagsService: any;
 
     beforeEach(() => {
-        mockBookmarksStore = {
-            prefs: {
-                aiConfig: vi.fn().mockReturnValue({
-                    baseUrl: 'http://localhost:11434/v1',
-                    apiKey: '',
-                    model: 'llama3:latest'
-                })
-            },
+        mockAiStore = {
+            aiConfig: vi.fn().mockReturnValue({
+                baseUrl: 'http://localhost:11434/v1',
+                apiKey: '',
+                model: 'llama3:latest'
+            }),
             progress: {
                 isProcessing: vi.fn().mockReturnValue(false),
                 isPaused: vi.fn().mockReturnValue(false),
@@ -36,7 +34,7 @@ describe('AiService', () => {
         TestBed.configureTestingModule({
             providers: [
                 AiService,
-                { provide: BookmarksStore, useValue: mockBookmarksStore },
+                { provide: AiStore, useValue: mockAiStore },
                 { provide: TagsService, useValue: mockTagsService }
             ]
         });
@@ -64,14 +62,14 @@ describe('AiService', () => {
 
     describe('suggestTags', () => {
         it('should throw error if baseUrl is not configured', async () => {
-            mockBookmarksStore.prefs.aiConfig.mockReturnValue({ baseUrl: '' });
+            mockAiStore.aiConfig.mockReturnValue({ baseUrl: '' });
 
             await expect(service.suggestTags([], []))
                 .rejects.toThrowError('AI Base URL is not configured');
         });
 
         it('should filter out new tags when allowNewTags is false', async () => {
-            mockBookmarksStore.prefs.aiConfig.mockReturnValue({
+            mockAiStore.aiConfig.mockReturnValue({
                 baseUrl: 'http://localhost:11434/v1',
                 apiKey: '',
                 model: 'llama3:latest',
@@ -103,7 +101,7 @@ describe('AiService', () => {
         });
 
         it('should allow new tags when allowNewTags is true', async () => {
-             mockBookmarksStore.prefs.aiConfig.mockReturnValue({
+             mockAiStore.aiConfig.mockReturnValue({
                 baseUrl: 'http://localhost:11434/v1',
                 apiKey: '',
                 model: 'llama3:latest',
@@ -157,10 +155,10 @@ describe('AiService', () => {
             service.cancelCategorization();
             await expect(categorization).resolves.toBeUndefined();
 
-            expect(mockBookmarksStore.cancelCategorization).toHaveBeenCalledTimes(1);
+            expect(mockAiStore.cancelCategorization).toHaveBeenCalledTimes(1);
             expect(requestSignal?.aborted).toBe(true);
             expect(mockTagsService.setTagsForBookmarks).not.toHaveBeenCalled();
-            expect(mockBookmarksStore.updateProgress).toHaveBeenLastCalledWith({
+            expect(mockAiStore.updateProgress).toHaveBeenLastCalledWith({
                 isProcessing: false
             });
             vi.unstubAllGlobals();

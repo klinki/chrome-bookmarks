@@ -26,7 +26,6 @@ export class ImportExportService {
   private bookmarksProvider = inject(BookmarksProviderService);
   private tagsService = inject(TagsService);
 
-  constructor() { }
 
   public async exportJson() {
     const tree = await this.bookmarksProvider.getBookmarks();

@@ -1,5 +1,5 @@
-import { Component, OnInit, HostListener, OnChanges, SimpleChanges, input, signal,
-  inject, ChangeDetectionStrategy, computed, effect } from '@angular/core';
+import { Component, HostListener, input, signal, inject, ChangeDetectionStrategy,
+  computed, effect } from '@angular/core';
 
 import { DatePipe } from '@angular/common';
 import { CdkContextMenuTrigger } from "@angular/cdk/menu";
@@ -30,10 +30,8 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
   ],
 
 })
-export class ListViewComponent implements OnInit, OnChanges {
+export class ListViewComponent {
   public items = input<chrome.bookmarks.BookmarkTreeNode[] | null>([]);
-  public columns = input<string[]>([]);
-  public selectedColumns = input<string[]>([]);
   public selectedItems = input<Set<string>>(new Set());
 
   public contextMenuBookmark: chrome.bookmarks.BookmarkTreeNode | null = null;
@@ -102,10 +100,6 @@ export class ListViewComponent implements OnInit, OnChanges {
     return this.selectedItems().has(item.id);
   }
 
-  ngOnInit() { }
-  ngOnChanges(changes: SimpleChanges): void {
-    console.log(changes);
-  }
 
   public orderBy(column: BookmarkSortColumn) {
     const current = this.orderProperties();
@@ -128,6 +122,17 @@ export class ListViewComponent implements OnInit, OnChanges {
   ): string | number | undefined {
     if (column === 'tags') {
       return this.tagsService.getTagsForBookmark(item.id).join(', ');
+    }
+
+    return this.getNativeColumnValue(item, column);
+  }
+
+  private getNativeColumnValue(
+    item: chrome.bookmarks.BookmarkTreeNode,
+    column: Exclude<BookmarkSortColumn, 'tags'>
+  ): string | number | undefined {
+    if (column === 'dateLastUsed') {
+      return (item as chrome.bookmarks.BookmarkTreeNode & { dateLastUsed?: number }).dateLastUsed;
     }
 
     return item[column];

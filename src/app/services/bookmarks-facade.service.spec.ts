@@ -6,8 +6,6 @@ import { BookmarksFacadeService } from './bookmarks-facade.service';
 import { BookmarksProviderService } from './bookmarks-provider.service';
 import { SelectionService } from './selection.service';
 import { TagsService } from './tags.service';
-import { AiService } from './ai.service';
-import { BookmarksStore } from './bookmarks.store';
 import { signal } from '@angular/core';
 
 describe('BookmarksFacadeService', () => {
@@ -45,11 +43,6 @@ describe('BookmarksFacadeService', () => {
     bookmarkTags: signal<Record<string, string[]>>({}),
     getTagsForBookmark: vi.fn().mockReturnValue([])
   };
-  const mockAiService = {};
-  const mockStore = {
-    loading: signal(false),
-    error: signal(null)
-  };
 
   beforeEach(() => {
     onCreatedEvent$ = new Subject();
@@ -86,8 +79,6 @@ describe('BookmarksFacadeService', () => {
         { provide: BookmarksProviderService, useValue: mockBookmarksProvider },
         { provide: SelectionService, useValue: mockSelectionService },
         { provide: TagsService, useValue: mockTagsService },
-        { provide: AiService, useValue: mockAiService },
-        { provide: BookmarksStore, useValue: mockStore }
       ]
     });
     service = TestBed.inject(BookmarksFacadeService);

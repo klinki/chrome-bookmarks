@@ -70,8 +70,8 @@ export class BookmarksFacadeService {
       this.treeSnapshot$,
       toObservable(this.tagsService.availableTags)
     ]).pipe(
-      map(([snapshot, tags]) => {
-        const topServers = Array.from(snapshot.serverCounts)
+      map(([snapshot, tags]): chrome.bookmarks.BookmarkTreeNode[] => {
+        const topServers: chrome.bookmarks.BookmarkTreeNode[] = Array.from(snapshot.serverCounts)
           .sort((left, right) => right[1] - left[1])
           .slice(0, 20)
           .map(([hostname]) => ({
@@ -242,8 +242,6 @@ export class BookmarksFacadeService {
     };
   }
 
-  constructor() {
-  }
 
 
   public search(searchTerm: string|null) {

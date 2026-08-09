@@ -63,8 +63,19 @@ export class OrderByPipe implements PipeTransform {
     if (column === 'tags') {
       return '';
     }
-    return item[column];
+    return this.getNativeColumnValue(item, column);
   };
+
+  private getNativeColumnValue(
+    item: chrome.bookmarks.BookmarkTreeNode,
+    column: Exclude<BookmarkSortColumn, 'tags'>
+  ): string | number | undefined {
+    if (column === 'dateLastUsed') {
+      return (item as chrome.bookmarks.BookmarkTreeNode & { dateLastUsed?: number }).dateLastUsed;
+    }
+
+    return item[column];
+  }
 
   private compareNodeKinds(
     left: chrome.bookmarks.BookmarkTreeNode,
