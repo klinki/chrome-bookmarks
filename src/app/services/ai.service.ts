@@ -188,17 +188,19 @@ ${instruction}
 
                 const suggestions = await this.suggestTags(batch, availableTags, controller.signal);
 
+                const tagUpdates: Record<string, string[]> = {};
+                const newAvailableTags: string[] = [];
                 for (const [id, tags] of Object.entries(suggestions)) {
                     if (controller.signal.aborted || this.store.progress.isCancelled()) {
                         return;
                     }
 
                     const current = this.tagsService.getTagsForBookmark(id);
-                    const merged = Array.from(new Set([...current, ...tags]));
-                    this.tagsService.setTagsForBookmark(id, merged);
-
-                    tags.forEach(tag => this.tagsService.addAvailableTag(tag));
+                    tagUpdates[id] = Array.from(new Set([...current, ...tags]));
+                    newAvailableTags.push(...tags);
                 }
+                this.tagsService.setTagsForBookmarks(tagUpdates);
+                this.tagsService.addAvailableTags(newAvailableTags);
 
                 this.store.updateProgress({
                     processed: Math.min(i + batch.length, total)

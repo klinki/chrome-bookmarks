@@ -156,15 +156,15 @@ export class BookmarkDetailComponent {
     try {
       const suggestions = await this.aiService.suggestTags(sel, this.tagsService.availableTags());
 
+      const tagUpdates: Record<string, string[]> = {};
+      const newAvailableTags: string[] = [];
       for (const [id, tags] of Object.entries(suggestions)) {
-        // Merge suggested tags with existing ones
         const current = this.tagsService.getTagsForBookmark(id);
-        const merged = Array.from(new Set([...current, ...tags]));
-        this.tagsService.setTagsForBookmark(id, merged);
-
-        // Also ensure suggested tags are in the available pool
-        tags.forEach(tag => this.tagsService.addAvailableTag(tag));
+        tagUpdates[id] = Array.from(new Set([...current, ...tags]));
+        newAvailableTags.push(...tags);
       }
+      this.tagsService.setTagsForBookmarks(tagUpdates);
+      this.tagsService.addAvailableTags(newAvailableTags);
     } catch (e) {
       console.error('AI categorization failed:', e);
       alert('AI categorization failed. Check console for details.');

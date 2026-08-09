@@ -11,8 +11,8 @@ describe('ImportExportService', () => {
   let tagsService: {
     bookmarkTags: ReturnType<typeof vi.fn>;
     availableTags: ReturnType<typeof vi.fn>;
-    setTagsForBookmark: ReturnType<typeof vi.fn>;
-    addAvailableTag: ReturnType<typeof vi.fn>;
+    setTagsForBookmarks: ReturnType<typeof vi.fn>;
+    addAvailableTags: ReturnType<typeof vi.fn>;
     setAvailableTags: ReturnType<typeof vi.fn>;
   };
 
@@ -30,8 +30,8 @@ describe('ImportExportService', () => {
     tagsService = {
       bookmarkTags: vi.fn().mockReturnValue({}),
       availableTags: vi.fn().mockReturnValue(['Existing']),
-      setTagsForBookmark: vi.fn(),
-      addAvailableTag: vi.fn(),
+      setTagsForBookmarks: vi.fn(),
+      addAvailableTags: vi.fn(),
       setAvailableTags: vi.fn()
     };
 
@@ -86,7 +86,7 @@ describe('ImportExportService', () => {
     await expect(service.importJson(fileWith(JSON.stringify(backup))))
       .rejects.toThrow('Invalid bookmark URL');
     expect(create).not.toHaveBeenCalled();
-    expect(tagsService.setTagsForBookmark).not.toHaveBeenCalled();
+    expect(tagsService.setTagsForBookmarks).not.toHaveBeenCalled();
   });
 
   it('rejects malformed JSON tags before mutating bookmarks', async () => {
@@ -119,7 +119,7 @@ describe('ImportExportService', () => {
     await expect(service.importHtml(fileWith(html)))
       .rejects.toThrow('Bookmark HTML entry is missing a URL');
     expect(create).not.toHaveBeenCalled();
-    expect(tagsService.setTagsForBookmark).not.toHaveBeenCalled();
+    expect(tagsService.setTagsForBookmarks).not.toHaveBeenCalled();
   });
 
   it('imports a validated JSON plan and restores its tags', async () => {
@@ -147,8 +147,11 @@ describe('ImportExportService', () => {
       title: 'Bookmark',
       url: 'https://example.com'
     });
-    expect(tagsService.setTagsForBookmark).toHaveBeenCalledWith('new-2', ['Reference']);
-    expect(tagsService.addAvailableTag).toHaveBeenCalledWith('Reference');
+    expect(tagsService.setTagsForBookmarks).toHaveBeenCalledTimes(1);
+    expect(tagsService.setTagsForBookmarks).toHaveBeenCalledWith({
+      'new-2': ['Reference']
+    });
+    expect(tagsService.addAvailableTags).toHaveBeenCalledWith(new Set(['Reference']));
   });
 
   it('removes the partial tree and tag state when bookmark creation fails', async () => {
@@ -182,8 +185,12 @@ describe('ImportExportService', () => {
       .rejects.toThrow('Create failed');
 
     expect(removeTree).toHaveBeenCalledWith('import-root');
-    expect(tagsService.setTagsForBookmark).toHaveBeenCalledWith('created-first', ['Imported']);
-    expect(tagsService.setTagsForBookmark).toHaveBeenCalledWith('created-first', []);
+    expect(tagsService.setTagsForBookmarks).toHaveBeenCalledTimes(1);
+    expect(tagsService.setTagsForBookmarks).toHaveBeenCalledWith({
+      'import-root': [],
+      'created-first': []
+    });
+    expect(tagsService.addAvailableTags).not.toHaveBeenCalled();
     expect(tagsService.setAvailableTags).toHaveBeenCalledWith(['Existing']);
   });
 });

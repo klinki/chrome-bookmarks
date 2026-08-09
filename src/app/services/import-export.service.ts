@@ -139,6 +139,8 @@ export class ImportExportService {
 
     const originalAvailableTags = [...this.tagsService.availableTags()];
     const createdIds: string[] = [];
+    const importedTags: Record<string, string[]> = {};
+    const importedAvailableTags = new Set<string>();
     let importFolder: chrome.bookmarks.BookmarkTreeNode | undefined;
 
     try {
@@ -147,7 +149,15 @@ export class ImportExportService {
         title
       });
       createdIds.push(importFolder.id);
-      await this.importNodesWithTracking(nodes, importFolder.id, createdIds);
+      await this.importNodesWithTracking(
+        nodes,
+        importFolder.id,
+        createdIds,
+        importedTags,
+        importedAvailableTags
+      );
+      this.tagsService.setTagsForBookmarks(importedTags);
+      this.tagsService.addAvailableTags(importedAvailableTags);
     } catch (error) {
       if (!importFolder) {
         throw error;
@@ -160,14 +170,10 @@ export class ImportExportService {
         rollbackErrors.push(rollbackError);
       }
 
-      for (const id of createdIds) {
-        try {
-          this.tagsService.setTagsForBookmark(id, []);
-        } catch (rollbackError) {
-          rollbackErrors.push(rollbackError);
-        }
-      }
       try {
+        this.tagsService.setTagsForBookmarks(
+          Object.fromEntries(createdIds.map(id => [id, []]))
+        );
         this.tagsService.setAvailableTags(originalAvailableTags);
       } catch (rollbackError) {
         rollbackErrors.push(rollbackError);
@@ -186,7 +192,9 @@ export class ImportExportService {
   private async importNodesWithTracking(
     nodes: ImportNode[],
     parentId: string,
-    createdIds: string[]
+    createdIds: string[],
+    importedTags: Record<string, string[]>,
+    importedAvailableTags: Set<string>
   ): Promise<void> {
     for (const node of nodes) {
       const created = await this.bookmarksProvider.create({
@@ -197,11 +205,17 @@ export class ImportExportService {
       createdIds.push(created.id);
 
       if (node.tags.length > 0) {
-        this.tagsService.setTagsForBookmark(created.id, node.tags);
-        node.tags.forEach(tag => this.tagsService.addAvailableTag(tag));
+        importedTags[created.id] = node.tags;
+        node.tags.forEach(tag => importedAvailableTags.add(tag));
       }
 
-      await this.importNodesWithTracking(node.children, created.id, createdIds);
+      await this.importNodesWithTracking(
+        node.children,
+        created.id,
+        createdIds,
+        importedTags,
+        importedAvailableTags
+      );
     }
   }
 

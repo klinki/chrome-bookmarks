@@ -29,8 +29,8 @@ describe('AiService', () => {
 
         mockTagsService = {
             getTagsForBookmark: vi.fn().mockReturnValue([]),
-            setTagsForBookmark: vi.fn(),
-            addAvailableTag: vi.fn()
+            setTagsForBookmarks: vi.fn(),
+            addAvailableTags: vi.fn()
         };
 
         TestBed.configureTestingModule({
@@ -159,11 +159,32 @@ describe('AiService', () => {
 
             expect(mockBookmarksStore.cancelCategorization).toHaveBeenCalledTimes(1);
             expect(requestSignal?.aborted).toBe(true);
-            expect(mockTagsService.setTagsForBookmark).not.toHaveBeenCalled();
+            expect(mockTagsService.setTagsForBookmarks).not.toHaveBeenCalled();
             expect(mockBookmarksStore.updateProgress).toHaveBeenLastCalledWith({
                 isProcessing: false
             });
             vi.unstubAllGlobals();
+        });
+
+        it('persists each suggested tag batch with one update per tag collection', async () => {
+            vi.spyOn(service, 'suggestTags').mockResolvedValue({
+                '1': ['Work'],
+                '2': ['Reference']
+            });
+            const bookmarks = [
+                { id: '1', title: 'First', url: 'https://first.example' },
+                { id: '2', title: 'Second', url: 'https://second.example' }
+            ] as chrome.bookmarks.BookmarkTreeNode[];
+
+            await service.categorizeAll(bookmarks, []);
+
+            expect(mockTagsService.setTagsForBookmarks).toHaveBeenCalledTimes(1);
+            expect(mockTagsService.setTagsForBookmarks).toHaveBeenCalledWith({
+                '1': ['Work'],
+                '2': ['Reference']
+            });
+            expect(mockTagsService.addAvailableTags).toHaveBeenCalledTimes(1);
+            expect(mockTagsService.addAvailableTags).toHaveBeenCalledWith(['Work', 'Reference']);
         });
     });
 

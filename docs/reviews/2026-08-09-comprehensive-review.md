@@ -33,9 +33,9 @@
 
 The application has a useful test base, strict TypeScript and Angular template settings, signal-based state, immutable selection-set updates, and explicit bookmark-event refresh flows. The current folder-deletion change is covered by focused unit tests and correctly selects the parent folder after deletion.
 
-Both High-severity findings and eleven of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-13 now have focused regression coverage.
+Both High-severity findings and twelve of fourteen Medium-severity findings are fixed. Cross-platform selection recognizes macOS modifiers; Chrome adapters propagate Promise rejections; the development mock matches Chrome mutation/event semantics; and T-04 through T-14 now have focused regression coverage.
 
-Material risks remain in tag persistence, accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
+Material risks remain in accessibility, logging, and bundle/test hygiene. The repository also has no configured Nx lint target.
 
 ### Finding status
 
@@ -43,9 +43,9 @@ Material risks remain in tag persistence, accessibility, logging, and bundle/tes
 |---|---:|---:|---:|
 | Critical | 0 | 0 | 0 |
 | High | 2 | 0 | 2 |
-| Medium | 14 | 3 | 11 |
+| Medium | 14 | 2 | 12 |
 | Low | 5 | 5 | 0 |
-| **Total** | **21** | **8** | **13** |
+| **Total** | **21** | **7** | **14** |
 
 ## Verification results
 
@@ -255,11 +255,11 @@ Save completion marks the form pristine only when both the selected bookmark ID 
 - **Severity:** Medium
 - **Priority:** P2
 - **Difficulty:** Medium
-- **Status:** Confirmed implementation; growth impact is [INFERENCE]
+- **Status:** Fixed 2026-08-09
 
-The local-storage fallback parses tag JSON without error handling (`src/app/services/tags.service.ts:31-40`), while Chrome storage values are trusted without runtime shape validation (`:21-30`). Tags associated with removed bookmark IDs are never deleted. AI and import flows add available tags one at a time, and each addition writes storage and updates a signal (`ai.service.ts:183-192`; `import-export.service.ts:58-65,223-228`).
+`TagsService` now validates and normalizes both Chrome and local-storage payloads, recovers from malformed JSON, trims and deduplicates tags, and removes metadata when Chrome emits a bookmark-removal event.
 
-Malformed data can prevent startup in local development, and stale bookmark IDs can grow indefinitely [INFERENCE]. Validate and normalize persisted data, subscribe to bookmark removal for cleanup, and expose batch mutation methods that perform one signal update and one storage write.
+Batch APIs update bookmark-tag records and available tags once per collection. AI categorization and imports use those APIs; imports accumulate tag changes until bookmark creation succeeds. Focused tests cover malformed data, runtime shape validation, deletion cleanup, batched persistence, and the AI/import callers.
 
 ### F-15 — quality gates are incomplete and artifact paths violate repository rules
 
@@ -376,7 +376,7 @@ Keep correctness tests deterministic. Move benchmarks to a dedicated benchmark c
 - [x] **T-11 — Replace the sort comparator with typed column accessors and add Tags/folder ordering tests.** Severity: **Medium** · Priority: **P1** · Difficulty: **Low** · Status: **Fixed 2026-08-09**
 - [x] **T-12 — Share one bookmark-tree snapshot per revision and derive directories, maps, servers, tags, and items from it.** Severity: **Medium** · Priority: **P2** · Difficulty: **High** · Status: **Fixed 2026-08-09**
 - [x] **T-13 — Synchronize same-ID bookmark refreshes and guard save completion against selection changes.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
-- [ ] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium**
+- [x] **T-14 — Validate tag persistence, remove deleted-bookmark metadata, and batch storage writes.** Severity: **Medium** · Priority: **P2** · Difficulty: **Medium** · Status: **Fixed 2026-08-09**
 - [ ] **T-15 — Add an Nx lint target, make lint part of CI, move reports under `.temp/`, and remove skipped/pass-with-no-tests gaps.** Severity: **Medium** · Priority: **P1** · Difficulty: **Medium**
 - [ ] **T-16 — Consolidate bookmark state and remove unreachable components, pipes, storage wrappers, hooks, inputs, and injections.** Severity: **Low** · Priority: **P2** · Difficulty: **Medium**
 - [ ] **T-17 — Replace private `rxjs/internal` imports with public `from()` imports.** Severity: **Low** · Priority: **P2** · Difficulty: **Low**
