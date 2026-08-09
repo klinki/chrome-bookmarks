@@ -75,6 +75,7 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
         try {
             console.log('E2E: Starting mock injection');
             (window as any).isE2E = true;
+            (window as any).e2eOpenedTabs = [];
 
             const findNode = (node: any, targetId: string): any => {
                 if (node.id === targetId) return node;
@@ -149,6 +150,12 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                 runtime: {
                     getURL: (path: string) => path,
                 },
+                tabs: {
+                    create: (options: chrome.tabs.CreateProperties) => {
+                        (window as any).e2eOpenedTabs.push(options);
+                        return Promise.resolve({ id: (window as any).e2eOpenedTabs.length, ...options });
+                    }
+                },
                 storage: {
                     local: {
                         get: (
@@ -210,6 +217,19 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                         const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
                         const nodes = ids.map(id => findNode(rootNodeArg, id)).filter(node => !!node);
                         const result = JSON.parse(JSON.stringify(nodes));
+                        if (callback) {
+                            callback(result);
+                            return;
+                        }
+
+                        return Promise.resolve(result);
+                    },
+                    getSubTree: (
+                        id: string,
+                        callback?: (nodes: chrome.bookmarks.BookmarkTreeNode[]) => void
+                    ) => {
+                        const node = findNode(rootNodeArg, id);
+                        const result = node ? [JSON.parse(JSON.stringify(node))] : [];
                         if (callback) {
                             callback(result);
                             return;

@@ -37,12 +37,32 @@ export class FolderMenuComponent {
     this.cdr.detectChanges(); // this is needed to re-render deeply nested menu items
   }
 
-  openInNewTab() {
-    window.open(this.getUrl(), "_blank");
-  }
+  async openAllBookmarks() {
+    const folder = this.folder;
+    if (!folder || folder.url) {
+      return;
+    }
 
-  openInNewWindow() {
-    window.open(this.getUrl(), "_blank");
+    try {
+      const [subTree] = await this.bookmarksService.getSubTree(folder.id);
+      if (!subTree) {
+        throw new Error(`Folder ${folder.id} was not found`);
+      }
+
+      const nodes = [subTree];
+      while (nodes.length > 0) {
+        const node = nodes.pop()!;
+        if (node.url) {
+          await chrome.tabs.create({ url: node.url, active: false });
+        } else if (node.children) {
+          for (let i = node.children.length - 1; i >= 0; i--) {
+            nodes.push(node.children[i]);
+          }
+        }
+      }
+    } catch {
+      alert('Failed to open bookmarks.');
+    }
   }
 
   async createNewFolder() {
@@ -115,9 +135,7 @@ export class FolderMenuComponent {
     }
   }
 
-  private getUrl() {
-    return this.folder?.url;
-  }
+
 
   private isProtectedFolder(folder: chrome.bookmarks.BookmarkTreeNode) {
     return !!folder.url

@@ -180,3 +180,19 @@ test('Search functionality finds items across folders and types', async ({ page 
     await expect(detail.getByText('Bookmark Details')).toBeVisible();
     await expect(detail.locator('input[name="title"]')).toHaveValue('Duplicate Item 1');
 });
+
+test('Folder menu opens every descendant bookmark in background tabs', async ({ page }) => {
+    await expandFolder(page, 'Bookmarks Bar');
+    const folderRow = page.locator('app-tree-view .tree-row').filter({
+        has: page.locator('.tree-label', { hasText: /^Only Bookmarks$/ })
+    }).first();
+
+    await folderRow.click({ button: 'right' });
+    await page.getByText('Open all bookmarks', { exact: true }).click();
+
+    await expect.poll(() => page.evaluate(() => (window as any).e2eOpenedTabs))
+        .toEqual([
+            { url: 'https://example.com/b1', active: false },
+            { url: 'https://example.com/b2', active: false }
+        ]);
+});

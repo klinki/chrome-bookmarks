@@ -12,9 +12,11 @@ describe('FolderMenuComponent', () => {
   let confirmSpy: MockInstance;
   let alertSpy: MockInstance;
   let promptSpy: MockInstance;
+  let createTabSpy: ReturnType<typeof vi.fn>;
 
   const mockBookmarksService = {
     get: vi.fn(),
+    getSubTree: vi.fn(),
     remove: vi.fn().mockResolvedValue(undefined),
     create: vi.fn()
   };
@@ -42,13 +44,17 @@ describe('FolderMenuComponent', () => {
     confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     promptSpy = vi.spyOn(window, 'prompt').mockReturnValue(null);
     alertSpy = vi.spyOn(window, 'alert').mockImplementation(() => {});
+    createTabSpy = vi.fn().mockResolvedValue(undefined);
+    (chrome as any).tabs = { create: createTabSpy };
     mockBookmarksService.get.mockReset();
     mockBookmarksService.remove.mockReset();
     mockBookmarksService.create.mockReset();
+    mockBookmarksService.getSubTree.mockReset();
     mockBookmarksService.create.mockResolvedValue(undefined);
     mockSelectionService.clearDirectorySelection.mockReset();
     mockSelectionService.selectDirectory.mockReset();
     mockBookmarksService.get.mockResolvedValue([]);
+    mockBookmarksService.getSubTree.mockResolvedValue([]);
 
     fixture = TestBed.createComponent(FolderMenuComponent);
     component = fixture.componentInstance;
@@ -59,10 +65,49 @@ describe('FolderMenuComponent', () => {
     confirmSpy.mockRestore();
     alertSpy.mockRestore();
     promptSpy.mockRestore();
+    (chrome as any).tabs = undefined;
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+  it('opens every descendant bookmark in folder order', async () => {
+    component.folder = { id: 'folder', title: 'Folder', children: [] };
+    mockBookmarksService.getSubTree.mockResolvedValue([{
+      id: 'folder',
+      title: 'Folder',
+      children: [
+        { id: 'first', title: 'First', url: 'https://first.example' },
+        {
+          id: 'nested',
+          title: 'Nested',
+          children: [
+            { id: 'second', title: 'Second', url: 'https://second.example' }
+          ]
+        }
+      ]
+    }]);
+
+    await component.openAllBookmarks();
+
+    expect(mockBookmarksService.getSubTree).toHaveBeenCalledWith('folder');
+    expect(createTabSpy).toHaveBeenNthCalledWith(1, {
+      url: 'https://first.example',
+      active: false
+    });
+    expect(createTabSpy).toHaveBeenNthCalledWith(2, {
+      url: 'https://second.example',
+      active: false
+    });
+  });
+
+  it('reports failures while opening folder bookmarks', async () => {
+    component.folder = { id: 'folder', title: 'Folder', children: [] };
+    mockBookmarksService.getSubTree.mockRejectedValueOnce(new Error('Read failed'));
+
+    await component.openAllBookmarks();
+
+    expect(alertSpy).toHaveBeenCalledWith('Failed to open bookmarks.');
   });
 
   it('deletes an empty folder after confirmation', async () => {
