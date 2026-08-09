@@ -8,6 +8,17 @@ export interface BackupData {
   tags: BookmarkTags;
 }
 
+interface ImportNode {
+  sourceId?: string;
+  title: string;
+  url?: string;
+  tags: string[];
+  children: ImportNode[];
+}
+
+const MAX_IMPORT_DEPTH = 100;
+const MAX_IMPORT_NODES = 100_000;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -33,53 +44,164 @@ export class ImportExportService {
 
   public async importJson(file: File): Promise<void> {
     const text = await file.text();
-    const data: BackupData = JSON.parse(text);
+    const plan = this.parseJsonImport(JSON.parse(text) as unknown);
+    await this.executeImport(plan, `Imported ${new Date().toLocaleString()}`);
+  }
 
-    if (!data.root || !Array.isArray(data.root)) {
+  private parseJsonImport(value: unknown): ImportNode[] {
+    if (!this.isRecord(value)
+      || value['version'] !== 1
+      || !Array.isArray(value['root'])) {
       throw new Error('Invalid backup file format');
     }
 
-    // Create a root folder for import
-    // '1' is typically Bookmarks Bar.
-    const importFolder = await this.bookmarksProvider.create({
-      parentId: '1',
-      title: `Imported ${new Date().toLocaleString()}`
-    });
-
-    const idMap = new Map<string, string>();
-
-    // data.root is [rootNode]. We want the children of rootNode (Bar, Other, etc)
-    const nodesToImport = data.root[0]?.children || data.root;
-
-    for (const node of nodesToImport) {
-        await this.recursiveImport(node, importFolder.id, idMap);
+    const tagsById = new Map<string, string[]>();
+    const rawTags = value['tags'];
+    if (rawTags != null) {
+      if (!this.isRecord(rawTags)) {
+        throw new Error('Invalid backup tags');
+      }
+      for (const [id, tags] of Object.entries(rawTags)) {
+        if (!Array.isArray(tags)
+          || tags.some(tag => typeof tag !== 'string' || tag.trim() === '')) {
+          throw new Error(`Invalid tags for bookmark ${id}`);
+        }
+        tagsById.set(id, [...tags]);
+      }
     }
 
-    // Restore tags
-    if (data.tags) {
-        for (const [oldId, tags] of Object.entries(data.tags)) {
-            const newId = idMap.get(oldId);
-            if (newId) {
-                this.tagsService.setTagsForBookmark(newId, tags);
-                tags.forEach(tag => this.tagsService.addAvailableTag(tag));
-            }
+    const seenIds = new Set<string>();
+    const count = { value: 0 };
+    const roots = value['root'].map(node =>
+      this.parseJsonNode(node, tagsById, seenIds, count, 0));
+
+    if (roots.length === 1 && roots[0].sourceId === '0') {
+      return roots[0].children;
+    }
+    return roots;
+  }
+
+  private parseJsonNode(
+    value: unknown,
+    tagsById: Map<string, string[]>,
+    seenIds: Set<string>,
+    count: { value: number },
+    depth: number
+  ): ImportNode {
+    this.countImportNode(count, depth);
+    if (!this.isRecord(value)
+      || typeof value['id'] !== 'string'
+      || value['id'].trim() === ''
+      || typeof value['title'] !== 'string') {
+      throw new Error('Invalid bookmark node');
+    }
+
+    const id = value['id'];
+    if (seenIds.has(id)) {
+      throw new Error(`Duplicate bookmark ID: ${id}`);
+    }
+    seenIds.add(id);
+
+    const rawUrl = value['url'];
+    const rawChildren = value['children'];
+    if (rawUrl != null && typeof rawUrl !== 'string') {
+      throw new Error(`Invalid bookmark URL for ${id}`);
+    }
+    if (rawChildren != null && !Array.isArray(rawChildren)) {
+      throw new Error(`Invalid bookmark children for ${id}`);
+    }
+    if (typeof rawUrl === 'string' && rawChildren != null) {
+      throw new Error(`Bookmark ${id} cannot contain children`);
+    }
+    if (typeof rawUrl === 'string') {
+      this.validateBookmarkUrl(rawUrl);
+    }
+
+    return {
+      sourceId: id,
+      title: value['title'],
+      ...(typeof rawUrl === 'string' ? { url: rawUrl } : {}),
+      tags: tagsById.get(id) ?? [],
+      children: Array.isArray(rawChildren)
+        ? rawChildren.map(child =>
+          this.parseJsonNode(child, tagsById, seenIds, count, depth + 1))
+        : []
+    };
+  }
+
+
+  private async executeImport(nodes: ImportNode[], title: string): Promise<void> {
+    const [root] = await this.bookmarksProvider.getBookmarks();
+    const destination = root?.children?.[0];
+    if (!destination || destination.url) {
+      throw new Error('Bookmarks bar folder was not found');
+    }
+
+    const originalAvailableTags = [...this.tagsService.availableTags()];
+    const createdIds: string[] = [];
+    let importFolder: chrome.bookmarks.BookmarkTreeNode | undefined;
+
+    try {
+      importFolder = await this.bookmarksProvider.create({
+        parentId: destination.id,
+        title
+      });
+      createdIds.push(importFolder.id);
+      await this.importNodesWithTracking(nodes, importFolder.id, createdIds);
+    } catch (error) {
+      if (!importFolder) {
+        throw error;
+      }
+
+      const rollbackErrors: unknown[] = [];
+      try {
+        await this.bookmarksProvider.removeTree(importFolder.id);
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+
+      for (const id of createdIds) {
+        try {
+          this.tagsService.setTagsForBookmark(id, []);
+        } catch (rollbackError) {
+          rollbackErrors.push(rollbackError);
         }
+      }
+      try {
+        this.tagsService.setAvailableTags(originalAvailableTags);
+      } catch (rollbackError) {
+        rollbackErrors.push(rollbackError);
+      }
+
+      if (rollbackErrors.length > 0) {
+        throw new AggregateError(
+          [error, ...rollbackErrors],
+          'Bookmark import failed and could not be fully rolled back'
+        );
+      }
+      throw error;
     }
   }
 
-  private async recursiveImport(node: chrome.bookmarks.BookmarkTreeNode, parentId: string, idMap: Map<string, string>) {
-    const created = await this.bookmarksProvider.create({
-        parentId: parentId,
+  private async importNodesWithTracking(
+    nodes: ImportNode[],
+    parentId: string,
+    createdIds: string[]
+  ): Promise<void> {
+    for (const node of nodes) {
+      const created = await this.bookmarksProvider.create({
+        parentId,
         title: node.title,
-        url: node.url
-    });
+        ...(node.url ? { url: node.url } : {})
+      });
+      createdIds.push(created.id);
 
-    idMap.set(node.id, created.id);
+      if (node.tags.length > 0) {
+        this.tagsService.setTagsForBookmark(created.id, node.tags);
+        node.tags.forEach(tag => this.tagsService.addAvailableTag(tag));
+      }
 
-    if (node.children) {
-        for (const child of node.children) {
-            await this.recursiveImport(child, created.id, idMap);
-        }
+      await this.importNodesWithTracking(node.children, created.id, createdIds);
     }
   }
 
@@ -160,76 +282,96 @@ export class ImportExportService {
       const text = await file.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
-
-      const importFolder = await this.bookmarksProvider.create({
-          parentId: '1',
-          title: `Imported HTML ${new Date().toLocaleString()}`
-      });
-
       const dl = doc.querySelector('dl');
-      if (dl) {
-          await this.recursiveHtmlImport(dl, importFolder.id);
+      if (!dl) {
+          throw new Error('Invalid bookmark HTML format');
       }
+
+      const plan = this.parseHtmlNodes(dl, { value: 0 }, 0);
+      await this.executeImport(plan, `Imported HTML ${new Date().toLocaleString()}`);
   }
 
-  private async recursiveHtmlImport(dl: Element, parentId: string) {
+  private parseHtmlNodes(dl: Element, count: { value: number }, depth: number): ImportNode[] {
+      const result: ImportNode[] = [];
       const children = Array.from(dl.children);
 
       for (let i = 0; i < children.length; i++) {
-          const node = children[i];
+          const element = children[i];
+          if (element.tagName !== 'DT') {
+              continue;
+          }
 
-          if (node.tagName === 'DT') {
-              const h3 = node.querySelector('h3');
-              const a = node.querySelector('a');
+          this.countImportNode(count, depth);
+          const directChildren = Array.from(element.children);
+          const heading = directChildren.find(child => child.tagName === 'H3');
+          const anchor = directChildren.find(child => child.tagName === 'A');
 
-              if (h3) {
-                  const title = h3.textContent || 'Untitled';
-                  const folder = await this.bookmarksProvider.create({
-                      parentId: parentId,
-                      title: title
-                  });
+          if ((heading == null) === (anchor == null)) {
+              throw new Error('Invalid bookmark HTML entry');
+          }
 
-                  // Look for internal DL first
-                  let internalDl = node.querySelector('dl');
-                  if (internalDl) {
-                      await this.recursiveHtmlImport(internalDl, folder.id);
-                  } else {
-                      // Look ahead for DL in siblings
-                      let nextIndex = i + 1;
-                      while (nextIndex < children.length) {
-                          const next = children[nextIndex];
-                          if (next.tagName === 'DL') {
-                              await this.recursiveHtmlImport(next, folder.id);
-                              i = nextIndex;
-                              break;
-                          } else if (next.tagName === 'DT') {
-                              break;
-                          }
-                          nextIndex++;
+          if (heading) {
+              let childList = directChildren.find(child => child.tagName === 'DL');
+              if (!childList) {
+                  for (let nextIndex = i + 1; nextIndex < children.length; nextIndex++) {
+                      const next = children[nextIndex];
+                      if (next.tagName === 'DT') {
+                          break;
+                      }
+                      if (next.tagName === 'DL') {
+                          childList = next;
+                          i = nextIndex;
+                          break;
                       }
                   }
-              } else if (a) {
-                   const title = a.textContent || 'Untitled';
-                   const url = a.getAttribute('href');
-                   const tagsAttr = a.getAttribute('TAGS');
-
-                   if (url) {
-                      const bookmark = await this.bookmarksProvider.create({
-                          parentId: parentId,
-                          title: title,
-                          url: url
-                      });
-
-                      if (tagsAttr) {
-                          const tags = tagsAttr.split(',').map(t => t.trim()).filter(t => t);
-                          if (tags.length > 0) {
-                              this.tagsService.setTagsForBookmark(bookmark.id, tags);
-                              tags.forEach(tag => this.tagsService.addAvailableTag(tag));
-                          }
-                      }
-                   }
               }
+
+              result.push({
+                  title: heading.textContent?.trim() || 'Untitled',
+                  tags: [],
+                  children: childList
+                      ? this.parseHtmlNodes(childList, count, depth + 1)
+                      : []
+              });
+              continue;
           }
+
+          const url = anchor!.getAttribute('href');
+          if (!url) {
+              throw new Error('Bookmark HTML entry is missing a URL');
+          }
+          this.validateBookmarkUrl(url);
+          const tags = (anchor!.getAttribute('tags') ?? '')
+              .split(',')
+              .map(tag => tag.trim())
+              .filter(tag => tag !== '');
+          result.push({
+              title: anchor!.textContent?.trim() || 'Untitled',
+              url,
+              tags,
+              children: []
+          });
       }
+
+      return result;
+  }
+
+  private countImportNode(count: { value: number }, depth: number) {
+      count.value++;
+      if (depth > MAX_IMPORT_DEPTH || count.value > MAX_IMPORT_NODES) {
+          throw new Error('Bookmark import exceeds supported size');
+      }
+  }
+
+  private validateBookmarkUrl(url: string) {
+      try {
+          new URL(url);
+      } catch {
+          throw new Error(`Invalid bookmark URL: ${url}`);
+      }
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+      return typeof value === 'object' && value != null && !Array.isArray(value);
   }
 }

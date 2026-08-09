@@ -39,9 +39,11 @@ test.describe('Import & Export', () => {
         root: [
             {
                 id: '0',
+                title: 'root',
                 children: [
                     {
                         id: '1', // Bar
+                        title: 'Bookmarks Bar',
                         children: [
                             {
                                 id: '1001',
