@@ -36,7 +36,7 @@ export class AiSettingsComponent {
 
   // Discovery Resource
   public discoveryResource = resource({
-    loader: async () => {
+    loader: async ({ abortSignal }) => {
       const trigger = this.discoveryTrigger();
       const showModal = this.showDiscoveryModal();
 
@@ -48,7 +48,7 @@ export class AiSettingsComponent {
       // New request only happens when 'discoveryTrigger' increments (button click).
       const provider = untracked(() => this.selectedProvider());
 
-      return await this.aiService.discoverProviderModels(provider);
+      return await this.aiService.discoverProviderModels(provider, abortSignal);
     }
   });
 
@@ -80,7 +80,7 @@ export class AiSettingsComponent {
   }
 
   public cancelCategorization() {
-    this.store.cancelCategorization();
+    this.aiService.cancelCategorization();
   }
 
   public addTag(input: HTMLInputElement) {

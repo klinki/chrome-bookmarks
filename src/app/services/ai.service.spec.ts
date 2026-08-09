@@ -23,7 +23,8 @@ describe('AiService', () => {
                 isPaused: vi.fn().mockReturnValue(false),
                 isCancelled: vi.fn().mockReturnValue(false)
             },
-            updateProgress: vi.fn()
+            updateProgress: vi.fn(),
+            cancelCategorization: vi.fn()
         };
 
         mockTagsService = {
@@ -134,6 +135,38 @@ describe('AiService', () => {
         });
     });
 
+    describe('categorizeAll', () => {
+        it('aborts the in-flight request and does not apply tags after cancellation', async () => {
+            const fetchMock = vi.fn((_url: string, init: RequestInit) => {
+                return new Promise<Response>((_resolve, reject) => {
+                    init.signal?.addEventListener('abort', () => {
+                        reject(new DOMException('The operation was aborted', 'AbortError'));
+                    }, { once: true });
+                });
+            });
+            vi.stubGlobal('fetch', fetchMock);
+            const bookmarks = [{
+                id: '1',
+                title: 'Bookmark',
+                url: 'https://example.com'
+            }] as chrome.bookmarks.BookmarkTreeNode[];
+
+            const categorization = service.categorizeAll(bookmarks, ['ExistingTag']);
+            const requestSignal = (fetchMock.mock.calls[0][1] as RequestInit).signal;
+
+            service.cancelCategorization();
+            await expect(categorization).resolves.toBeUndefined();
+
+            expect(mockBookmarksStore.cancelCategorization).toHaveBeenCalledTimes(1);
+            expect(requestSignal?.aborted).toBe(true);
+            expect(mockTagsService.setTagsForBookmark).not.toHaveBeenCalled();
+            expect(mockBookmarksStore.updateProgress).toHaveBeenLastCalledWith({
+                isProcessing: false
+            });
+            vi.unstubAllGlobals();
+        });
+    });
+
     describe('discoverProviderModels', () => {
         it('should call getOllamaModels for Ollama provider', async () => {
             const ollamaProvider = service.providers.find(p => p.name === 'Ollama')!;
@@ -142,7 +175,7 @@ describe('AiService', () => {
             
             const models = await service.discoverProviderModels(ollamaProvider);
             
-            expect(service.getOllamaModels).toHaveBeenCalledWith(ollamaProvider.discoveryUrl);
+            expect(service.getOllamaModels).toHaveBeenCalledWith(ollamaProvider.discoveryUrl, undefined);
             expect(models).toEqual(['llama3', 'mistral']);
         });
 
@@ -153,7 +186,7 @@ describe('AiService', () => {
             
             const models = await service.discoverProviderModels(lmStudioProvider);
             
-            expect(service.getLMStudioModels).toHaveBeenCalledWith(lmStudioProvider.discoveryUrl);
+            expect(service.getLMStudioModels).toHaveBeenCalledWith(lmStudioProvider.discoveryUrl, undefined);
             expect(models).toEqual(['model-a', 'model-b']);
         });
 

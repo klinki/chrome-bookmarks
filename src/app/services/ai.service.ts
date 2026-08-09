@@ -14,6 +14,7 @@ export interface AiProvider {
 export class AiService {
     private store = inject(BookmarksStore);
     private tagsService = inject(TagsService);
+    private activeCategorization: AbortController | null = null;
 
     public readonly providers: AiProvider[] = [
         {
@@ -28,7 +29,11 @@ export class AiService {
         }
     ];
 
-    public async suggestTags(bookmarks: chrome.bookmarks.BookmarkTreeNode[], availableTags: string[]): Promise<Record<string, string[]>> {
+    public async suggestTags(
+        bookmarks: chrome.bookmarks.BookmarkTreeNode[],
+        availableTags: string[],
+        signal?: AbortSignal
+    ): Promise<Record<string, string[]>> {
         const config = this.store.prefs.aiConfig();
         if (!config.baseUrl) {
             throw new Error('AI Base URL is not configured');
@@ -107,7 +112,8 @@ ${instruction}
                         }
                     }
                 }
-            })
+            }),
+            signal
         });
 
         if (!response.ok) {
@@ -142,6 +148,10 @@ ${instruction}
     }
 
     public async categorizeAll(bookmarks: chrome.bookmarks.BookmarkTreeNode[], availableTags: string[]) {
+        this.activeCategorization?.abort();
+        const controller = new AbortController();
+        this.activeCategorization = controller;
+
         const bookmarksToProcess = this.flattenBookmarks(bookmarks).filter(b => !!b.url);
         const total = bookmarksToProcess.length;
         const batchSize = 10;
@@ -157,18 +167,17 @@ ${instruction}
 
         try {
             for (let i = 0; i < total; i += batchSize) {
-                // Check for cancellation
-                if (this.store.progress.isCancelled()) {
+                if (controller.signal.aborted || this.store.progress.isCancelled()) {
                     break;
                 }
 
-                // Handle Pause
-                while (this.store.progress.isPaused() && !this.store.progress.isCancelled()) {
+                while (this.store.progress.isPaused()
+                    && !controller.signal.aborted
+                    && !this.store.progress.isCancelled()) {
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
 
-                // Check again for cancellation after potential pause
-                if (this.store.progress.isCancelled()) {
+                if (controller.signal.aborted || this.store.progress.isCancelled()) {
                     break;
                 }
 
@@ -177,12 +186,12 @@ ${instruction}
                     currentBatch: `Processing ${i + 1} to ${Math.min(i + batchSize, total)} of ${total}...`
                 });
 
-                const suggestions = await this.suggestTags(batch, availableTags);
+                const suggestions = await this.suggestTags(batch, availableTags, controller.signal);
 
-                // Update tags for each bookmark in the batch
                 for (const [id, tags] of Object.entries(suggestions)) {
-                    // One last check before saving each bookmark in case of fast cancellation
-                    if (this.store.progress.isCancelled()) return;
+                    if (controller.signal.aborted || this.store.progress.isCancelled()) {
+                        return;
+                    }
 
                     const current = this.tagsService.getTagsForBookmark(id);
                     const merged = Array.from(new Set([...current, ...tags]));
@@ -195,18 +204,30 @@ ${instruction}
                     processed: Math.min(i + batch.length, total)
                 });
             }
+        } catch (error) {
+            if (!controller.signal.aborted) {
+                throw error;
+            }
         } finally {
-            this.store.updateProgress({ isProcessing: false });
+            if (this.activeCategorization === controller) {
+                this.activeCategorization = null;
+                this.store.updateProgress({ isProcessing: false });
+            }
         }
     }
 
-    public async getOllamaModels(baseUrl: string): Promise<string[]> {
+    public cancelCategorization() {
+        this.store.cancelCategorization();
+        this.activeCategorization?.abort();
+    }
+
+    public async getOllamaModels(baseUrl: string, signal?: AbortSignal): Promise<string[]> {
         // Ollama usually listens on /api/tags for model list
         // If baseUrl is http://localhost:11434/v1, we need to adjust it to http://localhost:11434/api/tags
         const url = new URL(baseUrl);
         const tagsUrl = `${url.protocol}//${url.host}/api/tags`;
 
-        const response = await fetch(tagsUrl);
+        const response = await fetch(tagsUrl, { signal });
         if (!response.ok) {
             throw new Error(`Failed to fetch Ollama models: ${response.statusText}`);
         }
@@ -215,12 +236,12 @@ ${instruction}
         return data.models.map((m: any) => m.name);
     }
 
-    public async getLMStudioModels(baseUrl: string): Promise<string[]> {
+    public async getLMStudioModels(baseUrl: string, signal?: AbortSignal): Promise<string[]> {
         // LM Studio uses OpenAI-compatible endpoint at /v1/models
         const url = new URL(baseUrl);
         const modelsUrl = `${url.protocol}//${url.host}/v1/models`;
 
-        const response = await fetch(modelsUrl);
+        const response = await fetch(modelsUrl, { signal });
         if (!response.ok) {
             throw new Error(`Failed to fetch LM Studio models: ${response.statusText}`);
         }
@@ -229,11 +250,11 @@ ${instruction}
         return data.data.map((m: any) => m.id);
     }
 
-    public async discoverProviderModels(provider: AiProvider): Promise<string[]> {
+    public async discoverProviderModels(provider: AiProvider, signal?: AbortSignal): Promise<string[]> {
         if (provider.name === 'Ollama') {
-            return await this.getOllamaModels(provider.discoveryUrl);
+            return await this.getOllamaModels(provider.discoveryUrl, signal);
         } else if (provider.name === 'LM Studio') {
-            return await this.getLMStudioModels(provider.discoveryUrl);
+            return await this.getLMStudioModels(provider.discoveryUrl, signal);
         }
         return [];
     }
