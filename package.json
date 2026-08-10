@@ -11,7 +11,7 @@
     "test": "umask 0002 && nx test --watch=false && npx playwright test",
     "test:unit": "umask 0002 && nx test --watch=false",
     "test:e2e": "umask 0002 && npx playwright test",
-    "test:e2e:visible": "umask 0002 && npx playwright test --headed",
+    "test:e2e:visible": "umask 0002 && npx playwright test --headed --workers=1",
     "lint": "nx lint bookmarks",
     "postinstall": "npx playwright install && npm run version-info",
     "affected:lint": "nx affected:lint",
