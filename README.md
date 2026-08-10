@@ -37,9 +37,14 @@ npm run test:unit
 # End-to-end tests with local parallelism
 CI='' npm run test:e2e
 
+# Visible, single-browser E2E run with slowed interactions
+CI='' npm run test:e2e:visible
+
 # Complete local suite
 CI='' npm test
 ```
+
+Visible mode adds a 300 ms delay to each Playwright action. Override it when needed, for example with `PLAYWRIGHT_SLOW_MO=750 npm run test:e2e:visible`.
 
 Do not use `CI=false`: it is a non-empty string and therefore enables CI mode. Use CI mode only for final verification:
 
