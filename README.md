@@ -26,13 +26,31 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
-## Running unit tests
+## Running tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+For fast local iteration, keep the `CI` environment variable unset or empty. Playwright uses its presence to select one worker, enable retries, and require a fresh development server; those safeguards make the suite substantially slower.
 
-## Running end-to-end tests
+```bash
+# Unit tests only
+npm run test:unit
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+# End-to-end tests with local parallelism
+CI='' npm run test:e2e
+
+# Complete local suite
+CI='' npm test
+```
+
+Do not use `CI=false`: it is a non-empty string and therefore enables CI mode. Use CI mode only for final verification:
+
+```bash
+CI=1 npm test
+npm run lint
+npm run build
+npm run benchmark
+```
+
+As a reference, the complete CI-mode suite currently contains 148 unit tests and 39 end-to-end tests. It took approximately 40 seconds on an Apple M4, while the end-to-end portion took approximately 8.5 seconds with local parallelism. Timings vary by machine.
 
 ## Further help
 
