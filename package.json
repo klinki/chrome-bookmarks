@@ -11,6 +11,7 @@
     "test": "nx test --watch=false && npx playwright test",
     "test:unit": "nx test --watch=false",
     "test:e2e": "npx playwright test",
+    "test:e2e:visible": "npx playwright test --headed",
     "lint": "nx lint bookmarks",
     "postinstall": "npx playwright install && npm run version-info",
     "affected:lint": "nx affected:lint",
