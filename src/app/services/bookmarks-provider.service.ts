@@ -1,8 +1,13 @@
 import {inject, Injectable} from '@angular/core';
 import { BookmarksService } from './chrome';
+import {
+  BulkMutationCoordinatorService,
+  BulkMutationError
+} from './bulk-mutation-coordinator.service';
 
 @Injectable()
 export class BookmarksProviderService {
+  private readonly bulkMutations = inject(BulkMutationCoordinatorService);
   protected bookmarks: any[] = [];
 
   public static EmptyDirectory: chrome.bookmarks.BookmarkTreeNode = {
@@ -81,11 +86,16 @@ export class BookmarksProviderService {
     }
 
     if (destination.index == null || destination.parentId == null) {
-      const moved: chrome.bookmarks.BookmarkTreeNode[] = [];
-      for (const id of ids) {
-        moved.push(await this.move(id, destination));
+      const result = await this.bulkMutations.run({
+        operation: 'move-bookmarks',
+        items: ids,
+        identify: id => id,
+        execute: id => this.move(id, destination)
+      });
+      if (result.cancelled || result.failures.length > 0) {
+        throw new BulkMutationError(result);
       }
-      return moved;
+      return result.results as chrome.bookmarks.BookmarkTreeNode[];
     }
 
     const tree = await this.getBookmarks();
@@ -121,13 +131,27 @@ export class BookmarksProviderService {
       indexes.reverse();
     }
 
-    const moved = new Array<chrome.bookmarks.BookmarkTreeNode>(ids.length);
-    for (const sourceIndex of indexes) {
-      moved[sourceIndex] = await this.move(ids[sourceIndex], {
+    const operations = indexes.map(sourceIndex => ({
+      id: ids[sourceIndex],
+      sourceIndex,
+      destination: {
         parentId: destination.parentId,
         index: insertionIndex + sourceIndex
-      });
+      }
+    }));
+    const result = await this.bulkMutations.run({
+      operation: 'move-bookmarks',
+      items: operations,
+      identify: operation => operation.id,
+      execute: operation => this.move(operation.id, operation.destination)
+    });
+    if (result.cancelled || result.failures.length > 0) {
+      throw new BulkMutationError(result);
     }
+    const moved = new Array<chrome.bookmarks.BookmarkTreeNode>(ids.length);
+    operations.forEach((operation, index) => {
+      moved[operation.sourceIndex] = result.results[index]!;
+    });
     return moved;
   }
 

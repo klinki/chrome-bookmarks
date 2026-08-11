@@ -68,6 +68,9 @@
           [style.width.%]="deleteProgress().total > 0 ? (deleteProgress().completed / deleteProgress().total) * 100 : 0">
         </div>
       </div>
+      <button type="button" class="delete-cancel" (click)="cancelDelete()">
+        Cancel
+      </button>
     </div>
   </div>
 }

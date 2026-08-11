@@ -1,9 +1,13 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { BookmarksProviderService } from "./bookmarks-provider.service";
 import { TagsService } from "./tags.service";
-import { Subject, combineLatest, debounceTime, distinctUntilChanged, filter, from, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
+import { combineLatest, debounceTime, distinctUntilChanged, filter, from, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
 import { SelectionService } from "./selection.service";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
+import {
+  BulkMutationCoordinatorService,
+  BulkMutationError
+} from './bulk-mutation-coordinator.service';
 
 interface BookmarkTreeSnapshot {
   tree: chrome.bookmarks.BookmarkTreeNode[];
@@ -20,12 +24,17 @@ export class BookmarksFacadeService {
   private selectionService = inject(SelectionService);
 
   private tagsService = inject(TagsService);
+  private bulkMutations = inject(BulkMutationCoordinatorService);
   private pendingDeletionIds = signal<Set<string>>(new Set());
-  private refreshRequested$ = new Subject<void>();
-  public deleteProgress = signal({
-    active: false,
-    total: 0,
-    completed: 0
+  public deleteProgress = computed(() => {
+    const progress = this.bulkMutations.progress();
+    return {
+      active: progress.active && progress.operation === 'delete-bookmarks',
+      total: progress.total,
+      completed: progress.completed,
+      failures: progress.failures,
+      cancelled: progress.cancelled
+    };
   });
 
 
@@ -40,10 +49,10 @@ export class BookmarksFacadeService {
       this.bookmarkProviderService.onCreatedEvent$,
       this.bookmarkProviderService.onRemovedEvent$,
     ).pipe(
-      filter(() => this.pendingDeletionIds().size === 0),
+      filter(() => !this.bulkMutations.isActive()),
       map(() => null)
     ),
-    this.refreshRequested$.pipe(map(() => null))
+    this.bulkMutations.completed$.pipe(map(() => null))
   ).pipe(
     startWith(null),
     shareReplay(1)
@@ -250,38 +259,27 @@ export class BookmarksFacadeService {
 
     this.selectionService.clearSelection();
     this.pendingDeletionIds.set(pendingIds);
-    this.deleteProgress.set({
-      active: true,
-      total: uniqueBookmarks.length,
-      completed: 0
-    });
-
     try {
-      const results = await Promise.allSettled(uniqueBookmarks.map(bookmark => {
-        return (bookmark.url
+      const result = await this.bulkMutations.run({
+        operation: 'delete-bookmarks',
+        items: uniqueBookmarks,
+        identify: bookmark => bookmark.id,
+        concurrency: 8,
+        execute: bookmark => bookmark.url
           ? this.bookmarkProviderService.remove(bookmark.id)
           : this.bookmarkProviderService.removeTree(bookmark.id)
-        ).finally(() => {
-          const progress = this.deleteProgress();
-          this.deleteProgress.set({
-            ...progress,
-            completed: Math.min(progress.completed + 1, progress.total)
-          });
-        });
-      }));
-
-      const rejected = results.find(result => result.status === 'rejected');
-      if (rejected && rejected.status === 'rejected') {
-        throw rejected.reason;
+      });
+      if (result.cancelled || result.failures.length > 0) {
+        throw new BulkMutationError(result);
       }
     } finally {
       this.pendingDeletionIds.set(new Set());
-      this.deleteProgress.set({
-        active: false,
-        total: 0,
-        completed: 0
-      });
-      this.refreshRequested$.next();
+    }
+  }
+
+  public cancelDelete(): void {
+    if (this.deleteProgress().active) {
+      this.bulkMutations.cancel();
     }
   }
 

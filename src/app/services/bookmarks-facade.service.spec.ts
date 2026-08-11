@@ -211,4 +211,26 @@ describe('BookmarksFacadeService', () => {
 
     expect(mockBookmarksProvider.getBookmarks.mock.calls.length).toBe(initialGetBookmarksCalls + 1);
   });
+
+  it('issues one final refresh after a partially failed delete', async () => {
+    const mockBookmarksProvider = TestBed.inject(BookmarksProviderService) as unknown as {
+      getBookmarks: ReturnType<typeof vi.fn>;
+      remove: ReturnType<typeof vi.fn>;
+    };
+    service.directories();
+    await flushTreeSnapshot();
+    const initialGetBookmarksCalls = mockBookmarksProvider.getBookmarks.mock.calls.length;
+    mockBookmarksProvider.remove
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error('cannot delete'));
+
+    await expect(service.deleteBookmarks([
+      { id: '1', url: 'https://example.com/1', title: '1' },
+      { id: '2', url: 'https://example.com/2', title: '2' }
+    ] as chrome.bookmarks.BookmarkTreeNode[])).rejects.toThrow('failed for 1 item');
+
+    await flushTreeSnapshot();
+    expect(mockBookmarksProvider.getBookmarks.mock.calls.length)
+      .toBe(initialGetBookmarksCalls + 1);
+  });
 });

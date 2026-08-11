@@ -4,4 +4,5 @@ export * from './bookmarks-facade.service';
 export * from './tags.service';
 export * from './usefulness.service';
 export * from './bucketed-bookmark-metadata.store';
+export * from './bulk-mutation-coordinator.service';
 export * from './chrome/index';

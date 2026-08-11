@@ -116,3 +116,18 @@ table td {
   background: linear-gradient(90deg, #7c4dff 0%, #2196f3 100%);
   transition: width 120ms linear;
 }
+
+.delete-cancel {
+  margin-top: 16px;
+  padding: 7px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+
+.delete-cancel:hover,
+.delete-cancel:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+}

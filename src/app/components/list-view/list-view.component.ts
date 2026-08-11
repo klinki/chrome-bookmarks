@@ -256,4 +256,8 @@ export class ListViewComponent {
 
     return true;
   }
+
+  public cancelDelete(): void {
+    this.bookmarksFacade.cancelDelete();
+  }
 }

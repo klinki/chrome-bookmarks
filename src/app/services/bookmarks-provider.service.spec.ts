@@ -166,4 +166,15 @@ describe('BookmarksProvider Service', () => {
     });
     expect(result.map(node => node.id)).toEqual(['b', 'c']);
   });
+
+  it('reports partial move failures after preserving completed moves', async () => {
+    const service = TestBed.inject(BookmarksProviderService);
+    mockBookmarksService.move
+      .mockResolvedValueOnce({ id: 'a', title: 'A' })
+      .mockRejectedValueOnce(new Error('cannot move'));
+
+    await expect(service.moveMultiple(['a', 'b'], { parentId: 'target' }))
+      .rejects.toThrow('failed for 1 item');
+    expect(mockBookmarksService.move).toHaveBeenCalledTimes(2);
+  });
 });
