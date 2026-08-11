@@ -27,11 +27,12 @@ describe('AiSettingsComponent', () => {
       isProcessing: false,
       isPaused: false,
       isCancelled: false,
-      currentBatch: 'Batch 1'
+      currentBatch: 'Batch 1',
+      operation: null
     }),
     updateAiConfig: vi.fn(),
     togglePause: vi.fn(),
-    cancelCategorization: vi.fn()
+    cancelProcessing: vi.fn()
   };
 
   const mockTagsService = {
@@ -46,7 +47,9 @@ describe('AiSettingsComponent', () => {
       discoveryUrl: 'http://localhost:11434',
       completionUrl: 'http://localhost:11434/v1'
     }],
-    discoverProviderModels: vi.fn().mockResolvedValue([])
+    discoverProviderModels: vi.fn().mockResolvedValue([]),
+    rateUsefulnessInBulk: vi.fn().mockResolvedValue(undefined),
+    cancelProcessing: vi.fn()
   };
 
   const mockProviderService = {
@@ -78,6 +81,25 @@ describe('AiSettingsComponent', () => {
     const tagElements = fixture.debugElement.queryAll(By.css('.tag-item'));
     expect(tagElements.length).toBe(3);
     expect(tagElements[0].nativeElement.textContent).toContain('tag1');
+  });
+
+  it('renders the exact usefulness rubric and starts both bulk modes', async () => {
+    const rubric = Array.from(
+      fixture.nativeElement.querySelectorAll('.usefulness-rubric li') as NodeListOf<HTMLElement>
+    ).map(item => item.textContent?.trim());
+    expect(rubric).toEqual([
+      '1 — very low expected future value',
+      '2 — limited, narrow, or easily replaceable value',
+      '3 — useful in a specific situation',
+      '4 — strong, reusable reference or tool',
+      '5 — exceptional, distinctive, or repeatedly valuable'
+    ]);
+
+    await component.rateUsefulness('unscored');
+    await component.rateUsefulness('rerate-ai');
+
+    expect(mockAiService.rateUsefulnessInBulk).toHaveBeenNthCalledWith(1, [], 'unscored');
+    expect(mockAiService.rateUsefulnessInBulk).toHaveBeenNthCalledWith(2, [], 'rerate-ai');
   });
 
   it('traps discovery dialog focus and restores it to the trigger', async () => {

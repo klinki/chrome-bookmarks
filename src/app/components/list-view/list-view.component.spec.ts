@@ -7,6 +7,7 @@ import { TagsService } from '../../services/tags.service';
 import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
 import { MockBookmarksService } from '../../services/chrome/bookmarks/mock-bookmarks.service';
 import { signal } from '@angular/core';
+import { UsefulnessService } from '../../services/usefulness.service';
 
 describe('Component: ListView', () => {
   let component: ListViewComponent;
@@ -37,6 +38,10 @@ describe('Component: ListView', () => {
     getTagsForBookmark: vi.fn().mockReturnValue([])
   };
 
+  const mockUsefulnessService = {
+    getRatingForBookmark: vi.fn()
+  };
+
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
       imports: [ListViewComponent],
@@ -44,6 +49,7 @@ describe('Component: ListView', () => {
         { provide: SelectionService, useValue: mockSelectionService },
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
         { provide: TagsService, useValue: mockTagsService },
+        { provide: UsefulnessService, useValue: mockUsefulnessService },
         { provide: BookmarksService, useClass: MockBookmarksService }
       ]
     })
@@ -59,6 +65,7 @@ describe('Component: ListView', () => {
     mockSelectionService.select.mockReset();
     mockSelectionService.selectAll.mockReset();
     mockTagsService.getTagsForBookmark.mockReset().mockReturnValue([]);
+    mockUsefulnessService.getRatingForBookmark.mockReset();
     fixture = TestBed.createComponent(ListViewComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -188,6 +195,33 @@ describe('Component: ListView', () => {
     fixture.detectChanges();
 
     expect(component.visibleItems().map(item => item.id)).toEqual(['2', '1']);
+  });
+
+  it('renders and numerically sorts usefulness while keeping missing scores last', () => {
+    const bookmarks = [
+      { id: 'missing', title: 'Missing', url: 'https://missing.example' },
+      { id: 'high', title: 'High', url: 'https://high.example' },
+      { id: 'low', title: 'Low', url: 'https://low.example' }
+    ] as chrome.bookmarks.BookmarkTreeNode[];
+    mockUsefulnessService.getRatingForBookmark.mockImplementation((id: string) => {
+      if (id === 'high') return { score: 5, source: 'ai' };
+      if (id === 'low') return { score: 1, source: 'manual' };
+      return undefined;
+    });
+    fixture.componentRef.setInput('items', bookmarks);
+
+    component.orderBy('usefulness');
+    fixture.detectChanges();
+
+    expect(component.visibleItems().map(item => item.id)).toEqual(['low', 'high', 'missing']);
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    expect(rows[0].children[3].textContent.trim()).toBe('1');
+    expect(rows[1].children[3].textContent.trim()).toBe('5');
+    expect(rows[2].children[3].textContent.trim()).toBe('—');
+
+    component.orderBy('usefulness');
+    fixture.detectChanges();
+    expect(component.visibleItems().map(item => item.id)).toEqual(['high', 'low', 'missing']);
   });
 
   it('exposes sort state and keyboard-operable column headers', () => {

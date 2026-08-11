@@ -7,6 +7,9 @@ import { TagsService } from '../../services/tags.service';
 import { AiService, AiProvider } from '../../services/ai.service';
 import { BookmarksProviderService } from '../../services/bookmarks-provider.service';
 import { A11yModule } from '@angular/cdk/a11y';
+import { UsefulnessBulkMode } from '../../services/ai.service';
+import { USEFULNESS_RUBRIC } from '../../services/usefulness.service';
+import { developmentLogger } from '../../services/development-logger';
 
 @Component({
   selector: 'app-ai-settings',
@@ -27,6 +30,7 @@ export class AiSettingsComponent {
   public availableTags = this.tagsService.availableTags;
   public progress = this.store.progress;
   public providers = this.aiService.providers;
+  public readonly usefulnessRubric = USEFULNESS_RUBRIC;
 
   // Model Discovery State using Signals
   public showDiscoveryModal = signal(false);
@@ -81,8 +85,18 @@ export class AiSettingsComponent {
     this.store.togglePause();
   }
 
-  public cancelCategorization() {
-    this.aiService.cancelCategorization();
+  public cancelProcessing() {
+    this.aiService.cancelProcessing();
+  }
+
+  public async rateUsefulness(mode: UsefulnessBulkMode): Promise<void> {
+    try {
+      const tree = await this.provider.getBookmarks();
+      await this.aiService.rateUsefulnessInBulk(tree, mode);
+    } catch (error) {
+      developmentLogger.error('bookmarks.usefulness.bulk-rating.failed', error);
+      alert('AI usefulness rating failed. Completed batches were preserved.');
+    }
   }
 
   public addTag(input: HTMLInputElement) {

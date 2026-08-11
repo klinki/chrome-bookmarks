@@ -62,4 +62,20 @@ describe('OrderByPipe', () => {
     expect(pipe.transform(items, { column: 'dateAdded', asc: false }).map(item => item.id))
       .toEqual(['new', 'old', 'missing']);
   });
+
+  it('sorts numeric usefulness scores and keeps unscored bookmarks last', () => {
+    const items = [
+      node('missing', 'Missing', { url: 'https://missing.example' }),
+      node('high', 'High', { url: 'https://high.example' }),
+      node('low', 'Low', { url: 'https://low.example' })
+    ];
+    const scores = new Map([['high', 5], ['low', 1]]);
+    const accessor: BookmarkSortValueAccessor = (item, column) =>
+      column === 'usefulness' ? scores.get(item.id) : undefined;
+
+    expect(pipe.transform(items, { column: 'usefulness', asc: true }, accessor).map(item => item.id))
+      .toEqual(['low', 'high', 'missing']);
+    expect(pipe.transform(items, { column: 'usefulness', asc: false }, accessor).map(item => item.id))
+      .toEqual(['high', 'low', 'missing']);
+  });
 });

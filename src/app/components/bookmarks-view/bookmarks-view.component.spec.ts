@@ -11,6 +11,7 @@ import { signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
+import { UsefulnessService } from '../../services/usefulness.service';
 
 describe('Component: BookmarksView', () => {
   let component: BookmarksViewComponent;
@@ -63,7 +64,8 @@ describe('Component: BookmarksView', () => {
         { provide: SelectionService, useValue: mockSelectionService },
         { provide: BookmarksService, useValue: { get: vi.fn(), remove: vi.fn() } },
         { provide: AiService, useValue: { suggestTags: vi.fn() } },
-        { provide: TagsService, useValue: mockTagsService }
+        { provide: TagsService, useValue: mockTagsService },
+        { provide: UsefulnessService, useValue: { getRatingForBookmark: vi.fn() } }
       ]
     })
     .compileComponents();

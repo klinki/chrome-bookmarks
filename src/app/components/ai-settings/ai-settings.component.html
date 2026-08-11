@@ -7,7 +7,7 @@
         <div
             class="progress-bar"
             role="progressbar"
-            aria-label="Bookmark categorization progress"
+            aria-label="AI processing progress"
             [attr.aria-valuemin]="0"
             [attr.aria-valuemax]="progress().total"
             [attr.aria-valuenow]="progress().processed">
@@ -17,7 +17,7 @@
             <button class="control-btn pause-btn" (click)="togglePause()">
                 {{ progress().isPaused ? 'Resume' : 'Pause' }}
             </button>
-            <button class="control-btn cancel-btn" (click)="cancelCategorization()">
+            <button class="control-btn cancel-btn" (click)="cancelProcessing()">
                 Cancel
             </button>
         </div>
@@ -77,6 +77,27 @@
             </div>
             }
         </div>
+    </section>
+
+    <section class="usefulness-section">
+        <div class="section-header">
+            <h3>Bookmark Usefulness</h3>
+            <div class="batch-actions">
+                <button class="batch-btn" (click)="rateUsefulness('unscored')" [disabled]="progress().isProcessing">
+                    Rate Unscored
+                </button>
+                <button class="batch-btn" (click)="rateUsefulness('rerate-ai')" [disabled]="progress().isProcessing">
+                    Re-rate AI Scores
+                </button>
+            </div>
+        </div>
+
+        <p class="hint">Ratings estimate general expected future utility from bookmark title and URL.</p>
+        <ol class="usefulness-rubric">
+            @for (item of usefulnessRubric; track item.score) {
+                <li><strong>{{ item.score }}</strong> — {{ item.description }}</li>
+            }
+        </ol>
     </section>
 
     <!-- Model Discovery Modal -->

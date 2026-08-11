@@ -48,6 +48,27 @@ h3 {
   }
 }
 
+.usefulness-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    text-transform: uppercase;
+  }
+
+  select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+    font-size: 13px;
+  }
+}
+
 .tags-list {
   display: flex;
   flex-wrap: wrap;
@@ -89,6 +110,9 @@ h3 {
 
 .actions {
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .ai-btn {

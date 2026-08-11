@@ -1,11 +1,18 @@
 import { Injectable, inject } from '@angular/core';
 import { BookmarksProviderService } from './bookmarks-provider.service';
 import { TagsService, BookmarkTags } from './tags.service';
+import {
+  BookmarkUsefulness,
+  UsefulnessRating,
+  UsefulnessService,
+  isUsefulnessScore
+} from './usefulness.service';
 
 export interface BackupData {
   version: number;
   root: chrome.bookmarks.BookmarkTreeNode[];
   tags: BookmarkTags;
+  usefulness: BookmarkUsefulness;
 }
 
 interface ImportNode {
@@ -13,6 +20,7 @@ interface ImportNode {
   title: string;
   url?: string;
   tags: string[];
+  usefulness?: UsefulnessRating;
   children: ImportNode[];
 }
 
@@ -25,16 +33,19 @@ const MAX_IMPORT_NODES = 100_000;
 export class ImportExportService {
   private bookmarksProvider = inject(BookmarksProviderService);
   private tagsService = inject(TagsService);
+  private usefulnessService = inject(UsefulnessService);
 
 
   public async exportJson() {
     const tree = await this.bookmarksProvider.getBookmarks();
     const tags = this.tagsService.bookmarkTags();
+    const usefulness = this.usefulnessService.bookmarkUsefulness();
 
     const data: BackupData = {
-      version: 1,
+      version: 2,
       root: tree,
-      tags: tags
+      tags,
+      usefulness
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -49,7 +60,7 @@ export class ImportExportService {
 
   private parseJsonImport(value: unknown): ImportNode[] {
     if (!this.isRecord(value)
-      || value['version'] !== 1
+      || (value['version'] !== 1 && value['version'] !== 2)
       || !Array.isArray(value['root'])) {
       throw new Error('Invalid backup file format');
     }
@@ -69,10 +80,29 @@ export class ImportExportService {
       }
     }
 
+    const usefulnessById = new Map<string, UsefulnessRating>();
+    if (value['version'] === 2) {
+      const rawUsefulness = value['usefulness'];
+      if (!this.isRecord(rawUsefulness)) {
+        throw new Error('Invalid backup usefulness ratings');
+      }
+      for (const [id, rating] of Object.entries(rawUsefulness)) {
+        if (!this.isUsefulnessRating(rating)) {
+          throw new Error(`Invalid usefulness rating for bookmark ${id}`);
+        }
+        usefulnessById.set(id, { ...rating });
+      }
+    }
+
     const seenIds = new Set<string>();
     const count = { value: 0 };
     const roots = value['root'].map(node =>
-      this.parseJsonNode(node, tagsById, seenIds, count, 0));
+      this.parseJsonNode(node, tagsById, usefulnessById, seenIds, count, 0));
+    for (const bookmarkId of usefulnessById.keys()) {
+      if (!seenIds.has(bookmarkId)) {
+        throw new Error(`Usefulness rating references unknown bookmark ${bookmarkId}`);
+      }
+    }
 
     if (roots.length === 1 && roots[0].sourceId === '0') {
       return roots[0].children;
@@ -83,6 +113,7 @@ export class ImportExportService {
   private parseJsonNode(
     value: unknown,
     tagsById: Map<string, string[]>,
+    usefulnessById: Map<string, UsefulnessRating>,
     seenIds: Set<string>,
     count: { value: number },
     depth: number
@@ -115,15 +146,26 @@ export class ImportExportService {
     if (typeof rawUrl === 'string') {
       this.validateBookmarkUrl(rawUrl);
     }
+    if (usefulnessById.has(id) && typeof rawUrl !== 'string') {
+      throw new Error(`Usefulness rating cannot be assigned to folder ${id}`);
+    }
 
     return {
       sourceId: id,
       title: value['title'],
       ...(typeof rawUrl === 'string' ? { url: rawUrl } : {}),
       tags: tagsById.get(id) ?? [],
+      ...(usefulnessById.has(id) ? { usefulness: usefulnessById.get(id) } : {}),
       children: Array.isArray(rawChildren)
         ? rawChildren.map(child =>
-          this.parseJsonNode(child, tagsById, seenIds, count, depth + 1))
+          this.parseJsonNode(
+            child,
+            tagsById,
+            usefulnessById,
+            seenIds,
+            count,
+            depth + 1
+          ))
         : []
     };
   }
@@ -139,6 +181,7 @@ export class ImportExportService {
     const originalAvailableTags = [...this.tagsService.availableTags()];
     const createdIds: string[] = [];
     const importedTags: Record<string, string[]> = {};
+    const importedUsefulness: Record<string, UsefulnessRating> = {};
     const importedAvailableTags = new Set<string>();
     let importFolder: chrome.bookmarks.BookmarkTreeNode | undefined;
 
@@ -153,10 +196,12 @@ export class ImportExportService {
         importFolder.id,
         createdIds,
         importedTags,
+        importedUsefulness,
         importedAvailableTags
       );
       this.tagsService.setTagsForBookmarks(importedTags);
       this.tagsService.addAvailableTags(importedAvailableTags);
+      this.usefulnessService.setRatingsForBookmarks(importedUsefulness);
     } catch (error) {
       if (!importFolder) {
         throw error;
@@ -174,6 +219,9 @@ export class ImportExportService {
           Object.fromEntries(createdIds.map(id => [id, []]))
         );
         this.tagsService.setAvailableTags(originalAvailableTags);
+        this.usefulnessService.setRatingsForBookmarks(
+          Object.fromEntries(createdIds.map(id => [id, null]))
+        );
       } catch (rollbackError) {
         rollbackErrors.push(rollbackError);
       }
@@ -193,6 +241,7 @@ export class ImportExportService {
     parentId: string,
     createdIds: string[],
     importedTags: Record<string, string[]>,
+    importedUsefulness: Record<string, UsefulnessRating>,
     importedAvailableTags: Set<string>
   ): Promise<void> {
     for (const node of nodes) {
@@ -207,12 +256,16 @@ export class ImportExportService {
         importedTags[created.id] = node.tags;
         node.tags.forEach(tag => importedAvailableTags.add(tag));
       }
+      if (node.usefulness) {
+        importedUsefulness[created.id] = { ...node.usefulness };
+      }
 
       await this.importNodesWithTracking(
         node.children,
         created.id,
         createdIds,
         importedTags,
+        importedUsefulness,
         importedAvailableTags
       );
     }
@@ -386,5 +439,11 @@ export class ImportExportService {
 
   private isRecord(value: unknown): value is Record<string, unknown> {
       return typeof value === 'object' && value != null && !Array.isArray(value);
+  }
+
+  private isUsefulnessRating(value: unknown): value is UsefulnessRating {
+    return this.isRecord(value)
+      && isUsefulnessScore(value['score'])
+      && (value['source'] === 'ai' || value['source'] === 'manual');
   }
 }

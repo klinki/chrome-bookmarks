@@ -4,7 +4,12 @@ import { Component, HostListener, input, signal, inject, ChangeDetectionStrategy
 import { DatePipe } from '@angular/common';
 import { CdkContextMenuTrigger } from "@angular/cdk/menu";
 
-import { SelectionService, BookmarksFacadeService, TagsService } from "../../services";
+import {
+  SelectionService,
+  BookmarksFacadeService,
+  TagsService,
+  UsefulnessService
+} from "../../services";
 import {
   BookmarkSortColumn,
   BookmarkSortValueAccessor,
@@ -61,6 +66,10 @@ export class ListViewComponent {
     {
       title: 'Tags',
       name: 'tags'
+    },
+    {
+      title: 'Usefulness',
+      name: 'usefulness'
     }
   ];
 
@@ -68,6 +77,7 @@ export class ListViewComponent {
     this.availableColumns[0],
     this.availableColumns[1],
     this.availableColumns[4], // Tags
+    this.availableColumns[5], // Usefulness
     this.availableColumns[2],
     this.availableColumns[3]
   ];
@@ -75,6 +85,7 @@ export class ListViewComponent {
   protected selectionService = inject(SelectionService);
   protected bookmarksFacade = inject(BookmarksFacadeService);
   protected tagsService = inject(TagsService);
+  protected usefulnessService = inject(UsefulnessService);
   private readonly orderByPipe = new OrderByPipe();
   private readonly sortValueAccessor: BookmarkSortValueAccessor =
     (item, column) => this.getColumnValue(item, column);
@@ -131,13 +142,18 @@ export class ListViewComponent {
     if (column === 'tags') {
       return this.tagsService.getTagsForBookmark(item.id).join(', ');
     }
+    if (column === 'usefulness') {
+      return item.url
+        ? this.usefulnessService.getRatingForBookmark(item.id)?.score
+        : undefined;
+    }
 
     return this.getNativeColumnValue(item, column);
   }
 
   private getNativeColumnValue(
     item: chrome.bookmarks.BookmarkTreeNode,
-    column: Exclude<BookmarkSortColumn, 'tags'>
+    column: Exclude<BookmarkSortColumn, 'tags' | 'usefulness'>
   ): string | number | undefined {
     if (column === 'dateLastUsed') {
       return (item as chrome.bookmarks.BookmarkTreeNode & { dateLastUsed?: number }).dateLastUsed;

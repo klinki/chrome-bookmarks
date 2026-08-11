@@ -8,18 +8,21 @@ export interface AiConfig {
   allowNewTags: boolean;
 }
 
-export interface CategorizationProgress {
+export type AiOperation = 'tags' | 'usefulness-unscored' | 'usefulness-rerate';
+
+export interface AiProgress {
   total: number;
   processed: number;
   isProcessing: boolean;
   isPaused: boolean;
   isCancelled: boolean;
   currentBatch: string;
+  operation: AiOperation | null;
 }
 
 interface AiState {
   aiConfig: AiConfig;
-  progress: CategorizationProgress;
+  progress: AiProgress;
 }
 
 const initialState: AiState = {
@@ -35,7 +38,8 @@ const initialState: AiState = {
     isProcessing: false,
     isPaused: false,
     isCancelled: false,
-    currentBatch: ''
+    currentBatch: '',
+    operation: null
   }
 };
 
@@ -59,7 +63,7 @@ export const AiStore = signalStore(
 
       patchState(store, { aiConfig });
     },
-    updateProgress(progress: Partial<CategorizationProgress>): void {
+    updateProgress(progress: Partial<AiProgress>): void {
       patchState(store, (state) => ({
         progress: {
           ...state.progress,
@@ -75,7 +79,7 @@ export const AiStore = signalStore(
         }
       }));
     },
-    cancelCategorization(): void {
+    cancelProcessing(): void {
       patchState(store, (state) => ({
         progress: {
           ...state.progress,

@@ -7,6 +7,7 @@ import { BookmarksFacadeService } from '../../services/bookmarks-facade.service'
 import { TagsService } from '../../services/tags.service';
 import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
 import { MockBookmarksService } from '../../services/chrome/bookmarks/mock-bookmarks.service';
+import { UsefulnessService } from '../../services/usefulness.service';
 
 
 
@@ -45,6 +46,7 @@ describe('ListViewComponent Performance', () => {
           }
         },
         { provide: TagsService, useValue: { getTagsForBookmark: vi.fn().mockReturnValue([]) } },
+        { provide: UsefulnessService, useValue: { getRatingForBookmark: vi.fn() } },
         { provide: BookmarksService, useClass: MockBookmarksService }
       ]
     }).compileComponents();

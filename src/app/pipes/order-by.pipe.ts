@@ -1,6 +1,13 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-export const BOOKMARK_SORT_COLUMNS = ['title', 'url', 'dateAdded', 'dateLastUsed', 'tags'] as const;
+export const BOOKMARK_SORT_COLUMNS = [
+  'title',
+  'url',
+  'dateAdded',
+  'dateLastUsed',
+  'tags',
+  'usefulness'
+] as const;
 export type BookmarkSortColumn = typeof BOOKMARK_SORT_COLUMNS[number];
 export type BookmarkSortValue = string | number | undefined;
 export type BookmarkSortValueAccessor = (
@@ -60,7 +67,7 @@ export class OrderByPipe implements PipeTransform {
   }
 
   private readonly defaultValueAccessor: BookmarkSortValueAccessor = (item, column) => {
-    if (column === 'tags') {
+    if (column === 'tags' || column === 'usefulness') {
       return '';
     }
     return this.getNativeColumnValue(item, column);
@@ -68,7 +75,7 @@ export class OrderByPipe implements PipeTransform {
 
   private getNativeColumnValue(
     item: chrome.bookmarks.BookmarkTreeNode,
-    column: Exclude<BookmarkSortColumn, 'tags'>
+    column: Exclude<BookmarkSortColumn, 'tags' | 'usefulness'>
   ): string | number | undefined {
     if (column === 'dateLastUsed') {
       return (item as chrome.bookmarks.BookmarkTreeNode & { dateLastUsed?: number }).dateLastUsed;

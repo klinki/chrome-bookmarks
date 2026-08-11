@@ -1,13 +1,19 @@
 import { TestBed } from '@angular/core/testing';
-import { vi } from 'vitest';
+import { afterEach, vi } from 'vitest';
 import { AiService } from './ai.service';
 import { AiStore } from './ai.store';
 import { TagsService } from './tags.service';
+import { UsefulnessService } from './usefulness.service';
 
 describe('AiService', () => {
     let service: AiService;
     let mockAiStore: any;
     let mockTagsService: any;
+    let mockUsefulnessService: any;
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
 
     beforeEach(() => {
         mockAiStore = {
@@ -22,7 +28,7 @@ describe('AiService', () => {
                 isCancelled: vi.fn().mockReturnValue(false)
             },
             updateProgress: vi.fn(),
-            cancelCategorization: vi.fn()
+            cancelProcessing: vi.fn()
         };
 
         mockTagsService = {
@@ -30,12 +36,17 @@ describe('AiService', () => {
             setTagsForBookmarks: vi.fn(),
             addAvailableTags: vi.fn()
         };
+        mockUsefulnessService = {
+            getRatingForBookmark: vi.fn(),
+            setAiScores: vi.fn()
+        };
 
         TestBed.configureTestingModule({
             providers: [
                 AiService,
                 { provide: AiStore, useValue: mockAiStore },
-                { provide: TagsService, useValue: mockTagsService }
+                { provide: TagsService, useValue: mockTagsService },
+                { provide: UsefulnessService, useValue: mockUsefulnessService }
             ]
         });
 
@@ -152,16 +163,16 @@ describe('AiService', () => {
             const categorization = service.categorizeAll(bookmarks, ['ExistingTag']);
             const requestSignal = (fetchMock.mock.calls[0][1] as RequestInit).signal;
 
-            service.cancelCategorization();
+            service.cancelProcessing();
             await expect(categorization).resolves.toBeUndefined();
 
-            expect(mockAiStore.cancelCategorization).toHaveBeenCalledTimes(1);
+            expect(mockAiStore.cancelProcessing).toHaveBeenCalledTimes(1);
             expect(requestSignal?.aborted).toBe(true);
             expect(mockTagsService.setTagsForBookmarks).not.toHaveBeenCalled();
             expect(mockAiStore.updateProgress).toHaveBeenLastCalledWith({
-                isProcessing: false
+                isProcessing: false,
+                operation: null
             });
-            vi.unstubAllGlobals();
         });
 
         it('persists each suggested tag batch with one update per tag collection', async () => {
@@ -183,6 +194,150 @@ describe('AiService', () => {
             });
             expect(mockTagsService.addAvailableTags).toHaveBeenCalledTimes(1);
             expect(mockTagsService.addAvailableTags).toHaveBeenCalledWith(['Work', 'Reference']);
+        });
+    });
+
+    describe('scoreUsefulness', () => {
+        const bookmarks = [1, 2, 3, 4, 5].map(score => ({
+            id: String(score),
+            title: `Bookmark ${score}`,
+            url: `https://${score}.example`,
+            dateAdded: 123,
+            dateLastUsed: 456
+        })) as chrome.bookmarks.BookmarkTreeNode[];
+
+        it('sends only id, title, and URL and returns all rubric scores', async () => {
+            const fetchMock = vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    choices: [{
+                        message: {
+                            content: JSON.stringify({
+                                results: bookmarks.map((bookmark, index) => ({
+                                    id: bookmark.id,
+                                    score: index + 1
+                                }))
+                            })
+                        }
+                    }]
+                })
+            });
+            vi.stubGlobal('fetch', fetchMock);
+
+            await expect(service.scoreUsefulness(bookmarks)).resolves.toEqual({
+                '1': 1,
+                '2': 2,
+                '3': 3,
+                '4': 4,
+                '5': 5
+            });
+
+            const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+            const prompt = body.messages[1].content as string;
+            expect(prompt).toContain('1 — very low expected future value');
+            expect(prompt).toContain('2 — limited, narrow, or easily replaceable value');
+            expect(prompt).toContain('3 — useful in a specific situation');
+            expect(prompt).toContain('4 — strong, reusable reference or tool');
+            expect(prompt).toContain('5 — exceptional, distinctive, or repeatedly valuable');
+            expect(prompt).toContain('Treat 3 as the ordinary default. Reserve 1 and 5 for clear cases.');
+            expect(prompt).not.toContain('dateAdded');
+            expect(prompt).not.toContain('dateLastUsed');
+            expect(body.response_format.json_schema.schema.properties.results.items.properties.score)
+                .toEqual({ type: 'integer', minimum: 1, maximum: 5 });
+        });
+
+        it.each([
+            ['missing result', [{ id: '1', score: 3 }]],
+            ['duplicate id', [{ id: '1', score: 3 }, { id: '1', score: 4 }]],
+            ['unknown id', [{ id: '1', score: 3 }, { id: 'unknown', score: 4 }]],
+            ['out-of-range score', [{ id: '1', score: 3 }, { id: '2', score: 6 }]],
+            ['fractional score', [{ id: '1', score: 3 }, { id: '2', score: 2.5 }]],
+            ['additional property', [{ id: '1', score: 3 }, { id: '2', score: 4, reason: 'extra' }]]
+        ])('rejects an invalid response with a %s', async (_label, results) => {
+            vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    choices: [{ message: { content: JSON.stringify({ results }) } }]
+                })
+            }));
+
+            await expect(service.scoreUsefulness(bookmarks.slice(0, 2)))
+                .rejects.toThrow('AI returned invalid usefulness ratings');
+        });
+
+        it('rejects folders before making a request', async () => {
+            const fetchMock = vi.fn();
+            vi.stubGlobal('fetch', fetchMock);
+
+            await expect(service.scoreUsefulness([{ id: 'folder', title: 'Folder' }]))
+                .rejects.toThrow('Usefulness can only be scored for bookmarks with URLs');
+            expect(fetchMock).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('rateUsefulnessInBulk', () => {
+        const tree = [{
+            id: 'root',
+            title: 'Root',
+            children: [
+                { id: 'unscored', title: 'Unscored', url: 'https://unscored.example' },
+                { id: 'ai', title: 'AI', url: 'https://ai.example' },
+                { id: 'manual', title: 'Manual', url: 'https://manual.example' }
+            ]
+        }] as chrome.bookmarks.BookmarkTreeNode[];
+
+        beforeEach(() => {
+            mockUsefulnessService.getRatingForBookmark.mockImplementation((id: string) => {
+                if (id === 'ai') return { score: 2, source: 'ai' };
+                if (id === 'manual') return { score: 5, source: 'manual' };
+                return undefined;
+            });
+        });
+
+        it('rates only unscored bookmarks', async () => {
+            vi.spyOn(service, 'scoreUsefulness').mockResolvedValue({ unscored: 4 });
+
+            await service.rateUsefulnessInBulk(tree, 'unscored');
+
+            expect(service.scoreUsefulness).toHaveBeenCalledWith(
+                [expect.objectContaining({ id: 'unscored' })],
+                expect.any(AbortSignal)
+            );
+            expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith({ unscored: 4 });
+        });
+
+        it('re-rates only AI scores and preserves manual scores', async () => {
+            vi.spyOn(service, 'scoreUsefulness').mockResolvedValue({ ai: 3 });
+
+            await service.rateUsefulnessInBulk(tree, 'rerate-ai');
+
+            expect(service.scoreUsefulness).toHaveBeenCalledWith(
+                [expect.objectContaining({ id: 'ai' })],
+                expect.any(AbortSignal)
+            );
+            expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith({ ai: 3 });
+        });
+
+        it('keeps completed batches and does not apply the failing batch', async () => {
+            const manyBookmarks = Array.from({ length: 11 }, (_, index) => ({
+                id: String(index),
+                title: `Bookmark ${index}`,
+                url: `https://${index}.example`
+            })) as chrome.bookmarks.BookmarkTreeNode[];
+            mockUsefulnessService.getRatingForBookmark.mockReturnValue(undefined);
+            vi.spyOn(service, 'scoreUsefulness')
+                .mockResolvedValueOnce(Object.fromEntries(
+                    manyBookmarks.slice(0, 10).map(bookmark => [bookmark.id, 3])
+                ) as any)
+                .mockRejectedValueOnce(new Error('Invalid batch'));
+
+            await expect(service.rateUsefulnessInBulk(manyBookmarks, 'unscored'))
+                .rejects.toThrow('Invalid batch');
+
+            expect(mockUsefulnessService.setAiScores).toHaveBeenCalledTimes(1);
+            expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith(
+                Object.fromEntries(manyBookmarks.slice(0, 10).map(bookmark => [bookmark.id, 3]))
+            );
         });
     });
 
@@ -242,4 +397,3 @@ describe('AiService', () => {
         });
     });
 });
-

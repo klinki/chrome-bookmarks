@@ -5,6 +5,11 @@ import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
 import { BookmarksFacadeService } from '../../services/bookmarks-facade.service';
 import { developmentLogger } from '../../services/development-logger';
+import {
+  isUsefulnessScore,
+  USEFULNESS_RUBRIC,
+  UsefulnessService
+} from '../../services/usefulness.service';
 
 @Component({
   selector: 'app-bookmark-detail',
@@ -22,11 +27,14 @@ export class BookmarkDetailComponent {
   private tagsService = inject(TagsService);
   private aiService = inject(AiService);
   private bookmarksFacade = inject(BookmarksFacadeService);
+  private usefulnessService = inject(UsefulnessService);
   private fb = inject(FormBuilder);
 
   public selection = input<chrome.bookmarks.BookmarkTreeNode[] | null>([]);
   public isCategorizing = signal(false);
+  public isRatingUsefulness = signal(false);
   public isSaving = signal(false);
+  public readonly usefulnessRubric = USEFULNESS_RUBRIC;
 
   public editForm = this.fb.group({
     title: [''],
@@ -118,6 +126,13 @@ export class BookmarkDetailComponent {
     return [];
   });
 
+  public currentUsefulnessScore = computed(() => {
+    const sel = this.selection() ?? [];
+    return sel.length === 1
+      ? this.usefulnessService.getRatingForBookmark(sel[0].id)?.score
+      : undefined;
+  });
+
   public isFolder = computed(() => {
     const sel = this.selection() ?? [];
     return sel.length > 0 && sel[0].url === undefined;
@@ -171,6 +186,41 @@ export class BookmarkDetailComponent {
       alert('AI categorization failed.');
     } finally {
       this.isCategorizing.set(false);
+    }
+  }
+
+  public async aiRateUsefulness(): Promise<void> {
+    const bookmarks = (this.selection() ?? []).filter(item => !!item.url);
+    if (bookmarks.length === 0) {
+      return;
+    }
+
+    this.isRatingUsefulness.set(true);
+    try {
+      const scores = await this.aiService.scoreUsefulness(bookmarks);
+      this.usefulnessService.setAiScores(scores);
+    } catch (error) {
+      developmentLogger.error('bookmark.usefulness.rating.failed', error);
+      alert('AI usefulness rating failed.');
+    } finally {
+      this.isRatingUsefulness.set(false);
+    }
+  }
+
+  public setManualUsefulness(event: Event): void {
+    const sel = this.selection() ?? [];
+    if (sel.length !== 1 || !(event.target instanceof HTMLSelectElement)) {
+      return;
+    }
+
+    if (event.target.value === '') {
+      this.usefulnessService.setManualScore(sel[0].id, null);
+      return;
+    }
+
+    const score = Number(event.target.value);
+    if (isUsefulnessScore(score)) {
+      this.usefulnessService.setManualScore(sel[0].id, score);
     }
   }
 

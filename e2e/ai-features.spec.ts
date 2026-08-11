@@ -17,6 +17,9 @@ test.beforeEach(async ({ page }) => {
     await setupAiMock(page, {
         '101': ['technology', 'programming'],
         '102': ['development', 'web']
+    }, {
+        '101': 4,
+        '102': 2
     });
     const appPage = new AppPage(page);
     await appPage.navigate();
@@ -87,7 +90,7 @@ test('AI Categorize Bookmark Applies Tags', async ({ page }) => {
     await expect(detail.getByText('Bookmark Details')).toBeVisible();
 
     // Click AI Categorize
-    const aiButton = detail.locator('button.ai-btn');
+    const aiButton = detail.getByRole('button', { name: 'AI Categorize', exact: true });
     await aiButton.click();
 
     // Wait for categorization to complete
@@ -95,6 +98,31 @@ test('AI Categorize Bookmark Applies Tags', async ({ page }) => {
 
     // Verify tags are applied (mock returns 'technology', 'programming' for id 101)
     await expect(detail.locator('.tag-chip').filter({ hasText: 'technology' })).toBeVisible();
+});
+
+test('AI usefulness rating uses the anchored rubric and updates the list', async ({ page }) => {
+    await expandFolder(page, 'Bookmarks Bar');
+    await selectTreeFolder(page, 'Only Bookmarks');
+
+    const listView = page.locator('app-list-view');
+    const row = listView.locator('tbody tr').filter({ hasText: 'Bookmark B1' });
+    await row.click();
+
+    const detail = page.locator('app-bookmark-detail');
+    const rating = detail.locator('#usefulness-score');
+    await expect(rating.locator('option')).toHaveText([
+        'Not rated',
+        '1 — very low expected future value',
+        '2 — limited, narrow, or easily replaceable value',
+        '3 — useful in a specific situation',
+        '4 — strong, reusable reference or tool',
+        '5 — exceptional, distinctive, or repeatedly valuable'
+    ]);
+
+    await detail.getByRole('button', { name: 'AI Rate Usefulness' }).click();
+
+    await expect(rating).toHaveValue('4');
+    await expect(row.locator('td').nth(3)).toHaveText('4');
 });
 
 test('AI Categorize with allowNewTags=false only applies existing tags', async ({ page, context }) => {
@@ -132,7 +160,7 @@ test('AI Categorize with allowNewTags=false only applies existing tags', async (
     await expect(detail.getByText('Bookmark Details')).toBeVisible();
 
     // Click AI Categorize
-    const aiButton = detail.locator('button.ai-btn');
+    const aiButton = detail.getByRole('button', { name: 'AI Categorize', exact: true });
     await aiButton.click();
 
     // Wait for categorization to complete

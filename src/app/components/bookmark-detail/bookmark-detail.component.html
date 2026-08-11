@@ -23,12 +23,28 @@
         </div>
       </div>
 
+      <div class="usefulness-section">
+        <label for="usefulness-score">Usefulness</label>
+        <select
+          id="usefulness-score"
+          [value]="currentUsefulnessScore() ?? ''"
+          (change)="setManualUsefulness($event)">
+          <option value="">Not rated</option>
+          @for (item of usefulnessRubric; track item.score) {
+            <option [value]="item.score">{{ item.score }} — {{ item.description }}</option>
+          }
+        </select>
+      </div>
+
       <div class="actions">
         <button type="submit" class="save-btn" [disabled]="isSaving() || editForm.pristine">
           {{ isSaving() ? 'Saving...' : 'Save' }}
         </button>
         <button type="button" class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
           {{ isCategorizing() ? 'Categorizing...' : 'AI Categorize' }}
+        </button>
+        <button type="button" class="ai-btn" (click)="aiRateUsefulness()" [disabled]="isRatingUsefulness()">
+          {{ isRatingUsefulness() ? 'Rating...' : 'AI Rate Usefulness' }}
         </button>
       </div>
     </form>
@@ -65,6 +81,9 @@
     <div class="actions">
       <button class="ai-btn" (click)="aiCategorize()" [disabled]="isCategorizing()">
       {{ isCategorizing() ? 'AI Categorizing...' : 'AI Categorize All' }}
+      </button>
+      <button class="ai-btn" (click)="aiRateUsefulness()" [disabled]="isRatingUsefulness()">
+        {{ isRatingUsefulness() ? 'Rating...' : 'AI Rate Usefulness' }}
       </button>
     </div>
   </div>

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ImportExportService } from './import-export.service';
 import { BookmarksProviderService } from './bookmarks-provider.service';
 import { TagsService } from './tags.service';
+import { UsefulnessService } from './usefulness.service';
 
 describe('ImportExportService', () => {
   let service: ImportExportService;
@@ -14,6 +15,10 @@ describe('ImportExportService', () => {
     setTagsForBookmarks: ReturnType<typeof vi.fn>;
     addAvailableTags: ReturnType<typeof vi.fn>;
     setAvailableTags: ReturnType<typeof vi.fn>;
+  };
+  let usefulnessService: {
+    bookmarkUsefulness: ReturnType<typeof vi.fn>;
+    setRatingsForBookmarks: ReturnType<typeof vi.fn>;
   };
 
   const fileWith = (content: string) => ({
@@ -33,6 +38,10 @@ describe('ImportExportService', () => {
       setTagsForBookmarks: vi.fn(),
       addAvailableTags: vi.fn(),
       setAvailableTags: vi.fn()
+    };
+    usefulnessService = {
+      bookmarkUsefulness: vi.fn().mockReturnValue({}),
+      setRatingsForBookmarks: vi.fn()
     };
 
     TestBed.configureTestingModule({
@@ -55,7 +64,8 @@ describe('ImportExportService', () => {
             }])
           }
         },
-        { provide: TagsService, useValue: tagsService }
+        { provide: TagsService, useValue: tagsService },
+        { provide: UsefulnessService, useValue: usefulnessService }
       ]
     });
     service = TestBed.inject(ImportExportService);
@@ -152,6 +162,73 @@ describe('ImportExportService', () => {
       'new-2': ['Reference']
     });
     expect(tagsService.addAvailableTags).toHaveBeenCalledWith(new Set(['Reference']));
+  });
+
+  it('imports version 2 usefulness ratings and remaps bookmark IDs', async () => {
+    const backup = {
+      version: 2,
+      root: [{
+        id: '0',
+        title: 'root',
+        children: [{
+          id: 'bookmark',
+          title: 'Bookmark',
+          url: 'https://example.com'
+        }]
+      }],
+      tags: {},
+      usefulness: {
+        bookmark: { score: 4, source: 'manual' }
+      }
+    };
+
+    await service.importJson(fileWith(JSON.stringify(backup)));
+
+    expect(usefulnessService.setRatingsForBookmarks).toHaveBeenCalledWith({
+      'new-2': { score: 4, source: 'manual' }
+    });
+  });
+
+  it.each([
+    ['missing map', undefined],
+    ['out-of-range score', { bookmark: { score: 6, source: 'ai' } }],
+    ['invalid source', { bookmark: { score: 3, source: 'import' } }]
+  ])('rejects version 2 with %s', async (_label, usefulness) => {
+    const backup = {
+      version: 2,
+      root: [{
+        id: 'bookmark',
+        title: 'Bookmark',
+        url: 'https://example.com'
+      }],
+      tags: {},
+      ...(usefulness === undefined ? {} : { usefulness })
+    };
+
+    await expect(service.importJson(fileWith(JSON.stringify(backup)))).rejects.toThrow();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('exports version 2 with usefulness provenance', async () => {
+    usefulnessService.bookmarkUsefulness.mockReturnValue({
+      bookmark: { score: 5, source: 'ai' }
+    });
+    const download = vi.spyOn(service as any, 'downloadFile').mockImplementation(() => undefined);
+
+    await service.exportJson();
+
+    const blob = download.mock.calls[0][0] as Blob;
+    const text = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.addEventListener('load', () => resolve(String(reader.result)));
+      reader.addEventListener('error', () => reject(reader.error));
+      reader.readAsText(blob);
+    });
+    const data = JSON.parse(text);
+    expect(data.version).toBe(2);
+    expect(data.usefulness).toEqual({
+      bookmark: { score: 5, source: 'ai' }
+    });
   });
 
   it('removes the partial tree and tag state when bookmark creation fails', async () => {

@@ -199,6 +199,23 @@ button:hover:not(:disabled) {
     background: #5e35b1;
 }
 
+.batch-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.usefulness-rubric {
+    margin: 0;
+    padding-left: 24px;
+    color: var(--secondary-text-color, #555);
+}
+
+.usefulness-rubric li {
+    margin: 6px 0;
+}
+
 .discovery-trigger-btn {
     background: #009688;
     font-size: 13px;

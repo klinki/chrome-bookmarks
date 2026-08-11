@@ -6,6 +6,7 @@ import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
 import { signal } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { UsefulnessService } from '../../services/usefulness.service';
 
 describe('BookmarkDetailComponent', () => {
   let component: BookmarkDetailComponent;
@@ -33,17 +34,29 @@ describe('BookmarkDetailComponent', () => {
   };
 
   const mockAiService = {
-    suggestTags: vi.fn().mockResolvedValue({})
+    suggestTags: vi.fn().mockResolvedValue({}),
+    scoreUsefulness: vi.fn().mockResolvedValue({})
+  };
+
+  const mockUsefulnessService = {
+    getRatingForBookmark: vi.fn(),
+    setManualScore: vi.fn(),
+    setAiScores: vi.fn()
   };
 
   beforeEach(async () => {
     mockBookmarksFacade.updateBookmark.mockReset().mockResolvedValue(undefined);
+    mockAiService.scoreUsefulness.mockReset().mockResolvedValue({});
+    mockUsefulnessService.getRatingForBookmark.mockReset();
+    mockUsefulnessService.setManualScore.mockReset();
+    mockUsefulnessService.setAiScores.mockReset();
     await TestBed.configureTestingModule({
       imports: [ BookmarkDetailComponent, NoopAnimationsModule ],
       providers: [
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
         { provide: TagsService, useValue: mockTagsService },
-        { provide: AiService, useValue: mockAiService }
+        { provide: AiService, useValue: mockAiService },
+        { provide: UsefulnessService, useValue: mockUsefulnessService }
       ]
     })
     .compileComponents();
@@ -122,5 +135,56 @@ describe('BookmarkDetailComponent', () => {
     });
     expect(component.editForm.controls.title.value).toBe('Second draft');
     expect(component.editForm.dirty).toBe(true);
+  });
+
+  it('renders the verbatim rubric and stores a manual score', () => {
+    fixture.componentRef.setInput('selection', [
+      bookmark('1', 'Bookmark', 'https://example.com')
+    ]);
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#usefulness-score') as HTMLSelectElement;
+    expect(Array.from(select.options).map(option => option.text)).toEqual([
+      'Not rated',
+      '1 — very low expected future value',
+      '2 — limited, narrow, or easily replaceable value',
+      '3 — useful in a specific situation',
+      '4 — strong, reusable reference or tool',
+      '5 — exceptional, distinctive, or repeatedly valuable'
+    ]);
+
+    select.value = '4';
+    select.dispatchEvent(new Event('change'));
+
+    expect(mockUsefulnessService.setManualScore).toHaveBeenCalledWith('1', 4);
+  });
+
+  it('clears a manual usefulness score through Not rated', () => {
+    mockUsefulnessService.getRatingForBookmark.mockReturnValue({ score: 2, source: 'manual' });
+    fixture.componentRef.setInput('selection', [
+      bookmark('1', 'Bookmark', 'https://example.com')
+    ]);
+    fixture.detectChanges();
+
+    const select = fixture.nativeElement.querySelector('#usefulness-score') as HTMLSelectElement;
+    select.value = '';
+    select.dispatchEvent(new Event('change'));
+
+    expect(mockUsefulnessService.setManualScore).toHaveBeenCalledWith('1', null);
+  });
+
+  it('applies AI scores to the explicitly selected bookmarks', async () => {
+    const selected = [
+      bookmark('1', 'First', 'https://first.example'),
+      bookmark('2', 'Second', 'https://second.example')
+    ];
+    mockAiService.scoreUsefulness.mockResolvedValue({ '1': 3, '2': 5 });
+    fixture.componentRef.setInput('selection', selected);
+    fixture.detectChanges();
+
+    await component.aiRateUsefulness();
+
+    expect(mockAiService.scoreUsefulness).toHaveBeenCalledWith(selected);
+    expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith({ '1': 3, '2': 5 });
   });
 });

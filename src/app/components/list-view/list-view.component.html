@@ -41,6 +41,8 @@
               {{ item.title }}
             } @else if (column.name === 'dateAdded' || column.name === 'dateLastUsed') {
               {{ $any(item)[column.name] | date:'d.M.yyyy H:mm' }}
+            } @else if (column.name === 'usefulness') {
+              {{ getColumnValue(item, column.name) ?? '—' }}
             } @else {
               {{ getColumnValue(item, column.name) }}
             }

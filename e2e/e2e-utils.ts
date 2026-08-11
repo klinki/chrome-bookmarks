@@ -392,11 +392,33 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
  * - GET /api/tags - Returns mock Ollama model list
  * - GET /v1/models - Returns mock LM Studio model list
  */
-export async function setupAiMock(page: any, mockTags: Record<string, string[]> = {}) {
+export async function setupAiMock(
+    page: any,
+    mockTags: Record<string, string[]> = {},
+    mockUsefulness: Record<string, number> = {}
+) {
     // Mock AI categorization endpoint
     await page.route('**/chat/completions', async (route: any) => {
         const requestData = JSON.parse(route.request().postData() || '{}');
-        
+        const schemaName = requestData.response_format?.json_schema?.name;
+        if (schemaName === 'bookmark_usefulness_response') {
+            const prompt = String(requestData.messages?.[1]?.content ?? '');
+            const requestedIds = Array.from(prompt.matchAll(/"id":\s*"([^"]+)"/g))
+                .map(match => match[1]);
+            const results = requestedIds.map(id => ({
+                id,
+                score: mockUsefulness[id] ?? 3
+            }));
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                    choices: [{ message: { content: JSON.stringify({ results }) } }]
+                })
+            });
+            return;
+        }
+
         // Extract bookmark IDs from the prompt if possible, or use provided mockTags
         const results = Object.keys(mockTags).length > 0 
             ? Object.entries(mockTags).map(([id, tags]) => ({ id, tags }))
