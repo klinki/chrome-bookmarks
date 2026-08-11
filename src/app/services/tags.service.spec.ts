@@ -35,23 +35,29 @@ describe('TagsService', () => {
     });
 
     it('recovers from malformed and invalid persisted values', () => {
-        mockStorage['bookmarkTags'] = '{not-json';
-        mockStorage['availableTags'] = JSON.stringify([' Work ', 42, 'Work', '']);
-
-        (service as any).loadFromStorage();
+        mockStorage = {
+            bookmarkTags: '{not-json',
+            availableTags: JSON.stringify([' Work ', 42, 'Work', ''])
+        };
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({});
+        service = TestBed.inject(TagsService);
 
         expect(service.bookmarkTags()).toEqual({});
         expect(service.availableTags()).toEqual(['Work']);
     });
 
     it('normalizes persisted bookmark tag records', () => {
-        mockStorage['bookmarkTags'] = JSON.stringify({
-            valid: [' Work ', 'Work', 'Personal'],
-            invalid: 'not-an-array',
-            empty: []
-        });
-
-        (service as any).loadFromStorage();
+        mockStorage = {
+            bookmarkTags: JSON.stringify({
+                valid: [' Work ', 'Work', 'Personal'],
+                invalid: 'not-an-array',
+                empty: []
+            })
+        };
+        TestBed.resetTestingModule();
+        TestBed.configureTestingModule({});
+        service = TestBed.inject(TagsService);
 
         expect(service.bookmarkTags()).toEqual({
             valid: ['Work', 'Personal']
@@ -106,7 +112,7 @@ describe('TagsService', () => {
         });
     });
 
-    it('persists a batch of bookmark tag updates once', () => {
+    it('persists a batch of bookmark tag updates to bucket storage', async () => {
         const setItem = vi.mocked(Storage.prototype.setItem);
         setItem.mockClear();
 
@@ -119,7 +125,9 @@ describe('TagsService', () => {
             '1': ['One'],
             '2': ['Two']
         });
-        expect(setItem).toHaveBeenCalledTimes(1);
+        await vi.waitFor(() => expect(setItem).toHaveBeenCalled());
+        expect(setItem.mock.calls.some(([key]) => key.startsWith('bookmarkTags:v2:bucket:')))
+            .toBe(true);
     });
 
     describe('removeTagFromBookmark', () => {
@@ -175,7 +183,7 @@ describe('TagsService', () => {
         expect(setItem).toHaveBeenCalledTimes(1);
     });
 
-    it('removes persisted metadata when Chrome reports a bookmark deletion', () => {
+    it('removes persisted metadata when Chrome reports a bookmark deletion', async () => {
         const removed$ = new Subject<BookmarkRemovedPayload>();
         TestBed.resetTestingModule();
         TestBed.configureTestingModule({
@@ -189,12 +197,13 @@ describe('TagsService', () => {
             removed: ['Old'],
             retained: ['Keep']
         });
+        await vi.waitFor(() => expect(Storage.prototype.setItem).toHaveBeenCalled());
         const setItem = vi.mocked(Storage.prototype.setItem);
         setItem.mockClear();
 
         removed$.next(['removed', {} as chrome.bookmarks.BookmarkRemoveInfo]);
 
         expect(service.bookmarkTags()).toEqual({ retained: ['Keep'] });
-        expect(setItem).toHaveBeenCalledTimes(1);
+        await vi.waitFor(() => expect(setItem).toHaveBeenCalled());
     });
 });

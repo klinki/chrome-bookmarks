@@ -1,6 +1,7 @@
-import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { DestroyRef, Injectable, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BookmarksService } from './chrome/bookmarks/bookmarks.service';
+import { BucketedBookmarkMetadataStore } from './bucketed-bookmark-metadata.store';
 
 export type UsefulnessScore = 1 | 2 | 3 | 4 | 5;
 export type UsefulnessSource = 'ai' | 'manual';
@@ -34,14 +35,21 @@ export function isUsefulnessScore(value: unknown): value is UsefulnessScore {
 })
 export class UsefulnessService {
   public static readonly STORAGE_KEY = 'bookmarkUsefulness';
+  public static readonly STORAGE_NAMESPACE = 'bookmarkUsefulness:v2';
 
   private readonly bookmarksService = inject(BookmarksService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
+  private readonly metadataStore = new BucketedBookmarkMetadataStore<UsefulnessRating>({
+    legacyKey: UsefulnessService.STORAGE_KEY,
+    namespace: UsefulnessService.STORAGE_NAMESPACE,
+    normalizeEntry: value => this.isUsefulnessRating(value) ? { ...value } : undefined
+  });
 
-  public readonly bookmarkUsefulness = signal<BookmarkUsefulness>({});
+  public readonly bookmarkUsefulness = this.metadataStore.values;
+  public readonly ready = this.metadataStore.ready;
+  public readonly loadError = this.metadataStore.loadError;
 
   constructor() {
-    this.loadFromStorage();
     this.bookmarksService?.onRemovedEvent$
       ?.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([bookmarkId]) => this.removeBookmarkMetadata(bookmarkId));
@@ -49,6 +57,10 @@ export class UsefulnessService {
 
   public getRatingForBookmark(bookmarkId: string): UsefulnessRating | undefined {
     return this.bookmarkUsefulness()[bookmarkId];
+  }
+
+  public whenReady(): Promise<void> {
+    return this.metadataStore.whenReady();
   }
 
   public setManualScore(bookmarkId: string, score: UsefulnessScore | null): void {
@@ -69,86 +81,35 @@ export class UsefulnessService {
   public setRatingsForBookmarks(
     ratingsByBookmarkId: Readonly<Record<string, UsefulnessRating | null>>
   ): void {
-    const current = { ...this.bookmarkUsefulness() };
-    let changed = false;
+    const updates: Record<string, UsefulnessRating | null> = {};
 
     for (const [bookmarkId, rating] of Object.entries(ratingsByBookmarkId)) {
       if (!bookmarkId) {
         continue;
       }
       if (rating === null) {
-        if (bookmarkId in current) {
-          delete current[bookmarkId];
-          changed = true;
+        if (bookmarkId in this.bookmarkUsefulness()) {
+          updates[bookmarkId] = null;
         }
         continue;
       }
       if (!this.isUsefulnessRating(rating)) {
         throw new Error(`Invalid usefulness rating for bookmark ${bookmarkId}`);
       }
-      const existing = current[bookmarkId];
+      const existing = this.bookmarkUsefulness()[bookmarkId];
       if (existing?.score !== rating.score || existing.source !== rating.source) {
-        current[bookmarkId] = { ...rating };
-        changed = true;
+        updates[bookmarkId] = { ...rating };
       }
     }
 
-    if (changed) {
-      this.saveBookmarkUsefulness(current);
-    }
-  }
-
-  private loadFromStorage(): void {
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      chrome.storage.local.get([UsefulnessService.STORAGE_KEY], result => {
-        this.bookmarkUsefulness.set(this.normalizeBookmarkUsefulness(
-          result[UsefulnessService.STORAGE_KEY]
-        ));
-      });
-      return;
-    }
-
-    const stored = localStorage.getItem(UsefulnessService.STORAGE_KEY);
-    if (!stored) {
-      return;
-    }
-    try {
-      this.bookmarkUsefulness.set(this.normalizeBookmarkUsefulness(JSON.parse(stored)));
-    } catch {
-      this.bookmarkUsefulness.set({});
-    }
-  }
-
-  private normalizeBookmarkUsefulness(value: unknown): BookmarkUsefulness {
-    if (!this.isRecord(value)) {
-      return {};
-    }
-
-    const normalized: BookmarkUsefulness = {};
-    for (const [bookmarkId, rating] of Object.entries(value)) {
-      if (bookmarkId && this.isUsefulnessRating(rating)) {
-        normalized[bookmarkId] = { ...rating };
-      }
-    }
-    return normalized;
-  }
-
-  private saveBookmarkUsefulness(ratings: BookmarkUsefulness): void {
-    this.bookmarkUsefulness.set(ratings);
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      void chrome.storage.local.set({ [UsefulnessService.STORAGE_KEY]: ratings });
-    } else {
-      localStorage.setItem(UsefulnessService.STORAGE_KEY, JSON.stringify(ratings));
-    }
+    this.metadataStore.setEntries(updates);
   }
 
   private removeBookmarkMetadata(bookmarkId: string): void {
     if (!(bookmarkId in this.bookmarkUsefulness())) {
       return;
     }
-    const current = { ...this.bookmarkUsefulness() };
-    delete current[bookmarkId];
-    this.saveBookmarkUsefulness(current);
+    this.metadataStore.setEntries({ [bookmarkId]: null });
   }
 
   private isUsefulnessRating(value: unknown): value is UsefulnessRating {

@@ -1,6 +1,7 @@
 import { DestroyRef, Injectable, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { BookmarksService } from './chrome/bookmarks/bookmarks.service';
+import { BucketedBookmarkMetadataStore } from './bucketed-bookmark-metadata.store';
 
 export interface BookmarkTags {
   [bookmarkId: string]: string[];
@@ -10,29 +11,41 @@ export interface BookmarkTags {
   providedIn: 'root'
 })
 export class TagsService {
-  private readonly STORAGE_KEY_BOOKMARK_TAGS = 'bookmarkTags';
+  public static readonly STORAGE_KEY = 'bookmarkTags';
+  public static readonly STORAGE_NAMESPACE = 'bookmarkTags:v2';
   private readonly STORAGE_KEY_AVAILABLE_TAGS = 'availableTags';
   private readonly bookmarksService = inject(BookmarksService, { optional: true });
   private readonly destroyRef = inject(DestroyRef);
+  private readonly metadataStore = new BucketedBookmarkMetadataStore<string[]>({
+    legacyKey: TagsService.STORAGE_KEY,
+    namespace: TagsService.STORAGE_NAMESPACE,
+    normalizeEntry: value => {
+      const tags = this.normalizeTagList(value);
+      return tags.length > 0 ? tags : undefined;
+    }
+  });
 
-  public bookmarkTags = signal<BookmarkTags>({});
+  public bookmarkTags = this.metadataStore.values;
   public availableTags = signal<string[]>([]);
+  public readonly ready = this.metadataStore.ready;
+  public readonly loadError = this.metadataStore.loadError;
 
   constructor() {
-    this.loadFromStorage();
+    this.loadAvailableTags();
     this.bookmarksService?.onRemovedEvent$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(([bookmarkId]) => this.removeBookmarkMetadata(bookmarkId));
   }
 
-  private loadFromStorage(): void {
+  public whenReady(): Promise<void> {
+    return this.metadataStore.whenReady();
+  }
+
+  private loadAvailableTags(): void {
     if (typeof chrome !== 'undefined' && chrome.storage?.local) {
       chrome.storage.local.get(
-        [this.STORAGE_KEY_BOOKMARK_TAGS, this.STORAGE_KEY_AVAILABLE_TAGS],
+        [this.STORAGE_KEY_AVAILABLE_TAGS],
         result => {
-          this.bookmarkTags.set(this.normalizeBookmarkTags(
-            result[this.STORAGE_KEY_BOOKMARK_TAGS]
-          ));
           this.availableTags.set(this.normalizeTagList(
             result[this.STORAGE_KEY_AVAILABLE_TAGS]
           ));
@@ -41,23 +54,9 @@ export class TagsService {
       return;
     }
 
-    this.bookmarkTags.set(this.parseStoredBookmarkTags(
-      localStorage.getItem(this.STORAGE_KEY_BOOKMARK_TAGS)
-    ));
     this.availableTags.set(this.parseStoredAvailableTags(
       localStorage.getItem(this.STORAGE_KEY_AVAILABLE_TAGS)
     ));
-  }
-
-  private parseStoredBookmarkTags(value: string | null): BookmarkTags {
-    if (!value) {
-      return {};
-    }
-    try {
-      return this.normalizeBookmarkTags(JSON.parse(value));
-    } catch {
-      return {};
-    }
   }
 
   private parseStoredAvailableTags(value: string | null): string[] {
@@ -71,24 +70,6 @@ export class TagsService {
     }
   }
 
-  private normalizeBookmarkTags(value: unknown): BookmarkTags {
-    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-      return {};
-    }
-
-    const normalized: BookmarkTags = {};
-    for (const [bookmarkId, tags] of Object.entries(value)) {
-      if (!bookmarkId) {
-        continue;
-      }
-      const normalizedTags = this.normalizeTagList(tags);
-      if (normalizedTags.length > 0) {
-        normalized[bookmarkId] = normalizedTags;
-      }
-    }
-    return normalized;
-  }
-
   private normalizeTagList(value: unknown): string[] {
     if (!Array.isArray(value)) {
       return [];
@@ -99,15 +80,6 @@ export class TagsService {
         .map(tag => tag.trim())
         .filter(Boolean)
     ));
-  }
-
-  private saveBookmarkTags(tags: BookmarkTags): void {
-    this.bookmarkTags.set(tags);
-    if (typeof chrome !== 'undefined' && chrome.storage?.local) {
-      void chrome.storage.local.set({ [this.STORAGE_KEY_BOOKMARK_TAGS]: tags });
-    } else {
-      localStorage.setItem(this.STORAGE_KEY_BOOKMARK_TAGS, JSON.stringify(tags));
-    }
   }
 
   private saveAvailableTags(tags: string[]): void {
@@ -123,9 +95,7 @@ export class TagsService {
     if (!(bookmarkId in this.bookmarkTags())) {
       return;
     }
-    const current = { ...this.bookmarkTags() };
-    delete current[bookmarkId];
-    this.saveBookmarkTags(current);
+    this.metadataStore.setEntries({ [bookmarkId]: null });
   }
 
   public getTagsForBookmark(bookmarkId: string): string[] {
@@ -137,23 +107,18 @@ export class TagsService {
   }
 
   public setTagsForBookmarks(tagsByBookmarkId: Readonly<Record<string, readonly string[]>>): void {
-    const current = { ...this.bookmarkTags() };
-    let changed = false;
+    const updates: Record<string, string[] | null> = {};
     for (const [bookmarkId, tags] of Object.entries(tagsByBookmarkId)) {
       const normalizedTags = this.normalizeTagList(tags);
       if (normalizedTags.length === 0) {
-        if (bookmarkId in current) {
-          delete current[bookmarkId];
-          changed = true;
+        if (bookmarkId in this.bookmarkTags()) {
+          updates[bookmarkId] = null;
         }
-      } else if (JSON.stringify(current[bookmarkId] ?? []) !== JSON.stringify(normalizedTags)) {
-        current[bookmarkId] = normalizedTags;
-        changed = true;
+      } else if (JSON.stringify(this.bookmarkTags()[bookmarkId] ?? []) !== JSON.stringify(normalizedTags)) {
+        updates[bookmarkId] = normalizedTags;
       }
     }
-    if (changed) {
-      this.saveBookmarkTags(current);
-    }
+    this.metadataStore.setEntries(updates);
   }
 
   public addTagToBookmark(bookmarkId: string, tag: string): void {

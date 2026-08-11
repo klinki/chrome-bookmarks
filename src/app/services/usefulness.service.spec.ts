@@ -33,15 +33,18 @@ describe('UsefulnessService', () => {
   });
 
   it('normalizes persisted ratings and drops invalid entries', () => {
-    mockStorage[UsefulnessService.STORAGE_KEY] = JSON.stringify({
-      ai: { score: 4, source: 'ai' },
-      manual: { score: 2, source: 'manual' },
-      outOfRange: { score: 6, source: 'ai' },
-      fractional: { score: 2.5, source: 'manual' },
-      badSource: { score: 3, source: 'import' }
-    });
-
-    (service as any).loadFromStorage();
+    mockStorage = {
+      [UsefulnessService.STORAGE_KEY]: JSON.stringify({
+        ai: { score: 4, source: 'ai' },
+        manual: { score: 2, source: 'manual' },
+        outOfRange: { score: 6, source: 'ai' },
+        fractional: { score: 2.5, source: 'manual' },
+        badSource: { score: 3, source: 'import' }
+      })
+    };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(UsefulnessService);
 
     expect(service.bookmarkUsefulness()).toEqual({
       ai: { score: 4, source: 'ai' },
@@ -50,9 +53,10 @@ describe('UsefulnessService', () => {
   });
 
   it('recovers from malformed persisted JSON', () => {
-    mockStorage[UsefulnessService.STORAGE_KEY] = '{invalid';
-
-    (service as any).loadFromStorage();
+    mockStorage = { [UsefulnessService.STORAGE_KEY]: '{invalid' };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+    service = TestBed.inject(UsefulnessService);
 
     expect(service.bookmarkUsefulness()).toEqual({});
   });
@@ -68,7 +72,7 @@ describe('UsefulnessService', () => {
     expect(service.getRatingForBookmark('bookmark')).toBeUndefined();
   });
 
-  it('persists a batch of AI scores once', () => {
+  it('persists a batch of AI scores to bucket storage', async () => {
     const setItem = vi.mocked(Storage.prototype.setItem);
     setItem.mockClear();
 
@@ -78,7 +82,9 @@ describe('UsefulnessService', () => {
       first: { score: 1, source: 'ai' },
       second: { score: 5, source: 'ai' }
     });
-    expect(setItem).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(setItem).toHaveBeenCalled());
+    expect(setItem.mock.calls.some(([key]) => key.startsWith('bookmarkUsefulness:v2:bucket:')))
+      .toBe(true);
   });
 
   it('rejects invalid programmatic ratings without changing state', () => {
@@ -88,7 +94,7 @@ describe('UsefulnessService', () => {
     expect(service.bookmarkUsefulness()).toEqual({});
   });
 
-  it('removes metadata when Chrome reports a bookmark deletion', () => {
+  it('removes metadata when Chrome reports a bookmark deletion', async () => {
     const removed$ = new Subject<BookmarkRemovedPayload>();
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -99,6 +105,7 @@ describe('UsefulnessService', () => {
     });
     service = TestBed.inject(UsefulnessService);
     service.setAiScores({ removed: 2, retained: 4 });
+    await vi.waitFor(() => expect(Storage.prototype.setItem).toHaveBeenCalled());
     const setItem = vi.mocked(Storage.prototype.setItem);
     setItem.mockClear();
 
@@ -107,6 +114,6 @@ describe('UsefulnessService', () => {
     expect(service.bookmarkUsefulness()).toEqual({
       retained: { score: 4, source: 'ai' }
     });
-    expect(setItem).toHaveBeenCalledTimes(1);
+    await vi.waitFor(() => expect(setItem).toHaveBeenCalled());
   });
 });
