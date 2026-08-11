@@ -57,6 +57,13 @@
   overflow: hidden;
 }
 
+.list-placeholder {
+  display: grid;
+  min-height: 0;
+  place-items: center;
+  color: var(--muted-text-color, #666);
+}
+
 app-search-box {
   margin-top: auto;
   margin-bottom: auto;

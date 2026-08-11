@@ -31,7 +31,8 @@ describe('Component: ListView', () => {
       total: 0,
       completed: 0
     }),
-    deleteBookmarks: vi.fn()
+    deleteBookmarks: vi.fn(),
+    cancelDelete: vi.fn()
   };
 
   const mockTagsService = {
@@ -228,7 +229,7 @@ describe('Component: ListView', () => {
     component.orderBy('title');
     fixture.detectChanges();
 
-    const titleHeader = fixture.nativeElement.querySelector('th[aria-sort="ascending"]');
+    const titleHeader = fixture.nativeElement.querySelector('[role="columnheader"][aria-sort="ascending"]');
     const sortButton = titleHeader.querySelector('button');
 
     expect(sortButton.textContent).toContain('Title');
@@ -259,5 +260,23 @@ describe('Component: ListView', () => {
     });
     expect(event.preventDefault).toHaveBeenCalledTimes(1);
     expect(event.stopPropagation).toHaveBeenCalledTimes(1);
+  });
+
+  it('bounds rendered rows for a 10,000-item result', () => {
+    const bookmarks = Array.from({ length: 10_000 }, (_, index) => ({
+      id: `${index}`,
+      title: `Bookmark ${index}`,
+      url: `https://example.com/${index}`
+    })) as chrome.bookmarks.BookmarkTreeNode[];
+
+    fixture.componentRef.setInput('items', bookmarks);
+    fixture.detectChanges();
+
+    const grid = fixture.nativeElement.querySelector('[role="grid"]');
+    const rows = fixture.nativeElement.querySelectorAll('tbody tr');
+    expect(grid.getAttribute('aria-rowcount')).toBe('10001');
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows.length).toBeLessThan(100);
+    expect(mockSelectionService.items).toHaveLength(10_000);
   });
 });

@@ -187,6 +187,16 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                             }
 
                             return Promise.resolve();
+                        },
+                        remove: (keys: string|string[], callback?: () => void) => {
+                            const keysToRemove = Array.isArray(keys) ? keys : [keys];
+                            keysToRemove.forEach(key => delete storageData[key]);
+                            if (callback) {
+                                callback();
+                                return;
+                            }
+
+                            return Promise.resolve();
                         }
                     }
                 },

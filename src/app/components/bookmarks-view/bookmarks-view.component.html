@@ -19,10 +19,14 @@
     </app-tree-view>
   </div>
   <div class="main-view">
-    <app-list-view
-      [items]="items()"
-      [selectedItems]="selectedBookmarkIds()"
-    ></app-list-view>
+    @defer (on immediate) {
+      <app-list-view
+        [items]="items()"
+        [selectedItems]="selectedBookmarkIds()"
+      ></app-list-view>
+    } @placeholder {
+      <div class="list-placeholder" role="status">Loading bookmarks…</div>
+    }
     <app-bookmark-detail [selection]="selectedBookmarks()"></app-bookmark-detail>
   </div>
 </div>

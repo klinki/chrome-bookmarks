@@ -3,6 +3,11 @@ import { Component, HostListener, input, signal, inject, ChangeDetectionStrategy
 
 import { DatePipe } from '@angular/common';
 import { CdkContextMenuTrigger } from "@angular/cdk/menu";
+import {
+  CdkFixedSizeVirtualScroll,
+  CdkVirtualForOf,
+  CdkVirtualScrollViewport
+} from '@angular/cdk/scrolling';
 
 import {
   SelectionService,
@@ -31,11 +36,15 @@ import { FolderIconComponent } from '../folder-icon/folder-icon.component';
     CdkContextMenuTrigger,
     BookmarkMenuComponent,
     FolderIconComponent,
-    DatePipe
+    DatePipe,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
+    CdkVirtualScrollViewport
   ],
 
 })
 export class ListViewComponent {
+  public readonly rowHeight = 40;
   public items = input<chrome.bookmarks.BookmarkTreeNode[] | null>([]);
   public selectedItems = input<Set<string>>(new Set());
 
@@ -98,6 +107,10 @@ export class ListViewComponent {
       this.sortValueAccessor
     );
   });
+
+  public trackByBookmarkId(_index: number, item: chrome.bookmarks.BookmarkTreeNode): string {
+    return item.id;
+  }
 
   private readonly syncSelectionItems = effect(() => {
     this.selectionService.items = this.visibleItems();

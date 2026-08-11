@@ -7,6 +7,7 @@
     "start": "nx serve",
     "build": "npm run version-info && nx build && npx tsc src/background.ts --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution node",
     "benchmark": "tsx benchmarks/favicon.benchmark.ts",
+    "benchmark:bookmarks": "tsx benchmarks/large-library.benchmark.ts",
     "watch": "nx build --watch --configuration development",
     "test": "umask 0002 && nx test --watch=false && npx playwright test",
     "test:unit": "umask 0002 && nx test --watch=false",
