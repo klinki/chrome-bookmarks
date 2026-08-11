@@ -158,6 +158,33 @@ button:hover:not(:disabled) {
     margin-top: 15px;
 }
 
+.checkpoint-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 24px;
+    padding: 16px;
+    border: 1px solid var(--border-color, #ddd);
+    border-left: 4px solid #ff9800;
+    border-radius: 6px;
+    background: var(--card-bg, #fff);
+}
+
+.checkpoint-card h3,
+.checkpoint-card p {
+    margin: 0 0 6px;
+}
+
+.checkpoint-error {
+    color: #d32f2f;
+}
+
+.checkpoint-actions {
+    display: flex;
+    gap: 8px;
+}
+
 .control-btn {
     flex: 1;
     font-size: 13px;

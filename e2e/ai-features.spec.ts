@@ -195,3 +195,39 @@ test('Model discovery dialog traps focus and restores the trigger', async ({ pag
     await expect(dialog).not.toBeVisible();
     await expect(trigger).toBeFocused();
 });
+
+test('Unfinished AI jobs can be discarded from settings', async ({ context }) => {
+    const page = await context.newPage();
+    await setupChromeMock(page, root, MOCK_BOOKMARKS_MAP, {
+        aiConfig: {
+            baseUrl: 'http://localhost:11434/v1',
+            apiKey: '',
+            model: 'llama3:8b',
+            allowNewTags: false
+        },
+        aiJobCheckpoint: {
+            version: 1,
+            operation: 'usefulness-unscored',
+            candidateIds: ['101', '102'],
+            nextCursor: 1,
+            total: 2,
+            createdAt: 1,
+            updatedAt: 2,
+            promptVersion: 1,
+            configurationFingerprint: 'stored-fingerprint',
+            status: 'interrupted'
+        }
+    });
+    const appPage = new AppPage(page);
+    await appPage.navigate();
+    await page.locator('a.settings-link').click();
+    await page.locator('nav').getByText('AI Categorization').click();
+
+    const checkpoint = page.locator('.checkpoint-card');
+    await expect(checkpoint).toContainText('1 / 2 processed');
+    await expect(checkpoint.getByRole('button', { name: 'Resume' })).toBeVisible();
+    await checkpoint.getByRole('button', { name: 'Discard' }).click();
+
+    await expect(checkpoint).not.toBeVisible();
+    await page.close();
+});

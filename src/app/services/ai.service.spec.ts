@@ -8,6 +8,7 @@ import { UsefulnessService } from './usefulness.service';
 describe('AiService', () => {
     let service: AiService;
     let mockAiStore: any;
+    let checkpointValue: any;
     let mockTagsService: any;
     let mockUsefulnessService: any;
 
@@ -16,29 +17,50 @@ describe('AiService', () => {
     });
 
     beforeEach(() => {
+        checkpointValue = null;
         mockAiStore = {
             aiConfig: vi.fn().mockReturnValue({
                 baseUrl: 'http://localhost:11434/v1',
                 apiKey: '',
-                model: 'llama3:latest'
+                model: 'llama3:latest',
+                allowNewTags: false
             }),
+            checkpoint: vi.fn(() => checkpointValue),
             progress: {
                 isProcessing: vi.fn().mockReturnValue(false),
                 isPaused: vi.fn().mockReturnValue(false),
                 isCancelled: vi.fn().mockReturnValue(false)
             },
             updateProgress: vi.fn(),
-            cancelProcessing: vi.fn()
+            setCheckpoint: vi.fn((checkpoint: any) => {
+                checkpointValue = checkpoint;
+            }),
+            updateCheckpoint: vi.fn((update: any) => {
+                checkpointValue = {
+                    ...checkpointValue,
+                    ...update,
+                    updatedAt: update.updatedAt ?? Date.now()
+                };
+            }),
+            discardCheckpoint: vi.fn(() => {
+                checkpointValue = null;
+            }),
+            cancelProcessing: vi.fn(() => {
+                checkpointValue = null;
+            })
         };
 
         mockTagsService = {
+            availableTags: vi.fn().mockReturnValue([]),
             getTagsForBookmark: vi.fn().mockReturnValue([]),
             setTagsForBookmarks: vi.fn(),
-            addAvailableTags: vi.fn()
+            addAvailableTags: vi.fn(),
+            whenReady: vi.fn().mockResolvedValue(undefined)
         };
         mockUsefulnessService = {
             getRatingForBookmark: vi.fn(),
-            setAiScores: vi.fn()
+            setAiScores: vi.fn(),
+            whenReady: vi.fn().mockResolvedValue(undefined)
         };
 
         TestBed.configureTestingModule({
@@ -161,6 +183,7 @@ describe('AiService', () => {
             }] as chrome.bookmarks.BookmarkTreeNode[];
 
             const categorization = service.categorizeAll(bookmarks, ['ExistingTag']);
+            await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
             const requestSignal = (fetchMock.mock.calls[0][1] as RequestInit).signal;
 
             service.cancelProcessing();
@@ -171,6 +194,7 @@ describe('AiService', () => {
             expect(mockTagsService.setTagsForBookmarks).not.toHaveBeenCalled();
             expect(mockAiStore.updateProgress).toHaveBeenLastCalledWith({
                 isProcessing: false,
+                isPaused: false,
                 operation: null
             });
         });
@@ -194,6 +218,18 @@ describe('AiService', () => {
             });
             expect(mockTagsService.addAvailableTags).toHaveBeenCalledTimes(1);
             expect(mockTagsService.addAvailableTags).toHaveBeenCalledWith(['Work', 'Reference']);
+        });
+
+        it('requires restart when the tag pool changed after the checkpoint', async () => {
+            checkpointValue = (service as any).createCheckpoint('tags', ['1'], ['ExistingTag']);
+            checkpointValue = { ...checkpointValue, status: 'interrupted' };
+            mockTagsService.availableTags.mockReturnValue(['ChangedTag']);
+
+            await expect(service.resumeCheckpoint([
+                { id: '1', title: 'Bookmark', url: 'https://example.com' }
+            ])).rejects.toThrow('AI configuration changed. Discard this job and start it again.');
+
+            expect(checkpointValue.status).toBe('failed');
         });
     });
 
@@ -338,6 +374,137 @@ describe('AiService', () => {
             expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith(
                 Object.fromEntries(manyBookmarks.slice(0, 10).map(bookmark => [bookmark.id, 3]))
             );
+            expect(checkpointValue.nextCursor).toBe(10);
+            expect(checkpointValue.status).toBe('failed');
+            expect(checkpointValue.lastError).toBe('Invalid batch');
+        });
+
+        it('re-resolves deleted bookmarks and protects new manual ratings when resumed', async () => {
+            const treeOnResume = [{
+                id: 'root',
+                title: 'Root',
+                children: [
+                    { id: 'manual-now', title: 'Manual now', url: 'https://manual.example' },
+                    { id: 'eligible', title: 'Eligible', url: 'https://eligible.example' }
+                ]
+            }] as chrome.bookmarks.BookmarkTreeNode[];
+            checkpointValue = (service as any).createCheckpoint(
+                'usefulness-unscored',
+                ['deleted', 'manual-now', 'eligible']
+            );
+            checkpointValue = { ...checkpointValue, status: 'interrupted' };
+            mockUsefulnessService.getRatingForBookmark.mockImplementation((id: string) =>
+                id === 'manual-now' ? { score: 5, source: 'manual' } : undefined
+            );
+            vi.spyOn(service, 'scoreUsefulness').mockResolvedValue({ eligible: 4 });
+
+            await service.resumeCheckpoint(treeOnResume);
+
+            expect(service.scoreUsefulness).toHaveBeenCalledWith(
+                [expect.objectContaining({ id: 'eligible' })],
+                expect.any(AbortSignal)
+            );
+            expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith({ eligible: 4 });
+            expect(mockAiStore.discardCheckpoint).toHaveBeenCalledTimes(1);
+        });
+
+        it('requires restart when relevant AI configuration changed', async () => {
+            checkpointValue = (service as any).createCheckpoint('usefulness-unscored', ['unscored']);
+            checkpointValue = { ...checkpointValue, status: 'interrupted' };
+            mockAiStore.aiConfig.mockReturnValue({
+                baseUrl: 'http://localhost:11434/v1',
+                apiKey: 'a-different-secret-does-not-matter',
+                model: 'a-different-model',
+                allowNewTags: false
+            });
+
+            await expect(service.resumeCheckpoint(tree)).rejects.toThrow(
+                'AI configuration changed. Discard this job and start it again.'
+            );
+            expect(checkpointValue.status).toBe('failed');
+            expect(mockUsefulnessService.setAiScores).not.toHaveBeenCalled();
+        });
+
+        it('does not include API key contents in the configuration fingerprint', () => {
+            const first = (service as any).configurationFingerprint('usefulness-unscored', 1);
+            mockAiStore.aiConfig.mockReturnValue({
+                baseUrl: 'http://localhost:11434/v1',
+                apiKey: 'rotated-secret',
+                model: 'llama3:latest',
+                allowNewTags: false
+            });
+
+            expect((service as any).configurationFingerprint('usefulness-unscored', 1)).toBe(first);
+        });
+
+        it('retries a transient network failure three times before succeeding', async () => {
+            mockUsefulnessService.getRatingForBookmark.mockReturnValue(undefined);
+            vi.spyOn(service as any, 'delay').mockResolvedValue(undefined);
+            vi.spyOn(service, 'scoreUsefulness')
+                .mockRejectedValueOnce(new TypeError('network'))
+                .mockRejectedValueOnce(new TypeError('network'))
+                .mockRejectedValueOnce(new TypeError('network'))
+                .mockResolvedValueOnce({ unscored: 4 });
+
+            await service.rateUsefulnessInBulk(tree, 'unscored');
+
+            expect(service.scoreUsefulness).toHaveBeenCalledTimes(4);
+            expect((service as any).delay).toHaveBeenCalledTimes(3);
+            expect(mockUsefulnessService.setAiScores).toHaveBeenCalledWith({ unscored: 4 });
+        });
+
+        it.each([429, 503])('retries transient HTTP %s responses', async (status) => {
+            mockUsefulnessService.getRatingForBookmark.mockImplementation((id: string) =>
+                id === 'unscored' ? undefined : { score: 5, source: 'manual' }
+            );
+            vi.spyOn(service as any, 'delay').mockResolvedValue(undefined);
+            const success = {
+                ok: true,
+                json: () => Promise.resolve({
+                    choices: [{ message: { content: JSON.stringify({
+                        results: [{ id: 'unscored', score: 4 }]
+                    }) } }]
+                })
+            };
+            const failure = {
+                ok: false,
+                status,
+                statusText: 'temporary',
+                text: () => Promise.resolve('retry')
+            };
+            const fetchMock = vi.fn()
+                .mockResolvedValueOnce(failure)
+                .mockResolvedValueOnce(failure)
+                .mockResolvedValueOnce(failure)
+                .mockResolvedValueOnce(success);
+            vi.stubGlobal('fetch', fetchMock);
+
+            await service.rateUsefulnessInBulk(tree, 'unscored');
+
+            expect(fetchMock).toHaveBeenCalledTimes(4);
+            expect((service as any).delay).toHaveBeenCalledTimes(3);
+        });
+
+        it('stops on a schema failure without retrying or advancing the cursor', async () => {
+            mockUsefulnessService.getRatingForBookmark.mockImplementation((id: string) =>
+                id === 'unscored' ? undefined : { score: 5, source: 'manual' }
+            );
+            vi.spyOn(service as any, 'delay').mockResolvedValue(undefined);
+            const fetchMock = vi.fn().mockResolvedValue({
+                ok: true,
+                json: () => Promise.resolve({
+                    choices: [{ message: { content: JSON.stringify({ results: [] }) } }]
+                })
+            });
+            vi.stubGlobal('fetch', fetchMock);
+
+            await expect(service.rateUsefulnessInBulk(tree, 'unscored'))
+                .rejects.toThrow('AI returned invalid usefulness ratings');
+
+            expect(fetchMock).toHaveBeenCalledTimes(1);
+            expect((service as any).delay).not.toHaveBeenCalled();
+            expect(checkpointValue.nextCursor).toBe(0);
+            expect(checkpointValue.status).toBe('failed');
         });
     });
 

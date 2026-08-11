@@ -30,6 +30,7 @@ describe('AiSettingsComponent', () => {
       currentBatch: 'Batch 1',
       operation: null
     }),
+    checkpoint: signal(null),
     updateAiConfig: vi.fn(),
     togglePause: vi.fn(),
     cancelProcessing: vi.fn()
@@ -48,7 +49,10 @@ describe('AiSettingsComponent', () => {
       completionUrl: 'http://localhost:11434/v1'
     }],
     discoverProviderModels: vi.fn().mockResolvedValue([]),
+    categorizeAll: vi.fn().mockResolvedValue(undefined),
     rateUsefulnessInBulk: vi.fn().mockResolvedValue(undefined),
+    resumeCheckpoint: vi.fn().mockResolvedValue(undefined),
+    discardCheckpoint: vi.fn(),
     cancelProcessing: vi.fn()
   };
 
@@ -57,6 +61,8 @@ describe('AiSettingsComponent', () => {
   };
 
   beforeEach(async () => {
+    (mockStore.checkpoint as any).set(null);
+    vi.clearAllMocks();
     await TestBed.configureTestingModule({
       imports: [AiSettingsComponent, ReactiveFormsModule, FormsModule],
       providers: [
@@ -118,5 +124,31 @@ describe('AiSettingsComponent', () => {
     await Promise.resolve();
 
     expect(triggerFocus).toHaveBeenCalled();
+  });
+
+  it('offers resume and discard actions for an unfinished AI job', async () => {
+    (mockStore.checkpoint as any).set({
+      version: 1,
+      operation: 'usefulness-unscored',
+      candidateIds: ['1', '2'],
+      nextCursor: 1,
+      total: 2,
+      createdAt: 1,
+      updatedAt: 2,
+      promptVersion: 1,
+      configurationFingerprint: 'fingerprint',
+      status: 'interrupted'
+    });
+    fixture.detectChanges();
+
+    const card = fixture.nativeElement.querySelector('.checkpoint-card') as HTMLElement;
+    expect(card.textContent).toContain('1 / 2 processed');
+    const buttons = Array.from(card.querySelectorAll('button')) as HTMLButtonElement[];
+    buttons.find(button => button.textContent?.trim() === 'Resume')?.click();
+    buttons.find(button => button.textContent?.trim() === 'Discard')?.click();
+    await fixture.whenStable();
+
+    expect(mockAiService.resumeCheckpoint).toHaveBeenCalledWith([]);
+    expect(mockAiService.discardCheckpoint).toHaveBeenCalledTimes(1);
   });
 });

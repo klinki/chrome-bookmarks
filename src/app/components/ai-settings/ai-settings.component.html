@@ -22,6 +22,23 @@
             </button>
         </div>
     </div>
+    @if (checkpoint() && !progress().isProcessing) {
+        <section class="checkpoint-card" aria-labelledby="checkpoint-title">
+            <div>
+                <h3 id="checkpoint-title">Unfinished AI job</h3>
+                <p>
+                    {{ checkpoint()!.operation }} — {{ checkpoint()!.nextCursor }} / {{ checkpoint()!.total }} processed
+                </p>
+                @if (checkpoint()!.lastError) {
+                    <p class="checkpoint-error" role="alert">{{ checkpoint()!.lastError }}</p>
+                }
+            </div>
+            <div class="checkpoint-actions">
+                <button type="button" class="batch-btn" (click)="resumeCheckpoint()">Resume</button>
+                <button type="button" class="secondary-btn" (click)="discardCheckpoint()">Discard</button>
+            </div>
+        </section>
+    }
     <div class="header">
         <h2>AI Categorization</h2>
     </div>
@@ -51,7 +68,7 @@
     <section class="tags-section">
         <div class="section-header">
             <h3>Available Tags Pool</h3>
-            <button class="batch-btn" (click)="categorizeAllBookmarks()" [disabled]="progress().isProcessing">
+            <button class="batch-btn" (click)="categorizeAllBookmarks()" [disabled]="progress().isProcessing || !!checkpoint()">
                 {{ progress().isProcessing ? 'Processing...' : 'Categorize All Bookmarks' }}
             </button>
         </div>
@@ -83,10 +100,10 @@
         <div class="section-header">
             <h3>Bookmark Usefulness</h3>
             <div class="batch-actions">
-                <button class="batch-btn" (click)="rateUsefulness('unscored')" [disabled]="progress().isProcessing">
+                <button class="batch-btn" (click)="rateUsefulness('unscored')" [disabled]="progress().isProcessing || !!checkpoint()">
                     Rate Unscored
                 </button>
-                <button class="batch-btn" (click)="rateUsefulness('rerate-ai')" [disabled]="progress().isProcessing">
+                <button class="batch-btn" (click)="rateUsefulness('rerate-ai')" [disabled]="progress().isProcessing || !!checkpoint()">
                     Re-rate AI Scores
                 </button>
             </div>

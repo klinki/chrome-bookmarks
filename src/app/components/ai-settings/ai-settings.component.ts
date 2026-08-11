@@ -29,6 +29,7 @@ export class AiSettingsComponent {
 
   public availableTags = this.tagsService.availableTags;
   public progress = this.store.progress;
+  public checkpoint = this.store.checkpoint;
   public providers = this.aiService.providers;
   public readonly usefulnessRubric = USEFULNESS_RUBRIC;
 
@@ -87,6 +88,20 @@ export class AiSettingsComponent {
 
   public cancelProcessing() {
     this.aiService.cancelProcessing();
+  }
+
+  public async resumeCheckpoint(): Promise<void> {
+    try {
+      const tree = await this.provider.getBookmarks();
+      await this.aiService.resumeCheckpoint(tree);
+    } catch (error) {
+      developmentLogger.error('ai.checkpoint.resume.failed', error);
+      alert(error instanceof Error ? error.message : 'AI job could not be resumed');
+    }
+  }
+
+  public discardCheckpoint(): void {
+    this.aiService.discardCheckpoint();
   }
 
   public async rateUsefulness(mode: UsefulnessBulkMode): Promise<void> {

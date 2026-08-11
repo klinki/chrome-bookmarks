@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { AiStore } from './ai.store';
+import { AiJobCheckpoint, AiOperation, AiStore } from './ai.store';
 import { TagsService } from './tags.service';
 import { developmentLogger } from './development-logger';
 import {
@@ -15,6 +15,17 @@ export interface AiProvider {
     name: string;
     discoveryUrl: string;
     completionUrl: string;
+}
+
+const AI_BATCH_SIZE = 10;
+const TAG_PROMPT_VERSION = 1;
+const USEFULNESS_PROMPT_VERSION = 1;
+
+class AiHttpError extends Error {
+    constructor(public readonly status: number, message: string) {
+        super(message);
+        this.name = 'AiHttpError';
+    }
 }
 
 @Injectable({
@@ -128,7 +139,10 @@ ${instruction}
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`AI API error: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new AiHttpError(
+                response.status,
+                `AI API error: ${response.status} ${response.statusText} - ${errorText}`
+            );
         }
 
         const result = await response.json();
@@ -250,7 +264,10 @@ Return one result for every bookmark. Each result must contain exactly the bookm
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`AI API error: ${response.status} ${response.statusText} - ${errorText}`);
+            throw new AiHttpError(
+                response.status,
+                `AI API error: ${response.status} ${response.statusText} - ${errorText}`
+            );
         }
 
         try {
@@ -263,114 +280,35 @@ Return one result for every bookmark. Each result must contain exactly the bookm
         }
     }
 
-    public async categorizeAll(bookmarks: chrome.bookmarks.BookmarkTreeNode[], availableTags: string[]) {
-        const bookmarksToProcess = this.flattenBookmarks(bookmarks).filter(b => !!b.url);
-        const total = bookmarksToProcess.length;
-        const batchSize = 10;
-        const controller = this.startProcessing(total, 'tags');
-
-        try {
-            for (let i = 0; i < total; i += batchSize) {
-                if (controller.signal.aborted || this.store.progress.isCancelled()) {
-                    break;
-                }
-
-                while (this.store.progress.isPaused()
-                    && !controller.signal.aborted
-                    && !this.store.progress.isCancelled()) {
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-
-                if (controller.signal.aborted || this.store.progress.isCancelled()) {
-                    break;
-                }
-
-                const batch = bookmarksToProcess.slice(i, i + batchSize);
-                this.store.updateProgress({
-                    currentBatch: `Processing ${i + 1} to ${Math.min(i + batchSize, total)} of ${total}...`
-                });
-
-                const suggestions = await this.suggestTags(batch, availableTags, controller.signal);
-
-                const tagUpdates: Record<string, string[]> = {};
-                const newAvailableTags: string[] = [];
-                for (const [id, tags] of Object.entries(suggestions)) {
-                    if (controller.signal.aborted || this.store.progress.isCancelled()) {
-                        return;
-                    }
-
-                    const current = this.tagsService.getTagsForBookmark(id);
-                    tagUpdates[id] = Array.from(new Set([...current, ...tags]));
-                    newAvailableTags.push(...tags);
-                }
-                this.tagsService.setTagsForBookmarks(tagUpdates);
-                this.tagsService.addAvailableTags(newAvailableTags);
-
-                this.store.updateProgress({
-                    processed: Math.min(i + batch.length, total)
-                });
-            }
-        } catch (error) {
-            if (!controller.signal.aborted) {
-                throw error;
-            }
-        } finally {
-            if (this.activeProcessing === controller) {
-                this.activeProcessing = null;
-                this.store.updateProgress({ isProcessing: false, operation: null });
-            }
-        }
+    public async categorizeAll(
+        bookmarks: chrome.bookmarks.BookmarkTreeNode[],
+        availableTags: string[]
+    ): Promise<void> {
+        await this.waitForMetadata();
+        const candidateIds = this.flattenBookmarks(bookmarks)
+            .filter(bookmark => Boolean(bookmark.url))
+            .map(bookmark => bookmark.id);
+        const checkpoint = this.createCheckpoint('tags', candidateIds, availableTags);
+        this.store.setCheckpoint(checkpoint);
+        await this.runCheckpoint(bookmarks, checkpoint);
     }
 
     public async rateUsefulnessInBulk(
         bookmarks: chrome.bookmarks.BookmarkTreeNode[],
         mode: UsefulnessBulkMode
     ): Promise<void> {
-        const bookmarksToProcess = this.flattenBookmarks(bookmarks).filter(bookmark => {
+        await this.waitForMetadata();
+        const candidateIds = this.flattenBookmarks(bookmarks).filter(bookmark => {
             if (!bookmark.url) {
                 return false;
             }
             const rating = this.usefulnessService.getRatingForBookmark(bookmark.id);
             return mode === 'unscored' ? rating === undefined : rating?.source === 'ai';
-        });
-        const total = bookmarksToProcess.length;
-        const batchSize = 10;
+        }).map(bookmark => bookmark.id);
         const operation = mode === 'unscored' ? 'usefulness-unscored' : 'usefulness-rerate';
-        const controller = this.startProcessing(total, operation);
-
-        try {
-            for (let i = 0; i < total; i += batchSize) {
-                if (controller.signal.aborted || this.store.progress.isCancelled()) {
-                    break;
-                }
-
-                await this.waitWhilePaused(controller.signal);
-                if (controller.signal.aborted || this.store.progress.isCancelled()) {
-                    break;
-                }
-
-                const batch = bookmarksToProcess.slice(i, i + batchSize);
-                this.store.updateProgress({
-                    currentBatch: `Rating ${i + 1} to ${Math.min(i + batchSize, total)} of ${total}...`
-                });
-
-                const scores = await this.scoreUsefulness(batch, controller.signal);
-                if (controller.signal.aborted || this.store.progress.isCancelled()) {
-                    break;
-                }
-                this.usefulnessService.setAiScores(scores);
-                this.store.updateProgress({ processed: Math.min(i + batch.length, total) });
-            }
-        } catch (error) {
-            if (!controller.signal.aborted) {
-                throw error;
-            }
-        } finally {
-            if (this.activeProcessing === controller) {
-                this.activeProcessing = null;
-                this.store.updateProgress({ isProcessing: false, operation: null });
-            }
-        }
+        const checkpoint = this.createCheckpoint(operation, candidateIds);
+        this.store.setCheckpoint(checkpoint);
+        await this.runCheckpoint(bookmarks, checkpoint);
     }
 
     public cancelProcessing(): void {
@@ -381,6 +319,37 @@ Return one result for every bookmark. Each result must contain exactly the bookm
     /** @deprecated Use cancelProcessing for the shared AI job. */
     public cancelCategorization(): void {
         this.cancelProcessing();
+    }
+
+    public async resumeCheckpoint(bookmarks: chrome.bookmarks.BookmarkTreeNode[]): Promise<void> {
+        await this.waitForMetadata();
+        const checkpoint = this.store.checkpoint();
+        if (!checkpoint) {
+            throw new Error('No AI job is available to resume');
+        }
+        const currentTagPool = checkpoint.operation === 'tags'
+            ? this.normalizeTagPool(this.tagsService.availableTags())
+            : undefined;
+        const expectedFingerprint = this.configurationFingerprint(
+            checkpoint.operation,
+            checkpoint.promptVersion,
+            currentTagPool
+        );
+        if (expectedFingerprint !== checkpoint.configurationFingerprint) {
+            const message = 'AI configuration changed. Discard this job and start it again.';
+            this.store.updateCheckpoint({ status: 'failed', lastError: message });
+            throw new Error(message);
+        }
+        this.store.updateCheckpoint({ status: 'running', lastError: undefined });
+        await this.runCheckpoint(bookmarks, this.store.checkpoint()!);
+    }
+
+    public discardCheckpoint(): void {
+        if (this.activeProcessing) {
+            this.activeProcessing.abort();
+            this.activeProcessing = null;
+        }
+        this.store.discardCheckpoint();
     }
 
     public async getOllamaModels(baseUrl: string, signal?: AbortSignal): Promise<string[]> {
@@ -435,21 +404,20 @@ Return one result for every bookmark. Each result must contain exactly the bookm
         return results;
     }
 
-    private startProcessing(
-        total: number,
-        operation: 'tags' | 'usefulness-unscored' | 'usefulness-rerate'
-    ): AbortController {
-        this.activeProcessing?.abort();
+    private startProcessing(checkpoint: AiJobCheckpoint): AbortController {
+        if (this.activeProcessing) {
+            throw new Error('Another AI job is already running');
+        }
         const controller = new AbortController();
         this.activeProcessing = controller;
         this.store.updateProgress({
-            total,
-            processed: 0,
+            total: checkpoint.total,
+            processed: checkpoint.nextCursor,
             isProcessing: true,
-            isPaused: false,
+            isPaused: checkpoint.status === 'paused',
             isCancelled: false,
             currentBatch: '',
-            operation
+            operation: checkpoint.operation
         });
         return controller;
     }
@@ -460,6 +428,216 @@ Return one result for every bookmark. Each result must contain exactly the bookm
             && !this.store.progress.isCancelled()) {
             await new Promise(resolve => setTimeout(resolve, 500));
         }
+    }
+
+    private createCheckpoint(
+        operation: AiOperation,
+        candidateIds: string[],
+        tagPoolSnapshot?: string[]
+    ): AiJobCheckpoint {
+        if (this.store.checkpoint()) {
+            throw new Error('An unfinished AI job exists. Resume or discard it first.');
+        }
+        const promptVersion = operation === 'tags' ? TAG_PROMPT_VERSION : USEFULNESS_PROMPT_VERSION;
+        const normalizedTagPool = operation === 'tags'
+            ? this.normalizeTagPool(tagPoolSnapshot ?? [])
+            : undefined;
+        const now = Date.now();
+        return {
+            version: 1,
+            operation,
+            candidateIds: Array.from(new Set(candidateIds)),
+            nextCursor: 0,
+            total: new Set(candidateIds).size,
+            createdAt: now,
+            updatedAt: now,
+            promptVersion,
+            configurationFingerprint: this.configurationFingerprint(
+                operation,
+                promptVersion,
+                normalizedTagPool
+            ),
+            ...(normalizedTagPool ? { tagPoolSnapshot: normalizedTagPool } : {}),
+            status: 'running'
+        };
+    }
+
+    private async runCheckpoint(
+        bookmarks: chrome.bookmarks.BookmarkTreeNode[],
+        initialCheckpoint: AiJobCheckpoint
+    ): Promise<void> {
+        const controller = this.startProcessing(initialCheckpoint);
+        const nodeMap = new Map(this.flattenBookmarks(bookmarks).map(bookmark => [bookmark.id, bookmark]));
+
+        try {
+            let checkpoint = initialCheckpoint;
+            while (checkpoint.nextCursor < checkpoint.total) {
+                if (controller.signal.aborted || this.store.progress.isCancelled()) {
+                    return;
+                }
+                await this.waitWhilePaused(controller.signal);
+                if (controller.signal.aborted || this.store.progress.isCancelled()) {
+                    return;
+                }
+
+                const nextCursor = Math.min(checkpoint.nextCursor + AI_BATCH_SIZE, checkpoint.total);
+                const candidateIds = checkpoint.candidateIds.slice(checkpoint.nextCursor, nextCursor);
+                const batch = candidateIds
+                    .map(id => nodeMap.get(id))
+                    .filter((bookmark): bookmark is chrome.bookmarks.BookmarkTreeNode =>
+                        Boolean(bookmark?.url) && this.isStillEligible(checkpoint.operation, bookmark!.id));
+                this.store.updateProgress({
+                    currentBatch: `${checkpoint.operation === 'tags' ? 'Processing' : 'Rating'} ${checkpoint.nextCursor + 1} to ${nextCursor} of ${checkpoint.total}...`
+                });
+
+                let tagPoolUpdate: Pick<AiJobCheckpoint, 'tagPoolSnapshot' | 'configurationFingerprint'> | undefined;
+                if (batch.length > 0) {
+                    if (checkpoint.operation === 'tags') {
+                        const suggestions = await this.withTransientRetries(
+                            () => this.suggestTags(batch, checkpoint.tagPoolSnapshot ?? [], controller.signal),
+                            controller.signal
+                        );
+                        if (controller.signal.aborted || this.store.progress.isCancelled()) {
+                            return;
+                        }
+                        const tagUpdates: Record<string, string[]> = {};
+                        const newAvailableTags: string[] = [];
+                        for (const [id, tags] of Object.entries(suggestions)) {
+                            const current = this.tagsService.getTagsForBookmark(id);
+                            tagUpdates[id] = Array.from(new Set([...current, ...tags]));
+                            newAvailableTags.push(...tags);
+                        }
+                        this.tagsService.setTagsForBookmarks(tagUpdates);
+                        this.tagsService.addAvailableTags(newAvailableTags);
+                        const tagPoolSnapshot = this.normalizeTagPool(this.tagsService.availableTags());
+                        tagPoolUpdate = {
+                            tagPoolSnapshot,
+                            configurationFingerprint: this.configurationFingerprint(
+                                checkpoint.operation,
+                                checkpoint.promptVersion,
+                                tagPoolSnapshot
+                            )
+                        };
+                    } else {
+                        const scores = await this.withTransientRetries(
+                            () => this.scoreUsefulness(batch, controller.signal),
+                            controller.signal
+                        );
+                        if (controller.signal.aborted || this.store.progress.isCancelled()) {
+                            return;
+                        }
+                        this.usefulnessService.setAiScores(scores);
+                    }
+                }
+
+                this.store.updateCheckpoint({
+                    nextCursor,
+                    status: 'running',
+                    lastError: undefined,
+                    ...tagPoolUpdate
+                });
+                this.store.updateProgress({ processed: nextCursor });
+                checkpoint = this.store.checkpoint()!;
+            }
+
+            this.store.discardCheckpoint();
+        } catch (error) {
+            if (!controller.signal.aborted) {
+                const message = error instanceof Error ? error.message : String(error);
+                this.store.updateCheckpoint({ status: 'failed', lastError: message });
+                throw error;
+            }
+        } finally {
+            if (this.activeProcessing === controller) {
+                this.activeProcessing = null;
+                this.store.updateProgress({
+                    isProcessing: false,
+                    isPaused: false,
+                    operation: null
+                });
+            }
+        }
+    }
+
+    private isStillEligible(operation: AiOperation, bookmarkId: string): boolean {
+        if (operation === 'tags') {
+            return true;
+        }
+        const rating = this.usefulnessService.getRatingForBookmark(bookmarkId);
+        return operation === 'usefulness-unscored'
+            ? rating === undefined
+            : rating?.source === 'ai';
+    }
+
+    private async waitForMetadata(): Promise<void> {
+        await Promise.all([
+            this.tagsService.whenReady?.() ?? Promise.resolve(),
+            this.usefulnessService.whenReady?.() ?? Promise.resolve()
+        ]);
+    }
+
+    private configurationFingerprint(
+        operation: AiOperation,
+        promptVersion: number,
+        tagPoolSnapshot?: string[]
+    ): string {
+        const config = this.store.aiConfig();
+        return this.fnv1a(JSON.stringify({
+            operation,
+            promptVersion,
+            baseUrl: config.baseUrl.replace(/\/+$/, ''),
+            model: config.model,
+            ...(operation === 'tags' ? {
+                allowNewTags: Boolean(config.allowNewTags),
+                tagPoolSnapshot: tagPoolSnapshot ?? []
+            } : {})
+        }));
+    }
+
+    private normalizeTagPool(tags: string[]): string[] {
+        return Array.from(new Set(tags)).sort((left, right) => left.localeCompare(right));
+    }
+
+    private fnv1a(value: string): string {
+        let hash = 0x811c9dc5;
+        for (let index = 0; index < value.length; index += 1) {
+            hash ^= value.charCodeAt(index);
+            hash = Math.imul(hash, 0x01000193);
+        }
+        return (hash >>> 0).toString(16).padStart(8, '0');
+    }
+
+    private async withTransientRetries<T>(
+        operation: () => Promise<T>,
+        signal: AbortSignal
+    ): Promise<T> {
+        const delays = [1_000, 2_000, 4_000];
+        for (let attempt = 0; ; attempt += 1) {
+            try {
+                return await operation();
+            } catch (error) {
+                if (signal.aborted || attempt >= delays.length || !this.isTransientError(error)) {
+                    throw error;
+                }
+                await this.delay(delays[attempt], signal);
+            }
+        }
+    }
+
+    private isTransientError(error: unknown): boolean {
+        return error instanceof TypeError
+            || (error instanceof AiHttpError
+                && (error.status === 429 || error.status >= 500));
+    }
+
+    private delay(milliseconds: number, signal: AbortSignal): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(resolve, milliseconds);
+            signal.addEventListener('abort', () => {
+                clearTimeout(timeout);
+                reject(new DOMException('The operation was aborted', 'AbortError'));
+            }, { once: true });
+        });
     }
 
     private validateUsefulnessResponse(
