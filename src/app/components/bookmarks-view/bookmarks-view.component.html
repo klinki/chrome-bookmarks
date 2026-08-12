@@ -20,10 +20,17 @@
     [chips]="searchChips()"
     [folders]="searchScopeFolders()"
     [scopeFolderId]="searchScopeFolderId()"
+    [selectedCollectionName]="selectedSmartCollection()?.name"
     (searchTermChange)="search($event)"
     (scopeFolderIdChange)="setScope($event)"
     (chipRemove)="removeChip($event)"
-    (canonicalize)="canonicalizeSearch()">
+    (canonicalize)="canonicalizeSearch()"
+    (collectionCreate)="createCollection()"
+    (collectionEdit)="editCollection()"
+    (collectionUpdate)="updateCollection()"
+    (collectionRename)="renameCollection()"
+    (collectionDuplicate)="duplicateCollection()"
+    (collectionDelete)="deleteCollection()">
   </app-search-box>
   <div class="tree-view">
     <app-tree-view

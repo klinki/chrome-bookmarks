@@ -120,6 +120,16 @@ export class ListViewComponent {
     this.selectionService.items = this.visibleItems();
   });
 
+  private readonly syncSmartCollectionSort = effect(() => {
+    const collection = this.bookmarksFacade.selectedSmartCollection?.();
+    if (collection) {
+      this.orderProperties.set({
+        column: collection.sortColumn,
+        asc: collection.sortDirection === 'asc'
+      });
+    }
+  });
+
   public isSelected(item: chrome.bookmarks.BookmarkTreeNode) {
     if (this.selectionService.selectAllActive()) {
       return !this.selectedItems().has(item.id);
@@ -132,15 +142,19 @@ export class ListViewComponent {
   public orderBy(column: BookmarkSortColumn) {
     const current = this.orderProperties();
     if (!current || column !== current.column) {
-      this.orderProperties.set({
+      const next = {
         column: column,
         asc: true
-      });
+      };
+      this.orderProperties.set(next);
+      this.bookmarksFacade.updateSelectedSmartCollectionSort?.(next.column, next.asc);
     } else {
-      this.orderProperties.set({
-        ...current,
+      const next = {
+        column,
         asc: !current.asc
-      });
+      };
+      this.orderProperties.set(next);
+      this.bookmarksFacade.updateSelectedSmartCollectionSort?.(next.column, next.asc);
     }
   }
 

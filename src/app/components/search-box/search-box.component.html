@@ -72,5 +72,22 @@
         }
       </select>
     </label>
+    <div class="collection-actions" aria-label="Smart Collection actions">
+      @if (selectedCollectionName) {
+        <span class="collection-name">{{ selectedCollectionName }}</span>
+        <button type="button" (click)="collectionEdit.emit()">Edit query</button>
+        <button type="button" [disabled]="!!error" (click)="collectionUpdate.emit()">Update</button>
+        <button type="button" (click)="collectionRename.emit()">Rename</button>
+        <button type="button" (click)="collectionDuplicate.emit()">Duplicate</button>
+        <button type="button" (click)="collectionDelete.emit()">Delete</button>
+      } @else {
+        <button
+          type="button"
+          [disabled]="!!error || (!searchTerm().trim() && !scopeFolderId)"
+          (click)="collectionCreate.emit()">
+          Save as Smart Collection
+        </button>
+      }
+    </div>
   </div>
 }

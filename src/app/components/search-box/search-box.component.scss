@@ -102,6 +102,19 @@ input {
     min-width: 180px;
     margin-left: auto;
   }
+
+  .collection-actions {
+    display: flex;
+    align-items: center;
+    flex-basis: 100%;
+    gap: 6px;
+  }
+
+  .collection-name {
+    margin-right: auto;
+    font-weight: 600;
+    color: var(--text-color, #333);
+  }
 }
 
 input::placeholder {

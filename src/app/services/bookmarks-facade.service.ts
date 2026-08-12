@@ -19,6 +19,8 @@ import {
   parseSearchQuery,
   removeSearchChip
 } from './search-query';
+import { SmartCollectionsService } from './smart-collections.service';
+import type { BookmarkSortColumn } from '../pipes/order-by.pipe';
 
 interface BookmarkTreeSnapshot {
   tree: chrome.bookmarks.BookmarkTreeNode[];
@@ -38,6 +40,7 @@ export class BookmarksFacadeService {
   private usefulnessService = inject(UsefulnessService);
   private quarantineService = inject(QuarantineService);
   private searchIndex = inject(SearchIndexService);
+  public smartCollectionsService = inject(SmartCollectionsService);
   private bulkMutations = inject(BulkMutationCoordinatorService);
   private pendingDeletionIds = signal<Set<string>>(new Set());
   public deleteProgress = computed(() => {
@@ -56,6 +59,11 @@ export class BookmarksFacadeService {
   public searchTerm = signal<string>('');
   public searchError = signal<SearchParseError | null>(null);
   public searchScopeFolderId = signal<string | undefined>(undefined);
+  public selectedSmartCollectionId = signal<string | undefined>(undefined);
+  public selectedSmartCollection = computed(() => {
+    const id = this.selectedSmartCollectionId();
+    return id ? this.smartCollectionsService.get(id) : undefined;
+  });
   private validSearchAst = signal<SearchQueryAst>({
     version: SEARCH_QUERY_VERSION,
     expression: null
@@ -100,9 +108,10 @@ export class BookmarksFacadeService {
   public directories = toSignal(
     combineLatest([
       this.treeSnapshot$,
-      toObservable(this.tagsService.availableTags)
+      toObservable(this.tagsService.availableTags),
+      toObservable(this.smartCollectionsService.collections)
     ]).pipe(
-      map(([snapshot, tags]): chrome.bookmarks.BookmarkTreeNode[] => {
+      map(([snapshot, tags, collections]): chrome.bookmarks.BookmarkTreeNode[] => {
         const topServers: chrome.bookmarks.BookmarkTreeNode[] = Array.from(snapshot.serverCounts)
           .sort((left, right) => right[1] - left[1])
           .slice(0, 20)
@@ -114,6 +123,15 @@ export class BookmarksFacadeService {
           }));
 
         return [
+          {
+            id: 'ROOT_SMART_COLLECTIONS',
+            title: 'Smart Collections',
+            children: collections.map(collection => ({
+              id: `SMART_${collection.id}`,
+              title: collection.name,
+              children: []
+            }))
+          },
           {
             id: 'ROOT_TAGS',
             title: 'Tags',
@@ -139,6 +157,19 @@ export class BookmarksFacadeService {
     ),
     { initialValue: [] as chrome.bookmarks.BookmarkTreeNode[] }
   );
+
+  private readonly smartCollectionSelection = toObservable(
+    this.selectionService.selectedDirectory
+  ).subscribe(directory => {
+    if (directory?.id.startsWith('SMART_')) {
+      this.activateSmartCollection(directory.id.slice('SMART_'.length), false);
+      return;
+    }
+    if (this.selectedSmartCollectionId()) {
+      this.selectedSmartCollectionId.set(undefined);
+      this.applySearch('', undefined);
+    }
+  });
 
   private readonly indexedSnapshot$ = combineLatest([
     this.treeSnapshot$,
@@ -288,7 +319,11 @@ export class BookmarksFacadeService {
 
   public search(searchTerm: string|null) {
     this.selectionService.clearSelection();
-    const value = searchTerm ?? '';
+    this.selectedSmartCollectionId.set(undefined);
+    this.applySearch(searchTerm ?? '', this.searchScopeFolderId());
+  }
+
+  private applySearch(value: string, scopeFolderId?: string): void {
     this.searchTerm.set(value);
     try {
       const parsed = parseSearchQuery(value);
@@ -301,11 +336,88 @@ export class BookmarksFacadeService {
       }
       throw error;
     }
+    this.searchScopeFolderId.set(scopeFolderId || undefined);
   }
 
   public setSearchScope(folderId?: string): void {
     this.selectionService.clearSelection();
+    this.selectedSmartCollectionId.set(undefined);
     this.searchScopeFolderId.set(folderId || undefined);
+  }
+
+  public activateSmartCollection(id: string, selectDirectory = true): void {
+    const collection = this.smartCollectionsService.get(id);
+    if (!collection) {
+      this.selectedSmartCollectionId.set(undefined);
+      return;
+    }
+    this.selectionService.clearSelection();
+    this.selectedSmartCollectionId.set(id);
+    this.applySearch(collection.query, collection.scopeFolderId);
+    if (selectDirectory) {
+      this.selectionService.selectDirectory({
+        id: `SMART_${id}`,
+        title: collection.name,
+        children: []
+      });
+    }
+  }
+
+  public createSmartCollection(name: string): void {
+    const collection = this.smartCollectionsService.create({
+      name,
+      query: formatSearchQuery(this.validSearchAst()),
+      scopeFolderId: this.searchScopeFolderId()
+    });
+    this.activateSmartCollection(collection.id);
+  }
+
+  public updateSelectedSmartCollection(): void {
+    const id = this.selectedSmartCollectionId();
+    if (!id) return;
+    this.smartCollectionsService.update(id, {
+      query: formatSearchQuery(this.validSearchAst()),
+      scopeFolderId: this.searchScopeFolderId()
+    });
+  }
+
+  public editSelectedSmartCollection(query: string): void {
+    const id = this.selectedSmartCollectionId();
+    if (!id) return;
+    parseSearchQuery(query);
+    this.smartCollectionsService.update(id, { query });
+    this.activateSmartCollection(id);
+  }
+
+  public renameSelectedSmartCollection(name: string): void {
+    const id = this.selectedSmartCollectionId();
+    if (!id) return;
+    const updated = this.smartCollectionsService.update(id, { name });
+    this.selectionService.selectDirectory({ id: `SMART_${id}`, title: updated.name, children: [] });
+  }
+
+  public duplicateSelectedSmartCollection(): void {
+    const id = this.selectedSmartCollectionId();
+    if (id) this.activateSmartCollection(this.smartCollectionsService.duplicate(id).id);
+  }
+
+  public deleteSelectedSmartCollection(): void {
+    const id = this.selectedSmartCollectionId();
+    if (!id) return;
+    this.smartCollectionsService.delete(id);
+    this.selectedSmartCollectionId.set(undefined);
+    this.applySearch('', undefined);
+    this.selectionService.clearDirectorySelection();
+  }
+
+  public updateSelectedSmartCollectionSort(column: BookmarkSortColumn, asc: boolean): void {
+    const id = this.selectedSmartCollectionId();
+    if (id) {
+      this.smartCollectionsService.update(id, {
+        sortColumn: column,
+        sortDirection: asc ? 'asc' : 'desc'
+      });
+    }
   }
 
   public removeSearchChip(index: number): void {

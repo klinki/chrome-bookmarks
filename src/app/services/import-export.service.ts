@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { BookmarksProviderService } from './bookmarks-provider.service';
 import { TagsService, BookmarkTags } from './tags.service';
 import {
@@ -7,12 +7,20 @@ import {
   UsefulnessService,
   isUsefulnessScore
 } from './usefulness.service';
+import { SmartCollectionsService } from './smart-collections.service';
+import { SmartCollection } from './search.types';
 
 export interface BackupData {
   version: number;
   root: chrome.bookmarks.BookmarkTreeNode[];
   tags: BookmarkTags;
   usefulness: BookmarkUsefulness;
+  smartCollections: SmartCollection[];
+}
+
+interface JsonImportPlan {
+  nodes: ImportNode[];
+  smartCollections: SmartCollection[];
 }
 
 interface ImportNode {
@@ -34,6 +42,8 @@ export class ImportExportService {
   private bookmarksProvider = inject(BookmarksProviderService);
   private tagsService = inject(TagsService);
   private usefulnessService = inject(UsefulnessService);
+  private smartCollectionsService = inject(SmartCollectionsService);
+  public readonly importWarnings = signal<ReadonlyArray<string>>([]);
 
 
   public async exportJson() {
@@ -42,10 +52,11 @@ export class ImportExportService {
     const usefulness = this.usefulnessService.bookmarkUsefulness();
 
     const data: BackupData = {
-      version: 2,
+      version: 3,
       root: tree,
       tags,
-      usefulness
+      usefulness,
+      smartCollections: [...this.smartCollectionsService.collections()]
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -53,14 +64,19 @@ export class ImportExportService {
   }
 
   public async importJson(file: File): Promise<void> {
+    this.importWarnings.set([]);
     const text = await file.text();
     const plan = this.parseJsonImport(JSON.parse(text) as unknown);
-    await this.executeImport(plan, `Imported ${new Date().toLocaleString()}`);
+    await this.executeImport(
+      plan.nodes,
+      `Imported ${new Date().toLocaleString()}`,
+      plan.smartCollections
+    );
   }
 
-  private parseJsonImport(value: unknown): ImportNode[] {
+  private parseJsonImport(value: unknown): JsonImportPlan {
     if (!this.isRecord(value)
-      || (value['version'] !== 1 && value['version'] !== 2)
+      || (value['version'] !== 1 && value['version'] !== 2 && value['version'] !== 3)
       || !Array.isArray(value['root'])) {
       throw new Error('Invalid backup file format');
     }
@@ -81,7 +97,7 @@ export class ImportExportService {
     }
 
     const usefulnessById = new Map<string, UsefulnessRating>();
-    if (value['version'] === 2) {
+    if (value['version'] === 2 || value['version'] === 3) {
       const rawUsefulness = value['usefulness'];
       if (!this.isRecord(rawUsefulness)) {
         throw new Error('Invalid backup usefulness ratings');
@@ -104,10 +120,30 @@ export class ImportExportService {
       }
     }
 
-    if (roots.length === 1 && roots[0].sourceId === '0') {
-      return roots[0].children;
+    const smartCollections: SmartCollection[] = [];
+    if (value['version'] === 3) {
+      if (!Array.isArray(value['smartCollections'])) {
+        throw new Error('Invalid backup Smart Collections');
+      }
+      const ids = new Set<string>();
+      const names = new Set<string>();
+      for (const rawCollection of value['smartCollections']) {
+        if (!this.smartCollectionsService.isSmartCollection(rawCollection)) {
+          throw new Error('Invalid Smart Collection in backup');
+        }
+        const name = rawCollection.name.toLocaleLowerCase();
+        if (ids.has(rawCollection.id) || names.has(name)) {
+          throw new Error('Duplicate Smart Collection in backup');
+        }
+        ids.add(rawCollection.id);
+        names.add(name);
+        smartCollections.push({ ...rawCollection });
+      }
     }
-    return roots;
+    const nodes = roots.length === 1 && roots[0].sourceId === '0'
+      ? roots[0].children
+      : roots;
+    return { nodes, smartCollections };
   }
 
   private parseJsonNode(
@@ -171,7 +207,11 @@ export class ImportExportService {
   }
 
 
-  private async executeImport(nodes: ImportNode[], title: string): Promise<void> {
+  private async executeImport(
+    nodes: ImportNode[],
+    title: string,
+    smartCollections: readonly SmartCollection[] = []
+  ): Promise<void> {
     const [root] = await this.bookmarksProvider.getBookmarks();
     const destination = root?.children?.[0];
     if (!destination || destination.url) {
@@ -179,10 +219,12 @@ export class ImportExportService {
     }
 
     const originalAvailableTags = [...this.tagsService.availableTags()];
+    const originalCollections = [...this.smartCollectionsService.collections()];
     const createdIds: string[] = [];
     const importedTags: Record<string, string[]> = {};
     const importedUsefulness: Record<string, UsefulnessRating> = {};
     const importedAvailableTags = new Set<string>();
+    const sourceToCreatedId = new Map<string, string>();
     let importFolder: chrome.bookmarks.BookmarkTreeNode | undefined;
 
     try {
@@ -197,11 +239,16 @@ export class ImportExportService {
         createdIds,
         importedTags,
         importedUsefulness,
-        importedAvailableTags
+        importedAvailableTags,
+        sourceToCreatedId
       );
       this.tagsService.setTagsForBookmarks(importedTags);
       this.tagsService.addAvailableTags(importedAvailableTags);
       this.usefulnessService.setRatingsForBookmarks(importedUsefulness);
+      this.importWarnings.set(this.smartCollectionsService.mergeImported(
+        smartCollections,
+        sourceToCreatedId
+      ));
     } catch (error) {
       if (!importFolder) {
         throw error;
@@ -222,6 +269,7 @@ export class ImportExportService {
         this.usefulnessService.setRatingsForBookmarks(
           Object.fromEntries(createdIds.map(id => [id, null]))
         );
+        this.smartCollectionsService.replaceAll(originalCollections);
       } catch (rollbackError) {
         rollbackErrors.push(rollbackError);
       }
@@ -242,7 +290,8 @@ export class ImportExportService {
     createdIds: string[],
     importedTags: Record<string, string[]>,
     importedUsefulness: Record<string, UsefulnessRating>,
-    importedAvailableTags: Set<string>
+    importedAvailableTags: Set<string>,
+    sourceToCreatedId: Map<string, string>
   ): Promise<void> {
     for (const node of nodes) {
       const created = await this.bookmarksProvider.create({
@@ -251,6 +300,9 @@ export class ImportExportService {
         ...(node.url ? { url: node.url } : {})
       });
       createdIds.push(created.id);
+      if (node.sourceId) {
+        sourceToCreatedId.set(node.sourceId, created.id);
+      }
 
       if (node.tags.length > 0) {
         importedTags[created.id] = node.tags;
@@ -266,7 +318,8 @@ export class ImportExportService {
         createdIds,
         importedTags,
         importedUsefulness,
-        importedAvailableTags
+        importedAvailableTags,
+        sourceToCreatedId
       );
     }
   }
@@ -345,6 +398,7 @@ export class ImportExportService {
   }
 
   public async importHtml(file: File): Promise<void> {
+      this.importWarnings.set([]);
       const text = await file.text();
       const parser = new DOMParser();
       const doc = parser.parseFromString(text, 'text/html');
@@ -354,7 +408,7 @@ export class ImportExportService {
       }
 
       const plan = this.parseHtmlNodes(dl, { value: 0 }, 0);
-      await this.executeImport(plan, `Imported HTML ${new Date().toLocaleString()}`);
+      await this.executeImport(plan, `Imported HTML ${new Date().toLocaleString()}`, []);
   }
 
   private parseHtmlNodes(dl: Element, count: { value: number }, depth: number): ImportNode[] {

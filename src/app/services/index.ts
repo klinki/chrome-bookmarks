@@ -10,4 +10,5 @@ export * from './search-query';
 export * from './search-engine';
 export * from './search-documents';
 export * from './search-index.service';
+export * from './smart-collections.service';
 export * from './chrome/index';

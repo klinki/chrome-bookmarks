@@ -28,7 +28,7 @@ export class ImportExportComponent {
   onJsonFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
-      this.wrapAction(() => this.importExportService.importJson(file), 'JSON Import successful');
+      this.wrapAction(() => this.importExportService.importJson(file), 'JSON Import successful', true);
     }
   }
 
@@ -39,12 +39,15 @@ export class ImportExportComponent {
     }
   }
 
-  private async wrapAction(action: () => Promise<void>, successMessage: string) {
+  private async wrapAction(action: () => Promise<void>, successMessage: string, includeWarnings = false) {
     this.isLoading = true;
     this.message = '';
     try {
       await action();
-      this.message = successMessage;
+      const warnings = includeWarnings ? this.importExportService.importWarnings() : [];
+      this.message = warnings.length > 0
+        ? `${successMessage}. ${warnings.join(' ')}`
+        : successMessage;
       this.messageType = 'success';
     } catch (error) {
       developmentLogger.error('bookmarks.import-export.failed', error);

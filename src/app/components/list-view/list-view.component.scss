@@ -6,6 +6,16 @@
   position: relative;
 }
 
+.result-count {
+  position: absolute;
+  right: 10px;
+  top: 7px;
+  z-index: 4;
+  color: var(--secondary-text-color, #666);
+  font-size: 12px;
+  pointer-events: none;
+}
+
 .bookmark-grid {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);

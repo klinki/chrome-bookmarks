@@ -107,3 +107,18 @@ export interface SearchErrorResult {
 }
 
 export type SearchWorkerResult = SearchResult | SearchIndexResult | SearchErrorResult;
+
+export type SmartCollectionSortColumn = '' | 'title' | 'url' | 'dateAdded'
+  | 'dateLastUsed' | 'tags' | 'usefulness';
+
+export interface SmartCollection {
+  id: string;
+  name: string;
+  query: string;
+  queryVersion: typeof SEARCH_QUERY_VERSION;
+  scopeFolderId?: string;
+  sortColumn: SmartCollectionSortColumn;
+  sortDirection: 'asc' | 'desc';
+  createdAt: number;
+  updatedAt: number;
+}

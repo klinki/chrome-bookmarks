@@ -74,4 +74,30 @@ test.describe('structured bookmark search', () => {
     await expect(search).toHaveValue('title:"Bookmark B1"');
     await expect(page.getByRole('gridcell', { name: 'Bookmark B1' })).toBeVisible();
   });
+
+  test('creates, edits, duplicates, renames, and deletes Smart Collections', async ({ page }) => {
+    const search = page.locator('app-search-box input[type="search"]');
+    await search.fill('title:"Bookmark B1"');
+    await page.getByRole('button', { name: 'Filters' }).click();
+    page.once('dialog', dialog => dialog.accept('Reading'));
+    await page.getByRole('button', { name: 'Save as Smart Collection' }).click();
+
+    await expect(page).toHaveURL(/collection=/);
+    await expect(page.getByLabel('Bookmark folders').getByText('Reading', { exact: true })).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('1 results');
+
+    page.once('dialog', dialog => dialog.accept('title:"Bookmark B2"'));
+    await page.getByRole('button', { name: 'Edit query' }).click();
+    await expect(page.getByRole('gridcell', { name: 'Bookmark B2' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Duplicate' }).click();
+    await expect(page.getByLabel('Bookmark folders').getByText('Reading Copy', { exact: true })).toBeVisible();
+    page.once('dialog', dialog => dialog.accept('To Read'));
+    await page.getByRole('button', { name: 'Rename' }).click();
+    await expect(page.getByLabel('Bookmark folders').getByText('To Read', { exact: true })).toBeVisible();
+
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: 'Delete' }).click();
+    await expect(page.getByLabel('Bookmark folders').getByText('To Read', { exact: true })).toHaveCount(0);
+  });
 });

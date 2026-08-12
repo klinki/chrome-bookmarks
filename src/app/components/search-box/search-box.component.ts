@@ -26,6 +26,7 @@ export class SearchBoxComponent {
   @Input() public chips: ReadonlyArray<string> = [];
   @Input() public folders: ReadonlyArray<chrome.bookmarks.BookmarkTreeNode> = [];
   @Input() public scopeFolderId?: string;
+  @Input() public selectedCollectionName?: string;
   public filtersOpen = signal(false);
   public filterField = signal('title');
   public filterValue = signal('');
@@ -41,6 +42,13 @@ export class SearchBoxComponent {
 
   @Output()
   public canonicalize = new EventEmitter<void>();
+
+  @Output() public collectionCreate = new EventEmitter<void>();
+  @Output() public collectionUpdate = new EventEmitter<void>();
+  @Output() public collectionEdit = new EventEmitter<void>();
+  @Output() public collectionRename = new EventEmitter<void>();
+  @Output() public collectionDuplicate = new EventEmitter<void>();
+  @Output() public collectionDelete = new EventEmitter<void>();
 
   public search() {
     this.searchTermChange.emit(this.searchTerm());

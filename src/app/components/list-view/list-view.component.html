@@ -1,3 +1,6 @@
+@if (searchActive()) {
+  <div class="result-count" role="status">{{ visibleItems().length }} results</div>
+}
 <div
   class="bookmark-grid"
   role="grid"

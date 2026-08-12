@@ -4,6 +4,7 @@ import { ImportExportService } from './import-export.service';
 import { BookmarksProviderService } from './bookmarks-provider.service';
 import { TagsService } from './tags.service';
 import { UsefulnessService } from './usefulness.service';
+import { SmartCollectionsService } from './smart-collections.service';
 
 describe('ImportExportService', () => {
   let service: ImportExportService;
@@ -19,6 +20,12 @@ describe('ImportExportService', () => {
   let usefulnessService: {
     bookmarkUsefulness: ReturnType<typeof vi.fn>;
     setRatingsForBookmarks: ReturnType<typeof vi.fn>;
+  };
+  let smartCollectionsService: {
+    collections: ReturnType<typeof vi.fn>;
+    isSmartCollection: ReturnType<typeof vi.fn>;
+    mergeImported: ReturnType<typeof vi.fn>;
+    replaceAll: ReturnType<typeof vi.fn>;
   };
 
   const fileWith = (content: string) => ({
@@ -43,6 +50,12 @@ describe('ImportExportService', () => {
       bookmarkUsefulness: vi.fn().mockReturnValue({}),
       setRatingsForBookmarks: vi.fn()
     };
+    smartCollectionsService = {
+      collections: vi.fn().mockReturnValue([]),
+      isSmartCollection: vi.fn().mockReturnValue(true),
+      mergeImported: vi.fn().mockReturnValue([]),
+      replaceAll: vi.fn()
+    };
 
     TestBed.configureTestingModule({
       providers: [
@@ -65,7 +78,8 @@ describe('ImportExportService', () => {
           }
         },
         { provide: TagsService, useValue: tagsService },
-        { provide: UsefulnessService, useValue: usefulnessService }
+        { provide: UsefulnessService, useValue: usefulnessService },
+        { provide: SmartCollectionsService, useValue: smartCollectionsService }
       ]
     });
     service = TestBed.inject(ImportExportService);
@@ -209,7 +223,7 @@ describe('ImportExportService', () => {
     expect(create).not.toHaveBeenCalled();
   });
 
-  it('exports version 2 with usefulness provenance', async () => {
+  it('exports version 3 with usefulness provenance and Smart Collections', async () => {
     usefulnessService.bookmarkUsefulness.mockReturnValue({
       bookmark: { score: 5, source: 'ai' }
     });
@@ -225,10 +239,62 @@ describe('ImportExportService', () => {
       reader.readAsText(blob);
     });
     const data = JSON.parse(text);
-    expect(data.version).toBe(2);
+    expect(data.version).toBe(3);
     expect(data.usefulness).toEqual({
       bookmark: { score: 5, source: 'ai' }
     });
+    expect(data.smartCollections).toEqual([]);
+  });
+
+  it('validates and imports version 3 collections with remapped folder scopes', async () => {
+    const collection = {
+      id: 'collection', name: 'Work', query: 'tag:work', queryVersion: 1,
+      scopeFolderId: 'folder', sortColumn: 'title', sortDirection: 'asc',
+      createdAt: 1, updatedAt: 1
+    };
+    const backup = {
+      version: 3,
+      root: [{ id: '0', title: 'root', children: [{ id: 'folder', title: 'Folder', children: [] }] }],
+      tags: {}, usefulness: {}, smartCollections: [collection]
+    };
+
+    await service.importJson(fileWith(JSON.stringify(backup)));
+
+    expect(smartCollectionsService.mergeImported).toHaveBeenCalledWith(
+      [collection],
+      new Map([['folder', 'new-2']])
+    );
+  });
+
+  it('rejects malformed version 3 collections before bookmark mutation', async () => {
+    smartCollectionsService.isSmartCollection.mockReturnValue(false);
+    const backup = {
+      version: 3,
+      root: [], tags: {}, usefulness: {}, smartCollections: [{ query: 'broken (' }]
+    };
+
+    await expect(service.importJson(fileWith(JSON.stringify(backup))))
+      .rejects.toThrow('Invalid Smart Collection');
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it('rolls back bookmarks, metadata, and collections when collection application fails', async () => {
+    smartCollectionsService.mergeImported.mockImplementation(() => {
+      throw new Error('Collection write failed');
+    });
+    const backup = {
+      version: 3,
+      root: [{ id: 'bookmark', title: 'Bookmark', url: 'https://example.com' }],
+      tags: {}, usefulness: {}, smartCollections: [{
+        id: 'collection', name: 'Collection', query: 'example', queryVersion: 1,
+        sortColumn: 'title', sortDirection: 'asc', createdAt: 1, updatedAt: 1
+      }]
+    };
+
+    await expect(service.importJson(fileWith(JSON.stringify(backup))))
+      .rejects.toThrow('Collection write failed');
+    expect(removeTree).toHaveBeenCalledWith('new-1');
+    expect(smartCollectionsService.replaceAll).toHaveBeenCalledWith([]);
   });
 
   it('removes the partial tree and tag state when bookmark creation fails', async () => {

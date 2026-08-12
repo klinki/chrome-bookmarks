@@ -27,12 +27,16 @@ describe('Component: BookmarksView', () => {
     searchChips: signal([]),
     searchScopeFolderId: signal(undefined),
     searchScopeFolders: signal([]),
+    selectedSmartCollection: signal(undefined),
+    selectedSmartCollectionId: signal(undefined),
+    smartCollectionsService: { whenReady: vi.fn().mockResolvedValue(undefined) },
     isSearchActive: signal(false),
     deleteProgress: signal({ active: false, total: 0, completed: 0 }),
     search: vi.fn(),
     setSearchScope: vi.fn(),
     removeSearchChip: vi.fn(),
     canonicalizeSearch: vi.fn(),
+    activateSmartCollection: vi.fn(),
     updateBookmark: vi.fn()
   };
 
