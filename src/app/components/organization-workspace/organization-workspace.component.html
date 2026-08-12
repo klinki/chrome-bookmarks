@@ -21,6 +21,7 @@
   <button type="button" (click)="generate()" [disabled]="isGenerating()">{{isGenerating() ? 'Generating…' : 'Generate plan'}}</button>
 </section>
 @if (error()) { <p role="alert">{{error()}}</p> }
+@if (message()) { <p role="status">{{message()}}</p> }
 @if (plan(); as current) {
   <p>{{current.proposals.length}} proposals; {{current.excludedCount}} bookmarks excluded. Nothing is selected by default.</p>
   <div class="clusters">
@@ -37,4 +38,5 @@
       <label>Exclude <input type="checkbox" [checked]="proposal.excluded" (change)="excludeProposal(proposal, $any($event.target).checked)"></label>
     </div>
   </cdk-virtual-scroll-viewport>
+  <div class="apply-actions"><button type="button" (click)="apply()">Apply selected changes</button><button type="button" (click)="undo()">Undo last apply</button></div>
 }

@@ -11,6 +11,7 @@ import { OrganizationInput, OrganizationPlan, OrganizationProposal, Organization
 import { QuarantineService } from '../../services/quarantine.service';
 import { TagsService } from '../../services/tags.service';
 import { UsefulnessService } from '../../services/usefulness.service';
+import { OrganizationApplyService } from '../../services/organization-apply.service';
 
 @Component({
   standalone: true,
@@ -28,6 +29,7 @@ export class OrganizationWorkspaceComponent {
   private quarantine = inject(QuarantineService);
   private embeddings = inject(EmbeddingService);
   private planner = inject(OrganizationPlannerService);
+  private applyService = inject(OrganizationApplyService);
 
   public scopeType = signal<OrganizationScope['type']>('all');
   public scopeId = signal('');
@@ -36,6 +38,7 @@ export class OrganizationWorkspaceComponent {
   public plan = signal<OrganizationPlan | null>(null);
   public isGenerating = signal(false);
   public error = signal('');
+  public message = signal('');
   public folders = computed(() => Object.values(this.facade.bookmarksMap()).filter(node => !node.url && node.parentId));
   public collections = this.facade.smartCollectionsService.collections;
   public proposals = computed(() => this.plan()?.proposals ?? []);
@@ -90,6 +93,27 @@ export class OrganizationWorkspaceComponent {
       clusters: plan.clusters.map(item => item.id === clusterId ? { ...item, folderPath: path } : item),
       proposals: plan.proposals.map(item => item.clusterId === clusterId ? { ...item, destinationPath: path } : item)
     });
+  }
+
+  public async apply(): Promise<void> {
+    const plan = this.plan(); if (!plan) return;
+    const count = plan.proposals.filter(item => item.selected && !item.excluded).length;
+    if (!confirm(`Apply ${count} selected bookmark proposals and approved tag consolidations? A JSON backup will be downloaded first.`)) return;
+    try {
+      await this.applyService.apply(plan);
+      this.message.set('Organization plan applied. You can undo it once.');
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('undo record')
+        && confirm(`${error.message} Continue and replace it?`)) {
+        await this.applyService.apply(plan, true); this.message.set('Organization plan applied.'); return;
+      }
+      this.error.set(error instanceof Error ? error.message : 'Apply failed');
+    }
+  }
+
+  public async undo(): Promise<void> {
+    try { const result = await this.applyService.undo(); this.message.set(`Undo restored ${result.restored} changes; ${result.conflicts} conflicts were left untouched.`); }
+    catch (error) { this.error.set(error instanceof Error ? error.message : 'Undo failed'); }
   }
 
   private updateProposal(bookmarkId: string, changes: Partial<OrganizationProposal>): void {
