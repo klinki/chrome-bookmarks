@@ -7,6 +7,7 @@
     "favicon",
     "storage"
   ],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
   "host_permissions": [
     "http://localhost/*"
   ],

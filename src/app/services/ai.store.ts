@@ -5,10 +5,12 @@ export interface AiConfig {
   baseUrl: string;
   apiKey: string;
   model: string;
+  embeddingModel: string;
+  pageEnrichment: boolean;
   allowNewTags: boolean;
 }
 
-export type AiOperation = 'tags' | 'usefulness-unscored' | 'usefulness-rerate';
+export type AiOperation = 'tags' | 'usefulness-unscored' | 'usefulness-rerate' | 'organization-embeddings';
 export type AiJobStatus = 'running' | 'paused' | 'failed' | 'interrupted';
 
 export interface AiJobCheckpoint {
@@ -57,6 +59,8 @@ const initialState: AiState = {
     baseUrl: 'http://localhost:11434/v1',
     apiKey: '',
     model: 'llama3:8b',
+    embeddingModel: 'nomic-embed-text',
+    pageEnrichment: false,
     allowNewTags: false
   },
   progress: initialProgress,
@@ -258,7 +262,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isAiOperation(value: unknown): value is AiOperation {
-  return value === 'tags' || value === 'usefulness-unscored' || value === 'usefulness-rerate';
+  return value === 'tags' || value === 'usefulness-unscored'
+    || value === 'usefulness-rerate' || value === 'organization-embeddings';
 }
 
 function isAiJobStatus(value: unknown): value is AiJobStatus {

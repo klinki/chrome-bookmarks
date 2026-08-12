@@ -11,4 +11,8 @@ export * from './search-engine';
 export * from './search-documents';
 export * from './search-index.service';
 export * from './smart-collections.service';
+export * from './organization.types';
+export * from './organization-storage.service';
+export * from './embedding.service';
+export * from './page-enrichment.service';
 export * from './chrome/index';

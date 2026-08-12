@@ -10,6 +10,8 @@ import { A11yModule } from '@angular/cdk/a11y';
 import { UsefulnessBulkMode } from '../../services/ai.service';
 import { USEFULNESS_RUBRIC } from '../../services/usefulness.service';
 import { developmentLogger } from '../../services/development-logger';
+import { EmbeddingService } from '../../services/embedding.service';
+import { PageEnrichmentService } from '../../services/page-enrichment.service';
 
 @Component({
   selector: 'app-ai-settings',
@@ -25,6 +27,8 @@ export class AiSettingsComponent {
   private tagsService = inject(TagsService);
   private aiService = inject(AiService);
   private provider = inject(BookmarksProviderService);
+  private embeddings = inject(EmbeddingService);
+  private pageEnrichment = inject(PageEnrichmentService);
   private discoveryTriggerElement: HTMLElement | null = null;
 
   public availableTags = this.tagsService.availableTags;
@@ -67,6 +71,8 @@ export class AiSettingsComponent {
     baseUrl: [this.store.aiConfig().baseUrl],
     apiKey: [this.store.aiConfig().apiKey],
     model: [this.store.aiConfig().model],
+    embeddingModel: [this.store.aiConfig().embeddingModel],
+    pageEnrichment: [this.store.aiConfig().pageEnrichment],
     allowNewTags: [this.store.aiConfig().allowNewTags]
   });
 
@@ -112,6 +118,16 @@ export class AiSettingsComponent {
       developmentLogger.error('bookmarks.usefulness.bulk-rating.failed', error);
       alert('AI usefulness rating failed. Completed batches were preserved.');
     }
+  }
+
+  public async testEmbeddings(): Promise<void> {
+    try { await this.embeddings.testConnection(); alert('Embedding connection successful'); }
+    catch (error) { alert(error instanceof Error ? error.message : 'Embedding connection failed'); }
+  }
+
+  public async setPageEnrichment(enabled: boolean): Promise<void> {
+    const accepted = enabled ? await this.pageEnrichment.enable() : await this.pageEnrichment.revoke();
+    if (accepted) this.configForm.patchValue({ pageEnrichment: enabled });
   }
 
   public addTag(input: HTMLInputElement) {
