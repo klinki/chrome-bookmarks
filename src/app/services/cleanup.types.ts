@@ -1,5 +1,3 @@
-import type { UsefulnessRating } from './usefulness.service';
-
 export type CleanupReason =
   | 'exact-duplicate'
   | 'probable-duplicate'
@@ -61,7 +59,7 @@ export interface QuarantineRecord {
 export interface CleanupAnalysisInput {
   nodes: CleanupNodeSnapshot[];
   tags: Readonly<Record<string, readonly string[]>>;
-  usefulness: Readonly<Record<string, UsefulnessRating>>;
+  usefulness: Readonly<Record<string, { score: 1 | 2 | 3 | 4 | 5; source: 'ai' | 'manual' }>>;
   settings: CleanupSettings;
   now: number;
 }

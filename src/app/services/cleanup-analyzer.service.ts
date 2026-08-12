@@ -11,7 +11,7 @@ import {
 import { TagsService } from './tags.service';
 import { UsefulnessService } from './usefulness.service';
 import { CleanupSettingsService } from './cleanup-settings.service';
-import { analyzeCleanup } from '../workers/cleanup-analysis.worker';
+import { analyzeCleanup } from './cleanup-analysis';
 
 export type CleanupWorkerFactory = () => Worker | null;
 
@@ -21,7 +21,7 @@ export const CLEANUP_WORKER_FACTORY = new InjectionToken<CleanupWorkerFactory>(
     providedIn: 'root',
     factory: () => () => typeof Worker === 'undefined'
       ? null
-      : new Worker(new URL('../workers/cleanup-analysis.worker', import.meta.url), { type: 'module' })
+      : new Worker(new URL('../workers/cleanup-analysis.worker.ts', import.meta.url), { type: 'module' })
   }
 );
 

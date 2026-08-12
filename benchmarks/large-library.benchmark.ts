@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import { OrderByPipe } from '../src/app/pipes/order-by.pipe';
 import { createBookmarkFixture } from './bookmark-fixtures';
-import { analyzeCleanup } from '../src/app/workers/cleanup-analysis.worker';
+import { analyzeCleanup } from '../src/app/services/cleanup-analysis';
 import { CleanupNodeSnapshot } from '../src/app/services/cleanup.types';
 
 const MAXIMUM_MILLISECONDS = 2_000;

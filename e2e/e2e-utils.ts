@@ -391,7 +391,11 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                 display: none !important;
             }
         `;
-        document.head.appendChild(style);
+        if (document.head) {
+            document.head.appendChild(style);
+        } else {
+            document.addEventListener('DOMContentLoaded', () => document.head.appendChild(style), { once: true });
+        }
     }, { rootNodeArg: rootNode, mockMapArg: mockMap, initialStorageArg: initialStorage });
 }
 

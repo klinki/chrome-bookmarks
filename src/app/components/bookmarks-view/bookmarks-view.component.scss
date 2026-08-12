@@ -32,6 +32,23 @@
       transform: rotate(90deg);
     }
   }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cleanup-link {
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: #2867c7;
+    text-decoration: none;
+
+    &:hover {
+      background: #eef5ff;
+    }
+  }
 }
 
 .container {

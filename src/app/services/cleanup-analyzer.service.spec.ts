@@ -14,7 +14,7 @@ import {
   CleanupAnalysisRequest,
   CleanupAnalysisResponse
 } from './cleanup.types';
-import { analyzeCleanup } from '../workers/cleanup-analysis.worker';
+import { analyzeCleanup } from './cleanup-analysis';
 
 class FakeCleanupWorker {
   public onmessage: ((event: MessageEvent<CleanupAnalysisResponse>) => void) | null = null;

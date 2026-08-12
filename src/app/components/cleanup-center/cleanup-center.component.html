@@ -1,0 +1,136 @@
+<main class="cleanup-shell">
+  <header class="cleanup-header">
+    <div>
+      <a routerLink="/" class="back-link">← Bookmarks</a>
+      <h1>Cleanup Center</h1>
+      <p>Review local findings before moving anything to the reversible Cleanup trash.</p>
+    </div>
+    <div class="scan-controls">
+      <label for="stale-days">Stale after</label>
+      <div>
+        <input id="stale-days" type="number" min="1" [(ngModel)]="staleDays">
+        <span>days</span>
+        <button type="button" (click)="updateStaleThreshold()">Apply</button>
+      </div>
+      <button type="button" class="secondary" (click)="refresh()" [disabled]="analyzing()">
+        {{ analyzing() ? 'Scanning…' : 'Scan now' }}
+      </button>
+    </div>
+  </header>
+
+  @if (mutationProgress().active) {
+    <section class="mutation-progress" aria-live="polite">
+      <div>
+        <strong>{{ mutationProgress().operation }}</strong>
+        <span>{{ mutationProgress().completed }} / {{ mutationProgress().total }}</span>
+      </div>
+      <progress [value]="mutationProgress().completed" [max]="mutationProgress().total"></progress>
+      <button type="button" (click)="cancelMutation()">Cancel</button>
+    </section>
+  }
+
+  @if (actionError() || analysisError()) {
+    <p class="error" role="alert">{{ actionError() || analysisError() }}</p>
+  }
+
+  <div class="cleanup-layout">
+    <nav class="finding-nav" aria-label="Cleanup finding categories">
+      @for (view of views; track view.reason) {
+        <button
+          type="button"
+          [class.active]="selectedReason() === view.reason"
+          [attr.aria-pressed]="selectedReason() === view.reason"
+          (click)="chooseView(view.reason)">
+          <span>{{ view.label }}</span>
+          <strong>{{ count(view.reason) }}</strong>
+        </button>
+      }
+    </nav>
+
+    <section class="findings" [attr.aria-busy]="analyzing()">
+      <div class="findings-toolbar">
+        <div>
+          <h2>{{ selectedView().label }}</h2>
+          <span>{{ selectedCount() }} selected</span>
+        </div>
+        <div class="toolbar-actions">
+          @if (selectedReason() === 'exact-duplicate') {
+            <button type="button" class="secondary" (click)="selectAllExactCopies()">Select all copies</button>
+          } @else if (!isDuplicateView()) {
+            <button type="button" class="secondary" (click)="selectAllVisible()">Select all</button>
+          }
+          <button type="button" class="secondary" (click)="clearSelection()" [disabled]="selectedCount() === 0">Clear</button>
+          @if (selectedReason() === 'quarantined') {
+            <button type="button" (click)="restoreSelected()" [disabled]="!canRestoreOrPurge()">Restore</button>
+            <button type="button" class="danger" (click)="purgeSelected()" [disabled]="!canRestoreOrPurge()">Permanently purge</button>
+          } @else {
+            <button type="button" (click)="quarantineSelected()" [disabled]="!canQuarantine()">Quarantine selected</button>
+          }
+        </div>
+      </div>
+
+      @if (isDuplicateView()) {
+        <cdk-virtual-scroll-viewport class="group-viewport" [itemSize]="132" [minBufferPx]="396" [maxBufferPx]="792" role="list" aria-label="Duplicate groups">
+          <article *cdkVirtualFor="let group of visibleGroups()" class="duplicate-group" role="listitem">
+            <div class="group-copy">
+              <strong>{{ group.bookmarkIds.length }} bookmarks</strong>
+              <span [title]="group.normalizedUrl">{{ group.normalizedUrl }}</span>
+              <button type="button" class="link-button" (click)="selectGroupCopies(group)">Select copies</button>
+            </div>
+            <label>
+              Keep
+              <select [ngModel]="keeperFor(group)" (ngModelChange)="setKeeper(group, $event)">
+                @for (nodeId of group.bookmarkIds; track nodeId) {
+                  <option [value]="nodeId">{{ findingTitle(nodeId) }}</option>
+                }
+              </select>
+            </label>
+            <div class="copy-checks" aria-label="Copies selected for quarantine">
+              @for (nodeId of group.bookmarkIds; track nodeId) {
+                @if (nodeId !== keeperFor(group)) {
+                  <label>
+                    <input
+                      type="checkbox"
+                      [checked]="isSelected(nodeId)"
+                      (change)="toggleSelected(nodeId, $any($event.target).checked)">
+                    {{ findingTitle(nodeId) }}
+                  </label>
+                }
+              }
+            </div>
+          </article>
+        </cdk-virtual-scroll-viewport>
+      } @else if (selectedReason() === 'unknown-usage') {
+        <h3>Older bookmarks without last-used data</h3>
+        <cdk-virtual-scroll-viewport class="finding-viewport subsection" [itemSize]="52" [minBufferPx]="260" [maxBufferPx]="520" role="listbox" aria-label="Unknown usage bookmarks">
+          <label *cdkVirtualFor="let finding of datedUnknownFindings()" class="finding-row" role="option" [attr.aria-selected]="isSelected(finding.nodeId)">
+            <input type="checkbox" [checked]="isSelected(finding.nodeId)" (change)="toggleSelected(finding.nodeId, $any($event.target).checked)">
+            <span class="finding-title">{{ finding.title }}</span>
+            <span class="finding-url" [title]="finding.url || ''">{{ finding.url || 'Folder' }}</span>
+          </label>
+        </cdk-virtual-scroll-viewport>
+        <h3>Undated</h3>
+        <cdk-virtual-scroll-viewport class="finding-viewport subsection" [itemSize]="52" [minBufferPx]="260" [maxBufferPx]="520" role="listbox" aria-label="Undated bookmarks">
+          <label *cdkVirtualFor="let finding of undatedUnknownFindings()" class="finding-row" role="option" [attr.aria-selected]="isSelected(finding.nodeId)">
+            <input type="checkbox" [checked]="isSelected(finding.nodeId)" (change)="toggleSelected(finding.nodeId, $any($event.target).checked)">
+            <span class="finding-title">{{ finding.title }}</span>
+            <span class="finding-url" [title]="finding.url || ''">{{ finding.url || 'Folder' }}</span>
+            <span class="badge">Undated</span>
+          </label>
+        </cdk-virtual-scroll-viewport>
+      } @else {
+        <cdk-virtual-scroll-viewport class="finding-viewport" [itemSize]="52" [minBufferPx]="260" [maxBufferPx]="520" role="listbox" [attr.aria-label]="selectedView().label">
+          <label *cdkVirtualFor="let finding of visibleFindings()" class="finding-row" role="option" [attr.aria-selected]="isSelected(finding.nodeId)">
+            <input type="checkbox" [checked]="isSelected(finding.nodeId)" (change)="toggleSelected(finding.nodeId, $any($event.target).checked)">
+            <span class="finding-title">{{ finding.title }}</span>
+            <span class="finding-url" [title]="finding.url || ''">{{ finding.url || 'Folder' }}</span>
+          </label>
+        </cdk-virtual-scroll-viewport>
+      }
+
+      @if (!analyzing() && visibleFindings().length === 0) {
+        <p class="empty-state">No findings in this category.</p>
+      }
+    </section>
+  </div>
+</main>

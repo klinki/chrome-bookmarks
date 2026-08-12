@@ -1,10 +1,15 @@
 import { Routes } from '@angular/router';
-import { BookmarksViewComponent } from './components/bookmarks-view/bookmarks-view.component';
 
 export const routes: Routes = [
     {
         path: '',
-        component: BookmarksViewComponent
+        loadComponent: () => import('./components/bookmarks-view/bookmarks-view.component')
+            .then(m => m.BookmarksViewComponent)
+    },
+    {
+        path: 'cleanup',
+        loadComponent: () => import('./components/cleanup-center/cleanup-center.component')
+            .then(m => m.CleanupCenterComponent)
     },
     {
         path: 'settings',

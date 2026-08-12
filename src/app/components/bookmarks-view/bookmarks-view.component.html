@@ -1,6 +1,8 @@
 <div class="container">
   <div class="header">
     <h1>Bookmarks manager</h1>
+    <div class="header-actions">
+    <a routerLink="/cleanup" class="cleanup-link" title="Cleanup Center">Cleanup</a>
     <a routerLink="/settings" class="settings-link" title="Settings">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
         stroke-linejoin="round">
@@ -10,6 +12,7 @@
         </path>
       </svg>
     </a>
+    </div>
   </div>
   <app-search-box (searchTermChange)="search($event)"></app-search-box>
   <div class="tree-view">

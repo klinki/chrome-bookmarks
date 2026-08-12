@@ -1,4 +1,4 @@
-import { analyzeCleanup, chooseDuplicateKeeper, normalizeProbableDuplicateUrl } from './cleanup-analysis.worker';
+import { analyzeCleanup, chooseDuplicateKeeper, normalizeProbableDuplicateUrl } from '../services/cleanup-analysis';
 import { CleanupAnalysisInput, CleanupNodeSnapshot } from '../services/cleanup.types';
 
 describe('cleanup analysis worker', () => {
