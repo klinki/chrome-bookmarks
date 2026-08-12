@@ -12,6 +12,11 @@ export const routes: Routes = [
             .then(m => m.CleanupCenterComponent)
     },
     {
+        path: 'organize',
+        loadComponent: () => import('./components/organization-workspace/organization-workspace.component')
+            .then(m => m.OrganizationWorkspaceComponent)
+    },
+    {
         path: 'settings',
         loadComponent: () => import('./components/settings/settings.component').then(m => m.SettingsComponent),
         children: [

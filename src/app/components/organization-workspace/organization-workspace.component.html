@@ -1,0 +1,40 @@
+<header><a routerLink="/">← Bookmarks</a><h1>Organize bookmarks</h1></header>
+<section class="controls" aria-label="Organization plan settings">
+  <label>Scope<select [ngModel]="scopeType()" (ngModelChange)="scopeType.set($event)">
+    <option value="all">All bookmarks</option><option value="folder">Folder subtree</option>
+    <option value="smart-collection">Smart Collection</option><option value="selection">Current selection</option>
+  </select></label>
+  @if (scopeType() === 'folder') {
+    <label>Scope folder<select [ngModel]="scopeId()" (ngModelChange)="scopeId.set($event)">
+      <option value="">Choose…</option>@for (folder of folders(); track folder.id) { <option [value]="folder.id">{{folder.title}}</option> }
+    </select></label>
+  }
+  @if (scopeType() === 'smart-collection') {
+    <label>Collection<select [ngModel]="scopeId()" (ngModelChange)="scopeId.set($event)">
+      @for (collection of collections(); track collection.id) { <option [value]="collection.id">{{collection.name}}</option> }
+    </select></label>
+  }
+  <label>Destination root<select [ngModel]="destinationRootId()" (ngModelChange)="destinationRootId.set($event)">
+    <option value="">Choose…</option>@for (folder of folders(); track folder.id) { <option [value]="folder.id">{{folder.title}}</option> }
+  </select></label>
+  <label>Topics<input type="number" min="1" max="100" [ngModel]="topicCount()" (ngModelChange)="topicCount.set($event)"></label>
+  <button type="button" (click)="generate()" [disabled]="isGenerating()">{{isGenerating() ? 'Generating…' : 'Generate plan'}}</button>
+</section>
+@if (error()) { <p role="alert">{{error()}}</p> }
+@if (plan(); as current) {
+  <p>{{current.proposals.length}} proposals; {{current.excludedCount}} bookmarks excluded. Nothing is selected by default.</p>
+  <div class="clusters">
+    @for (cluster of current.clusters; track cluster.id) {
+      <article><label><input type="checkbox" (change)="selectCluster(cluster.id, $any($event.target).checked)"> Approve cluster</label>
+        <input aria-label="Proposed folder" [value]="cluster.folderPath[0]" (change)="renameFolder(cluster.id, $any($event.target).value)">
+        <span>{{cluster.topicTags.join(', ')}}</span><small>{{cluster.rationale}}</small></article>
+    }
+  </div>
+  <cdk-virtual-scroll-viewport itemSize="44" class="review" aria-label="Organization proposals">
+    <div *cdkVirtualFor="let proposal of proposals()" class="proposal">
+      <label><input type="checkbox" [checked]="proposal.selected" [disabled]="proposal.excluded" (change)="toggleProposal(proposal, $any($event.target).checked)"> {{proposal.bookmarkId}}</label>
+      <span>{{proposal.destinationPath.join(' / ')}} · {{proposal.addTags.join(', ')}}</span>
+      <label>Exclude <input type="checkbox" [checked]="proposal.excluded" (change)="excludeProposal(proposal, $any($event.target).checked)"></label>
+    </div>
+  </cdk-virtual-scroll-viewport>
+}
