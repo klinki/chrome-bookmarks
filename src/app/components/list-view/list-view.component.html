@@ -40,7 +40,7 @@
           [attr.selected]="isSelected(item) ? true : null"
           [attr.aria-selected]="isSelected(item)"
           [attr.itemId]="item.id"
-          draggable="true"
+          [attr.draggable]="searchActive() ? 'false' : 'true'"
           [cdkContextMenuTriggerFor]="bookmarkMenu.menu.menu"
           (contextmenu)="contextMenuBookmark = item">
           @for (column of displayedColumns; track column) {

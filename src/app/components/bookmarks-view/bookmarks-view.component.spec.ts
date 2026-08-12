@@ -22,8 +22,17 @@ describe('Component: BookmarksView', () => {
     directories: signal([]),
     items: signal([]),
     selectedBookmarks: signal([]),
+    searchTerm: signal(''),
+    searchError: signal(null),
+    searchChips: signal([]),
+    searchScopeFolderId: signal(undefined),
+    searchScopeFolders: signal([]),
+    isSearchActive: signal(false),
     deleteProgress: signal({ active: false, total: 0, completed: 0 }),
     search: vi.fn(),
+    setSearchScope: vi.fn(),
+    removeSearchChip: vi.fn(),
+    canonicalizeSearch: vi.fn(),
     updateBookmark: vi.fn()
   };
 

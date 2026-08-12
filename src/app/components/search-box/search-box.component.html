@@ -1,3 +1,76 @@
-<input type="search" placeholder="Search in bookmarks"
-       [ngModel]="searchTerm()"
-       (ngModelChange)="searchTerm.set($event); search()" />
+<div class="search-row">
+  <input type="search" placeholder="Search bookmarks and folders"
+         aria-label="Search bookmarks and folders"
+         [attr.aria-invalid]="error ? true : null"
+         [ngModel]="searchTerm()"
+         (blur)="canonicalize.emit()"
+         (ngModelChange)="searchTerm.set($event); search()" />
+  <button
+    type="button"
+    class="filter-toggle"
+    aria-haspopup="true"
+    [attr.aria-expanded]="filtersOpen()"
+    (click)="filtersOpen.set(!filtersOpen())">
+    Filters
+  </button>
+</div>
+
+@if (error; as parseError) {
+  <div class="search-error" role="alert">
+    {{ parseError.message }} at character {{ parseError.position + 1 }}
+  </div>
+}
+
+@if (chips.length > 0) {
+  <div class="search-chips" aria-label="Active search filters">
+    @for (chip of chips; track $index) {
+      <span class="search-chip">
+        {{ chip }}
+        <button type="button" (click)="chipRemove.emit($index)" [attr.aria-label]="'Remove filter ' + chip">×</button>
+      </span>
+    }
+  </div>
+}
+
+@if (filtersOpen()) {
+  <div class="filter-panel" aria-label="Search filters">
+    <label>
+      Field
+      <select [ngModel]="filterField()" (ngModelChange)="filterField.set($event)">
+        <option value="title">Title</option>
+        <option value="url">URL</option>
+        <option value="host">Host</option>
+        <option value="tag">Tag</option>
+        <option value="path">Folder path</option>
+        <option value="type">Type</option>
+        <option value="score">Usefulness score</option>
+        <option value="source">Rating source</option>
+        <option value="added">Date added</option>
+        <option value="used">Date last used</option>
+        <option value="age">Age</option>
+        <option value="unused">Unused for</option>
+        <option value="is">State</option>
+      </select>
+    </label>
+    <label class="filter-value">
+      Value
+      <input
+        type="text"
+        [ngModel]="filterValue()"
+        (keydown.enter)="applyFilter()"
+        (ngModelChange)="filterValue.set($event)" />
+    </label>
+    <button type="button" (click)="applyFilter()">Add filter</button>
+    <label class="scope-picker">
+      Folder scope
+      <select
+        [ngModel]="scopeFolderId ?? ''"
+        (ngModelChange)="scopeFolderIdChange.emit($event || undefined)">
+        <option value="">All folders</option>
+        @for (folder of folders; track folder.id) {
+          <option [value]="folder.id">{{ folder.title || '(Untitled folder)' }}</option>
+        }
+      </select>
+    </label>
+  </div>
+}

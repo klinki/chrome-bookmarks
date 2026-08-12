@@ -4,6 +4,11 @@
   display: block;
 }
 
+.search-row {
+  display: flex;
+  gap: 8px;
+}
+
 input {
   width: 100%;
   padding: 8px 12px;
@@ -13,6 +18,90 @@ input {
   background-color: var(--input-bg, #fff);
   color: var(--text-color, #333);
   box-sizing: border-box; /* Ensure padding doesn't affect width */
+}
+
+.filter-toggle,
+.filter-panel button {
+  border: 1px solid var(--input-border, #ccc);
+  border-radius: 4px;
+  background: var(--input-bg, #fff);
+  color: var(--text-color, #333);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.filter-toggle {
+  flex: 0 0 auto;
+}
+
+.search-error {
+  margin-top: 5px;
+  color: #b42318;
+  font-size: 12px;
+}
+
+.search-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.search-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  background: #eaf2ff;
+  color: #194f9b;
+  padding: 3px 8px;
+  font-size: 12px;
+
+  button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+  }
+}
+
+.filter-panel {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 7px;
+  padding: 9px;
+  border: 1px solid var(--input-border, #ccc);
+  border-radius: 6px;
+  background: var(--input-bg, #fff);
+
+  label {
+    display: grid;
+    gap: 3px;
+    color: var(--secondary-text-color, #666);
+    font-size: 11px;
+  }
+
+  select {
+    min-height: 32px;
+    border: 1px solid var(--input-border, #ccc);
+    border-radius: 4px;
+    background: var(--input-bg, #fff);
+    color: var(--text-color, #333);
+  }
+
+  .filter-value {
+    min-width: 180px;
+  }
+
+  .scope-picker {
+    min-width: 180px;
+    margin-left: auto;
+  }
 }
 
 input::placeholder {

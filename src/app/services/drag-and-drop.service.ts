@@ -7,7 +7,7 @@ import {DropPosition, ROOT_NODE_ID} from "./constants";
 import {
   injectAllBookmarksMap,
   injectDisplayedItems,
-  injectSearchTerm,
+  injectIsSearchActive,
   injectSelection
 } from "./bookmarks-facade.service";
 import {injectSelectedFolderSignal, injectSelectItemCallback} from "./selection.service";
@@ -36,7 +36,7 @@ export class DragAndDropService {
 
   selectedItems = injectSelection();
   displayedItems = injectDisplayedItems();
-  searchTerm = injectSearchTerm();
+  searchActive = injectIsSearchActive();
   selectedFolder = injectSelectedFolderSignal();
   bookmarksMap = injectAllBookmarksMap();
 
@@ -114,6 +114,10 @@ export class DragAndDropService {
   }
 
   private onDragStart(e: Event) {
+    if (this.searchActive()) {
+      e.preventDefault();
+      return;
+    }
     const dragElement = this.getDragElement(e.composedPath());
     if (dragElement == null) {
       return;
@@ -396,7 +400,7 @@ export class DragAndDropService {
     const listTarget = isBookmarkList(overElement);
 
     // Search results do not have stable sibling positions in the bookmark tree.
-    if ((listTarget || isBookmarkItem(overElement)) && this.searchTerm().trim() !== '') {
+    if ((listTarget || isBookmarkItem(overElement)) && this.searchActive()) {
       return DropPosition.NONE;
     }
 

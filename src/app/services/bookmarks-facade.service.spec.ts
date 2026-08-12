@@ -41,6 +41,7 @@ describe('BookmarksFacadeService', () => {
   const mockTagsService = {
     availableTags: signal<string[]>([]),
     bookmarkTags: signal<Record<string, string[]>>({}),
+    whenReady: vi.fn().mockResolvedValue(undefined),
     getTagsForBookmark: vi.fn().mockReturnValue([])
   };
 

@@ -20,6 +20,7 @@ describe('DragAndDropService', () => {
     items: signal<chrome.bookmarks.BookmarkTreeNode[]>([]),
     selectedBookmarks: signal<chrome.bookmarks.BookmarkTreeNode[]>([]),
     searchTerm: signal(''),
+    isSearchActive: signal(false),
     bookmarksMap: signal({})
   };
 
@@ -109,7 +110,7 @@ describe('DragAndDropService', () => {
     const list = document.createElement('app-list-view');
     const item = document.createElement('tr');
     item.setAttribute('itemid', 'result');
-    (service as any).searchTerm = signal('query');
+    (service as any).searchActive = signal(true);
 
     expect((service as any).calculateValidDropPositions(list)).toBe(DropPosition.NONE);
     expect((service as any).calculateValidDropPositions(item)).toBe(DropPosition.NONE);

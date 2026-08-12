@@ -100,6 +100,10 @@ export class ListViewComponent {
     (item, column) => this.getColumnValue(item, column);
   public deleteProgress = this.bookmarksFacade.deleteProgress;
 
+  public searchActive(): boolean {
+    return this.bookmarksFacade.isSearchActive?.() ?? false;
+  }
+
   public visibleItems = computed(() => {
     return this.orderByPipe.transform(
       this.items() ?? [],

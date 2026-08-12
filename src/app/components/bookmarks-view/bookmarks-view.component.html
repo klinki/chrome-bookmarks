@@ -14,7 +14,17 @@
     </a>
     </div>
   </div>
-  <app-search-box (searchTermChange)="search($event)"></app-search-box>
+  <app-search-box
+    [query]="searchTerm()"
+    [error]="searchError()"
+    [chips]="searchChips()"
+    [folders]="searchScopeFolders()"
+    [scopeFolderId]="searchScopeFolderId()"
+    (searchTermChange)="search($event)"
+    (scopeFolderIdChange)="setScope($event)"
+    (chipRemove)="removeChip($event)"
+    (canonicalize)="canonicalizeSearch()">
+  </app-search-box>
   <div class="tree-view">
     <app-tree-view
       [directories]="directories()"

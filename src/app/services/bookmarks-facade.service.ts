@@ -1,13 +1,24 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { BookmarksProviderService } from "./bookmarks-provider.service";
 import { TagsService } from "./tags.service";
-import { combineLatest, debounceTime, distinctUntilChanged, filter, from, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
+import { combineLatest, debounceTime, filter, from, map, merge, of, shareReplay, startWith, switchMap, tap } from "rxjs";
 import { SelectionService } from "./selection.service";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import {
   BulkMutationCoordinatorService,
   BulkMutationError
 } from './bulk-mutation-coordinator.service';
+import { UsefulnessService } from './usefulness.service';
+import { QuarantineService } from './quarantine.service';
+import { SearchIndexService } from './search-index.service';
+import { createSearchDocuments } from './search-documents';
+import { SearchParseError, SearchQueryAst, SEARCH_QUERY_VERSION } from './search.types';
+import {
+  formatSearchQuery,
+  getSearchChips,
+  parseSearchQuery,
+  removeSearchChip
+} from './search-query';
 
 interface BookmarkTreeSnapshot {
   tree: chrome.bookmarks.BookmarkTreeNode[];
@@ -24,6 +35,9 @@ export class BookmarksFacadeService {
   private selectionService = inject(SelectionService);
 
   private tagsService = inject(TagsService);
+  private usefulnessService = inject(UsefulnessService);
+  private quarantineService = inject(QuarantineService);
+  private searchIndex = inject(SearchIndexService);
   private bulkMutations = inject(BulkMutationCoordinatorService);
   private pendingDeletionIds = signal<Set<string>>(new Set());
   public deleteProgress = computed(() => {
@@ -40,6 +54,16 @@ export class BookmarksFacadeService {
 
   // Signals
   public searchTerm = signal<string>('');
+  public searchError = signal<SearchParseError | null>(null);
+  public searchScopeFolderId = signal<string | undefined>(undefined);
+  private validSearchAst = signal<SearchQueryAst>({
+    version: SEARCH_QUERY_VERSION,
+    expression: null
+  });
+  public searchChips = computed(() => getSearchChips(this.validSearchAst()));
+  public isSearchActive = computed(() => Boolean(
+    this.validSearchAst().expression || this.searchScopeFolderId()
+  ));
   public selectedBookmarkIds = this.selectionService.selection;
 
   public onBookmarksUpdated$ = merge(
@@ -68,6 +92,10 @@ export class BookmarksFacadeService {
     this.treeSnapshot$.pipe(map(snapshot => snapshot.nodeMap)),
     { initialValue: {} as Readonly<Record<string, chrome.bookmarks.BookmarkTreeNode>> }
   );
+
+  public searchScopeFolders = computed(() => Object.values(this.bookmarksMap())
+    .filter(node => !node.url && node.parentId !== undefined)
+    .sort((left, right) => left.title.localeCompare(right.title)));
 
   public directories = toSignal(
     combineLatest([
@@ -112,43 +140,57 @@ export class BookmarksFacadeService {
     { initialValue: [] as chrome.bookmarks.BookmarkTreeNode[] }
   );
 
-  private debouncedSearchTerm$ = merge(
-    of(this.searchTerm()),
-    toObservable(this.searchTerm).pipe(debounceTime(300))
-  ).pipe(distinctUntilChanged());
+  private readonly indexedSnapshot$ = combineLatest([
+    this.treeSnapshot$,
+    toObservable(this.tagsService.bookmarkTags),
+    toObservable(this.usefulnessService.bookmarkUsefulness),
+    toObservable(this.quarantineService.records)
+  ]).pipe(
+    debounceTime(100),
+    switchMap(async ([snapshot, tags, usefulness, quarantine]) => {
+      await Promise.all([
+        this.tagsService.whenReady(),
+        this.usefulnessService.whenReady()
+      ]);
+      await this.searchIndex.rebuild(createSearchDocuments(
+        snapshot.tree,
+        tags,
+        usefulness,
+        quarantine
+      ));
+      return snapshot;
+    }),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
+
+  private readonly searchResults$ = combineLatest([
+    this.indexedSnapshot$,
+    toObservable(this.validSearchAst),
+    toObservable(this.searchScopeFolderId),
+    toObservable(this.isSearchActive)
+  ]).pipe(
+    debounceTime(150),
+    switchMap(([snapshot, query, scopeFolderId, active]) => active
+      ? from(this.searchIndex.query(query, scopeFolderId)).pipe(
+        map(nodeIds => nodeIds
+          .map(nodeId => snapshot.nodeMap[nodeId])
+          .filter((node): node is chrome.bookmarks.BookmarkTreeNode => Boolean(node)))
+      )
+      : of([] as chrome.bookmarks.BookmarkTreeNode[])),
+    shareReplay({ bufferSize: 1, refCount: true })
+  );
 
   public items = toSignal(
     combineLatest([
       this.treeSnapshot$,
       toObservable(this.selectionService.selectedDirectory),
-      this.debouncedSearchTerm$,
-      toObservable(this.tagsService.bookmarkTags),
-      toObservable(this.tagsService.availableTags),
+      toObservable(this.isSearchActive),
+      this.searchResults$,
       toObservable(this.pendingDeletionIds)
     ]).pipe(
-      switchMap(([snapshot, directory, searchTerm, _bookmarkTags, availableTags, pendingDeletionIds]) => {
-        if (searchTerm !== '') {
-          return from(this.bookmarkProviderService.search(searchTerm)).pipe(
-            map(searchResults => {
-              const results = [...searchResults];
-              const normalizedSearchTerm = searchTerm.toLowerCase();
-              const matchingTags = new Set(availableTags.filter(tag =>
-                tag.toLowerCase().includes(normalizedSearchTerm)
-              ));
-
-              if (matchingTags.size > 0) {
-                results.push(...snapshot.bookmarks.filter(bookmark =>
-                  this.tagsService.getTagsForBookmark(bookmark.id)
-                    .some(tag => matchingTags.has(tag))
-                ));
-              }
-
-              const uniqueResults = new Map<string, chrome.bookmarks.BookmarkTreeNode>();
-              results.forEach(bookmark => uniqueResults.set(bookmark.id, bookmark));
-              return Array.from(uniqueResults.values())
-                .filter(bookmark => !pendingDeletionIds.has(bookmark.id));
-            })
-          );
+      switchMap(([snapshot, directory, searchActive, searchResults, pendingDeletionIds]) => {
+        if (searchActive) {
+          return of(searchResults.filter(item => !pendingDeletionIds.has(item.id)));
         }
 
         if (directory == null) {
@@ -246,7 +288,35 @@ export class BookmarksFacadeService {
 
   public search(searchTerm: string|null) {
     this.selectionService.clearSelection();
-    this.searchTerm.set(searchTerm ?? '');
+    const value = searchTerm ?? '';
+    this.searchTerm.set(value);
+    try {
+      const parsed = parseSearchQuery(value);
+      this.validSearchAst.set(parsed);
+      this.searchError.set(null);
+    } catch (error) {
+      if (error instanceof SearchParseError) {
+        this.searchError.set(error);
+        return;
+      }
+      throw error;
+    }
+  }
+
+  public setSearchScope(folderId?: string): void {
+    this.selectionService.clearSelection();
+    this.searchScopeFolderId.set(folderId || undefined);
+  }
+
+  public removeSearchChip(index: number): void {
+    const query = removeSearchChip(this.validSearchAst(), index);
+    this.search(formatSearchQuery(query));
+  }
+
+  public canonicalizeSearch(): void {
+    if (!this.searchError()) {
+      this.searchTerm.set(formatSearchQuery(this.validSearchAst()));
+    }
   }
 
   public async deleteBookmarks(bookmarks: chrome.bookmarks.BookmarkTreeNode[]) {
@@ -302,4 +372,8 @@ export function injectAllBookmarksMap() {
 
 export function injectSearchTerm() {
   return inject(BookmarksFacadeService).searchTerm;
+}
+
+export function injectIsSearchActive() {
+  return inject(BookmarksFacadeService).isSearchActive;
 }
