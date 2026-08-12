@@ -34,7 +34,7 @@ export class OrganizationWorkspaceComponent {
   public scopeType = signal<OrganizationScope['type']>('all');
   public scopeId = signal('');
   public destinationRootId = signal('');
-  public topicCount = signal(1);
+  public topicCount = signal(0);
   public plan = signal<OrganizationPlan | null>(null);
   public isGenerating = signal(false);
   public error = signal('');

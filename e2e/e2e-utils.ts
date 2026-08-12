@@ -357,6 +357,25 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
 
                         return Promise.resolve();
                     },
+                    removeTree: (id: string, callback?: () => void) => {
+                        const node = findNode(rootNodeArg, id);
+                        if (node) {
+                            const parent = findNode(rootNodeArg, node.parentId);
+                            if (parent?.children) {
+                                const index = parent.children.findIndex((child: any) => child.id === id);
+                                if (index !== -1) {
+                                    parent.children.splice(index, 1);
+                                    listeners.onRemoved.forEach((listener: any) =>
+                                        listener(id, { parentId: node.parentId, index }));
+                                }
+                            }
+                        }
+                        if (callback) {
+                            callback();
+                            return;
+                        }
+                        return Promise.resolve();
+                    },
                     onCreated: { addListener: (l: any) => listeners.onCreated.push(l), removeListener: () => {} },
                     onRemoved: { addListener: (l: any) => listeners.onRemoved.push(l), removeListener: () => {} },
                     onChanged: { addListener: (l: any) => listeners.onChanged.push(l), removeListener: () => {} },

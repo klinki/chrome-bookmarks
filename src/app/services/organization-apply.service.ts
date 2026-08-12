@@ -121,13 +121,16 @@ export class OrganizationApplyService {
   }
 
   private async rollback(moves: OrganizationUndoJournal['moves'], tags: Map<string, {before:string[];after:string[]}>, folders: string[]): Promise<void> {
-    for (const move of [...moves].reverse()) { try { await this.provider.move(move.bookmarkId, { parentId: move.fromParentId }); } catch {} }
+    for (const move of [...moves].reverse()) {
+      try { await this.provider.move(move.bookmarkId, { parentId: move.fromParentId }); }
+      catch { /* Continue best-effort rollback and preserve the original failure. */ }
+    }
     tags.forEach((change, id) => this.tags.setTagsForBookmark(id, change.before));
     for (const id of [...folders].reverse()) {
       try {
         const folder = flatten(await this.provider.getBookmarks()).get(id);
         if (folder && (folder.children?.length ?? 0) === 0) await this.provider.removeTree(id);
-      } catch {}
+      } catch { /* Continue best-effort rollback and preserve the original failure. */ }
     }
   }
 }

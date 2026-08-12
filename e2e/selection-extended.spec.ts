@@ -90,7 +90,7 @@ test.describe('Extended Selection', () => {
     test('Shift+Click range selection follows the visible sort order', async ({ page }) => {
         const listView = page.locator('app-list-view');
 
-        await listView.locator('th', { hasText: 'Title' }).click();
+        await listView.getByRole('button', { name: 'Sort by Title' }).click();
 
         const rows = listView.locator('tbody tr');
         await expect(rows).toHaveCount(5);

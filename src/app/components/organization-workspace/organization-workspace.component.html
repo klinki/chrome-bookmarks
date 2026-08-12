@@ -17,7 +17,7 @@
   <label>Destination root<select [ngModel]="destinationRootId()" (ngModelChange)="destinationRootId.set($event)">
     <option value="">Choose…</option>@for (folder of folders(); track folder.id) { <option [value]="folder.id">{{folder.title}}</option> }
   </select></label>
-  <label>Topics<input type="number" min="1" max="100" [ngModel]="topicCount()" (ngModelChange)="topicCount.set($event)"></label>
+  <label>Topics (0 = automatic)<input type="number" min="0" max="100" [ngModel]="topicCount()" (ngModelChange)="topicCount.set($event)"></label>
   <button type="button" (click)="generate()" [disabled]="isGenerating()">{{isGenerating() ? 'Generating…' : 'Generate plan'}}</button>
 </section>
 @if (error()) { <p role="alert">{{error()}}</p> }
