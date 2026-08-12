@@ -15,4 +15,6 @@ export * from './organization.types';
 export * from './organization-storage.service';
 export * from './embedding.service';
 export * from './page-enrichment.service';
+export * from './organization-engine';
+export * from './organization-planner.service';
 export * from './chrome/index';
