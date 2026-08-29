@@ -21,6 +21,7 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-asserted-optional-chain': 'warn',
       '@angular-eslint/no-empty-lifecycle-method': 'warn',
       '@angular-eslint/prefer-inject': 'warn',
+      '@angular-eslint/prefer-on-push-component-change-detection': 'off',
       '@angular-eslint/use-lifecycle-interface': 'warn',
       'no-empty': 'warn',
       'no-prototype-builtins': 'warn',

@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from "@angular/forms";
 import { SearchParseError } from '../../services/search.types';
 
@@ -9,6 +9,7 @@ import { SearchParseError } from '../../services/search.types';
   imports: [
     FormsModule
   ],
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['search-box.component.scss']
 })
 export class SearchBoxComponent {

@@ -21,7 +21,7 @@
     [chips]="searchChips()"
     [folders]="searchScopeFolders()"
     [scopeFolderId]="searchScopeFolderId()"
-    [selectedCollectionName]="selectedSmartCollection()?.name"
+    [selectedCollectionName]="$safeNavigationMigration(selectedSmartCollection()?.name)"
     (searchTermChange)="search($event)"
     (scopeFolderIdChange)="setScope($event)"
     (chipRemove)="removeChip($event)"

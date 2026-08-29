@@ -43,3 +43,9 @@ Thumbs.db
 vitest.config.*.timestamp*test-results/
 /test-results/
 /src/environments/version.ts
+
+.claude/worktrees
+.claude/settings.local.json
+.nx/polygraph
+.nx/self-healing
+.nx/migrate-runs

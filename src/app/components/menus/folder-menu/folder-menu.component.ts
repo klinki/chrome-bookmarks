@@ -1,4 +1,4 @@
-import { Component, inject, Input, ViewChild } from '@angular/core';
+import { Component, inject, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 
 import { ContextMenuComponent } from "../context-menu/context-menu.component";
 import { ContextMenuGroupDirective } from "../context-menu/context-menu-group.component";
@@ -13,6 +13,7 @@ import { firstValueFrom, timer } from 'rxjs';
   standalone: true,
   imports: [ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],
   templateUrl: './folder-menu.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './folder-menu.component.scss'
 })
 export class FolderMenuComponent {

@@ -67,7 +67,7 @@
                 <button type="button" class="secondary-btn" (click)="testEmbeddings()">Test embeddings</button>
             </div>
             <div class="form-group" style="flex-direction: row; align-items: center; gap: 10px;">
-                <input id="pageEnrichment" type="checkbox" [checked]="configForm.get('pageEnrichment')?.value"
+                <input id="pageEnrichment" type="checkbox" [checked]="$safeNavigationMigration(configForm.get('pageEnrichment')?.value)"
                     (change)="setPageEnrichment($any($event.target).checked)" style="width: auto;">
                 <label for="pageEnrichment">Enable page enrichment (requests website access)</label>
                 @if (configForm.get('pageEnrichment')?.value) {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../../environments/environment';
 
@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './about.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./about.component.css']
 })
 export class AboutComponent {

@@ -1,4 +1,4 @@
-import { Component, inject, Input, ViewChild } from '@angular/core';
+import { Component, inject, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 
 import {ContextMenuComponent} from "../context-menu/context-menu.component";
 import {ContextMenuGroupDirective} from "../context-menu/context-menu-group.component";
@@ -11,6 +11,7 @@ import {BookmarksService} from "../../../services/chrome/bookmarks/bookmarks.ser
   standalone: true,
   imports: [ContextMenuComponent, ContextMenuGroupDirective, ContextMenuItemComponent],
   templateUrl: './bookmark-menu.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bookmark-menu.component.css'
 })
 export class BookmarkMenuComponent {

@@ -1,4 +1,4 @@
-import { Component, input, inject, effect, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, input, inject, effect, ElementRef, HostListener, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { SelectionService } from '../../services';
 import { TreeItemComponent } from "./tree-item.component";
 import { FolderMenuComponent } from "../menus/folder-menu/folder-menu.component";
@@ -10,6 +10,7 @@ export type BookmarkDirectory = any;
   selector: 'app-tree-view',
   templateUrl: './tree-view.component.html',
   styleUrls: ['./tree-view.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     TreeItemComponent,
     FolderMenuComponent

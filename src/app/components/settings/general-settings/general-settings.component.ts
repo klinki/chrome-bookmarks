@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SettingsService, Theme, Language } from '../../../services/settings.service';
@@ -8,6 +8,7 @@ import { SettingsService, Theme, Language } from '../../../services/settings.ser
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './general-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./general-settings.component.css']
 })
 export class GeneralSettingsComponent {

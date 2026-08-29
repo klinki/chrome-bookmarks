@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ImportExportService } from '../../../services/import-export.service';
 import { developmentLogger } from '../../../services/development-logger';
@@ -8,6 +8,7 @@ import { developmentLogger } from '../../../services/development-logger';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './import-export.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./import-export.component.css']
 })
 export class ImportExportComponent {
