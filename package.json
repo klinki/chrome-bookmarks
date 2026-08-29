@@ -5,7 +5,7 @@
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
-    "build": "npm run version-info && nx build && npx tsc src/background.ts --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution node",
+    "build": "npm run version-info && nx build && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution bundler",
     "benchmark": "tsx benchmarks/favicon.benchmark.ts",
     "benchmark:bookmarks": "tsx benchmarks/large-library.benchmark.ts",
     "watch": "nx build --watch --configuration development",
@@ -13,14 +13,13 @@
     "test:unit": "umask 0002 && nx test --watch=false",
     "test:e2e": "umask 0002 && npx playwright test",
     "test:e2e:visible": "umask 0002 && PLAYWRIGHT_SLOW_MO=${PLAYWRIGHT_SLOW_MO:-300} npx playwright test --headed --workers=1",
-    "lint": "nx lint bookmarks",
     "postinstall": "npx playwright install && npm run version-info",
     "affected:lint": "nx affected:lint",
     "start:dev": "nx run-many --target=build --all --configuration development --watch --parallel 5",
     "start:prod": "nx run-many --target=build --all --configuration production --watch --parallel 5",
     "version-info": "node ./scripts/git-version.mjs .",
-    "build:dev": "npm run version-info && nx run-many --target=build --all --configuration development --parallel 5 && npx tsc src/background.ts --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution node",
-    "build:prod": "npm run version-info && nx run-many --target=build --all --configuration production --parallel 5 && npx tsc src/background.ts --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution node"
+    "build:dev": "npm run version-info && nx run-many --target=build --all --configuration development --parallel 5 && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution bundler",
+    "build:prod": "npm run version-info && nx run-many --target=build --all --configuration production --parallel 5 && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution bundler"
   },
   "private": true,
   "dependencies": {
@@ -58,7 +57,7 @@
     "jsdom": "^27.4.0",
     "nx": "23.1.2",
     "tsx": "^4.23.11",
-    "typescript": "5.9.3",
+    "typescript": "6.0.3",
     "typescript-eslint": "^8.66.0",
     "vite": "^7.0.0",
     "vitest": "^4.0.8"

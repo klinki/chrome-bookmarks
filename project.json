@@ -12,6 +12,10 @@
   "targets": {
     "build": {
       "executor": "@angular-devkit/build-angular:browser",
+      "defaultConfiguration": "production",
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/bookmarks",
         "index": "src/index.html",
@@ -72,14 +76,12 @@
           "sourceMap": true,
           "namedChunks": true
         }
-      },
-      "defaultConfiguration": "production",
-      "outputs": [
-        "{options.outputPath}"
-      ]
+      }
     },
     "serve": {
       "executor": "@angular-devkit/build-angular:dev-server",
+      "defaultConfiguration": "development",
+      "continuous": true,
       "configurations": {
         "production": {
           "buildTarget": "bookmarks:build:production"
@@ -87,9 +89,7 @@
         "development": {
           "buildTarget": "bookmarks:build:development"
         }
-      },
-      "defaultConfiguration": "development",
-      "continuous": true
+      }
     },
     "extract-i18n": {
       "executor": "@angular-devkit/build-angular:extract-i18n",
@@ -104,9 +104,8 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": [
+        "args": [
           "src/**/*.ts",
           "src/**/*.html",
           "e2e/**/*.ts",
