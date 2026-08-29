@@ -2,11 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import {
   BookmarksService,
+  type BookmarkChangedInfo,
   type BookmarkChangedPayload,
   type BookmarkChildrenReorderedPayload,
   type BookmarkCreatedPayload,
   type BookmarkImportPayload,
+  type BookmarkMovedInfo,
   type BookmarkMovedPayload,
+  type BookmarkRemovedInfo,
   type BookmarkRemovedPayload
 } from './bookmarks.service';
 
@@ -89,7 +92,7 @@ export class MockBookmarksService extends BookmarksService {
   }
 
   public override async search(
-    term: string|chrome.bookmarks.BookmarkSearchQuery
+    term: string|chrome.bookmarks.SearchQuery
   ): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     const results = Object.values(this.flatBookmarksArray).filter(node => {
       const title = node.title.toLowerCase();
@@ -112,7 +115,7 @@ export class MockBookmarksService extends BookmarksService {
   }
 
   public override async create(
-    bookmark: chrome.bookmarks.BookmarkCreateArg
+    bookmark: chrome.bookmarks.CreateDetails
   ): Promise<chrome.bookmarks.BookmarkTreeNode> {
     const parent = this.getFolder(bookmark.parentId ?? '2');
     const index = this.getInsertionIndex(bookmark.index, parent.children?.length ?? 0);
@@ -121,7 +124,8 @@ export class MockBookmarksService extends BookmarksService {
       title: bookmark.title ?? '',
       parentId: parent.id,
       index,
-      dateAdded: this.nextDate()
+      dateAdded: this.nextDate(),
+      syncing: false
     };
 
     if (bookmark.url === undefined) {
@@ -140,7 +144,7 @@ export class MockBookmarksService extends BookmarksService {
 
   public override async move(
     id: string,
-    destination: chrome.bookmarks.BookmarkDestinationArg
+    destination: chrome.bookmarks.MoveDestination
   ): Promise<chrome.bookmarks.BookmarkTreeNode> {
     const bookmark = this.getBookmark(id);
     if (!bookmark.parentId) {
@@ -168,7 +172,7 @@ export class MockBookmarksService extends BookmarksService {
       this.reindexChildren(newParent);
     }
 
-    const moveInfo: chrome.bookmarks.BookmarkMoveInfo = {
+    const moveInfo: BookmarkMovedInfo = {
       oldIndex,
       index: bookmark.index!,
       oldParentId: oldParent.id,
@@ -180,7 +184,7 @@ export class MockBookmarksService extends BookmarksService {
 
   public override async update(
     id: string,
-    changes: chrome.bookmarks.BookmarkChangesArg
+    changes: chrome.bookmarks.UpdateChanges
   ): Promise<chrome.bookmarks.BookmarkTreeNode> {
     const bookmark = this.getBookmark(id);
     if (changes.title !== undefined) {
@@ -190,7 +194,7 @@ export class MockBookmarksService extends BookmarksService {
       bookmark.url = changes.url;
     }
 
-    const changeInfo: chrome.bookmarks.BookmarkChangeInfo = {
+    const changeInfo: BookmarkChangedInfo = {
       title: bookmark.title,
       ...(changes.url !== undefined ? { url: changes.url } : {})
     };
@@ -221,7 +225,8 @@ export class MockBookmarksService extends BookmarksService {
       id,
       title,
       children: [],
-      dateAdded: this.nextDate()
+      dateAdded: this.nextDate(),
+      syncing: false
     };
 
     if (parent) {
@@ -246,7 +251,8 @@ export class MockBookmarksService extends BookmarksService {
       url,
       parentId: directory.id,
       index: directory.children!.length,
-      dateAdded: this.nextDate()
+      dateAdded: this.nextDate(),
+      syncing: false
     };
     directory.children!.push(bookmark);
     this.flatBookmarksArray[id] = bookmark;
@@ -306,7 +312,7 @@ export class MockBookmarksService extends BookmarksService {
     this.removeFromIndex(bookmark);
     this.reindexChildren(parent);
 
-    const removeInfo: chrome.bookmarks.BookmarkRemoveInfo = {
+    const removeInfo: BookmarkRemovedInfo = {
       parentId: parent.id,
       index,
       node: removedNode

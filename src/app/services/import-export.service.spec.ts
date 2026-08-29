@@ -34,7 +34,7 @@ describe('ImportExportService', () => {
 
   beforeEach(() => {
     let nextId = 0;
-    create = vi.fn().mockImplementation((bookmark: chrome.bookmarks.BookmarkCreateArg) => {
+    create = vi.fn().mockImplementation((bookmark: chrome.bookmarks.CreateDetails) => {
       nextId++;
       return Promise.resolve({ id: `new-${nextId}`, ...bookmark });
     });

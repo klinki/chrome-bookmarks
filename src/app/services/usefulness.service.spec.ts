@@ -109,7 +109,7 @@ describe('UsefulnessService', () => {
     const setItem = vi.mocked(Storage.prototype.setItem);
     setItem.mockClear();
 
-    removed$.next(['removed', {} as chrome.bookmarks.BookmarkRemoveInfo]);
+    removed$.next(['removed', {} as BookmarkRemovedPayload[1]]);
 
     expect(service.bookmarkUsefulness()).toEqual({
       retained: { score: 4, source: 'ai' }

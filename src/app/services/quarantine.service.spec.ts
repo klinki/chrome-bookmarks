@@ -188,7 +188,7 @@ describe('QuarantineService', () => {
 });
 
 function createTree(): chrome.bookmarks.BookmarkTreeNode[] {
-  const root: chrome.bookmarks.BookmarkTreeNode = { id: '0', title: 'root', children: [] };
+  const root: chrome.bookmarks.BookmarkTreeNode = { id: '0', title: 'root', children: [], syncing: false };
   const bar = appendFolder(root, '1', 'Bookmarks Bar');
   appendFolder(root, '2', 'Other Bookmarks');
   const source = appendFolder(bar, 'source', 'Source');
@@ -206,20 +206,21 @@ function createProvider(tree: chrome.bookmarks.BookmarkTreeNode[]) {
     onMovedEvent$: moved,
     onRemovedEvent$: removed,
     getBookmarks: vi.fn(async () => tree),
-    create: vi.fn(async (input: chrome.bookmarks.BookmarkCreateArg) => {
+    create: vi.fn(async (input: chrome.bookmarks.CreateDetails) => {
       const parent = findNode(tree, input.parentId!)!;
       const node: chrome.bookmarks.BookmarkTreeNode = {
         id: `created-${nextId++}`,
         parentId: parent.id,
         index: parent.children?.length ?? 0,
         title: input.title ?? '',
+        syncing: false,
         ...(input.url ? { url: input.url } : { children: [] })
       };
       parent.children ??= [];
       parent.children.push(node);
       return node;
     }),
-    move: vi.fn(async (nodeId: string, destination: chrome.bookmarks.BookmarkDestinationArg) => {
+    move: vi.fn(async (nodeId: string, destination: chrome.bookmarks.MoveDestination) => {
       const node = findNode(tree, nodeId)!;
       const previousParent = findNode(tree, node.parentId!)!;
       previousParent.children = previousParent.children?.filter(child => child.id !== nodeId);

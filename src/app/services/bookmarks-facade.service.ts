@@ -119,37 +119,44 @@ export class BookmarksFacadeService {
             id: 'SERVER_' + hostname,
             title: hostname,
             url: undefined,
-            children: []
+            children: [],
+            syncing: false
           }));
 
         return [
           {
             id: 'ROOT_SMART_COLLECTIONS',
             title: 'Smart Collections',
+            syncing: false,
             children: collections.map(collection => ({
               id: `SMART_${collection.id}`,
               title: collection.name,
-              children: []
+              children: [],
+              syncing: false
             }))
           },
           {
             id: 'ROOT_TAGS',
             title: 'Tags',
+            syncing: false,
             children: tags.map(tag => ({
               id: 'TAG_' + tag,
               title: tag,
               url: undefined,
-              children: []
+              children: [],
+              syncing: false
             }))
           },
           {
             id: 'ROOT_SERVERS',
             title: 'Servers (Top 20)',
+            syncing: false,
             children: topServers
           },
           {
             id: 'ROOT_ALL',
             title: 'All Bookmarks',
+            syncing: false,
             children: snapshot.directories
           }
         ];
@@ -358,7 +365,8 @@ export class BookmarksFacadeService {
       this.selectionService.selectDirectory({
         id: `SMART_${id}`,
         title: collection.name,
-        children: []
+        children: [],
+        syncing: false
       });
     }
   }
@@ -393,7 +401,12 @@ export class BookmarksFacadeService {
     const id = this.selectedSmartCollectionId();
     if (!id) return;
     const updated = this.smartCollectionsService.update(id, { name });
-    this.selectionService.selectDirectory({ id: `SMART_${id}`, title: updated.name, children: [] });
+    this.selectionService.selectDirectory({
+      id: `SMART_${id}`,
+      title: updated.name,
+      children: [],
+      syncing: false
+    });
   }
 
   public duplicateSelectedSmartCollection(): void {

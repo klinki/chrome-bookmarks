@@ -277,7 +277,8 @@ export class ImportExportService {
       if (rollbackErrors.length > 0) {
         throw new AggregateError(
           [error, ...rollbackErrors],
-          'Bookmark import failed and could not be fully rolled back'
+          'Bookmark import failed and could not be fully rolled back',
+          { cause: error }
         );
       }
       throw error;

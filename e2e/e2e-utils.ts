@@ -8,7 +8,8 @@ export function getMockData() {
             parentId: undefined,
             index: undefined,
             children: [],
-            expanded: false
+            expanded: false,
+            syncing: false
         };
 
         if (parent != null) {
@@ -27,7 +28,8 @@ export function getMockData() {
             title: title,
             url: url,
             parentId: directory.id,
-            index: directory?.children?.length
+            index: directory?.children?.length,
+            syncing: false
         };
         directory?.children?.push(bookmark);
         addBookmark(bookmark);
@@ -248,7 +250,7 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                         return Promise.resolve(result);
                     },
                     search: (
-                        query: string|chrome.bookmarks.BookmarkSearchQuery,
+                        query: string|chrome.bookmarks.SearchQuery,
                         callback?: (nodes: chrome.bookmarks.BookmarkTreeNode[]) => void
                     ) => {
                         const results: any[] = [];
@@ -265,7 +267,7 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                         return Promise.resolve(result);
                     },
                     create: (
-                        bookmark: chrome.bookmarks.BookmarkCreateArg,
+                        bookmark: chrome.bookmarks.CreateDetails,
                         callback?: (node: chrome.bookmarks.BookmarkTreeNode) => void
                     ) => {
                         const newId = String(Math.floor(Math.random() * 1000000));
@@ -308,7 +310,7 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                     },
                     move: (
                         id: string,
-                        destination: chrome.bookmarks.BookmarkDestinationArg,
+                        destination: chrome.bookmarks.MoveDestination,
                         callback?: (node: chrome.bookmarks.BookmarkTreeNode) => void
                     ) => {
                         moveNode(id, destination);
@@ -322,7 +324,7 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                     },
                     update: (
                         id: string,
-                        changes: chrome.bookmarks.BookmarkChangesArg,
+                        changes: chrome.bookmarks.UpdateChanges,
                         callback?: (node: chrome.bookmarks.BookmarkTreeNode) => void
                     ) => {
                         const node = findNode(rootNodeArg, id);

@@ -167,7 +167,7 @@ ${instruction}
             return output;
         } catch (error) {
             developmentLogger.error('ai.response.parse.failed', error);
-            throw new Error('AI returned invalid JSON');
+            throw new Error('AI returned invalid JSON', { cause: error });
         }
     }
 
@@ -276,7 +276,7 @@ Return one result for every bookmark. Each result must contain exactly the bookm
             return this.validateUsefulnessResponse(parsed, bookmarksData.map(bookmark => bookmark.id));
         } catch (error) {
             developmentLogger.error('ai.usefulness.response.invalid', error);
-            throw new Error('AI returned invalid usefulness ratings');
+            throw new Error('AI returned invalid usefulness ratings', { cause: error });
         }
     }
 

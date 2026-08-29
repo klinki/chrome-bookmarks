@@ -13,7 +13,8 @@ export class BookmarksProviderService {
   public static EmptyDirectory: chrome.bookmarks.BookmarkTreeNode = {
       id: '0',
       title: '',
-      children: []
+      children: [],
+      syncing: false
   };
 
   public static EmptyBookmark = {
@@ -46,7 +47,7 @@ export class BookmarksProviderService {
     return this.bookmarksService.search(searchTerm);
   }
 
-  public create(bookmark: chrome.bookmarks.BookmarkCreateArg): Promise<chrome.bookmarks.BookmarkTreeNode> {
+  public create(bookmark: chrome.bookmarks.CreateDetails): Promise<chrome.bookmarks.BookmarkTreeNode> {
     return this.bookmarksService.create(bookmark);
   }
 
@@ -68,7 +69,7 @@ export class BookmarksProviderService {
       this.filterDirectories(bookmarks[0].children ?? []));
   }
 
-  public move(id: string, destination: chrome.bookmarks.BookmarkDestinationArg) {
+  public move(id: string, destination: chrome.bookmarks.MoveDestination) {
     return this.bookmarksService.move(id, destination);
   }
 
@@ -80,7 +81,7 @@ export class BookmarksProviderService {
     return this.bookmarksService.removeTree(id);
   }
 
-  public async moveMultiple(ids: string[], destination: chrome.bookmarks.BookmarkDestinationArg) {
+  public async moveMultiple(ids: string[], destination: chrome.bookmarks.MoveDestination) {
     if (ids.length === 0) {
       return [];
     }
@@ -155,7 +156,7 @@ export class BookmarksProviderService {
     return moved;
   }
 
-  public update(id: string, changes: chrome.bookmarks.BookmarkChangesArg) {
+  public update(id: string, changes: chrome.bookmarks.UpdateChanges) {
     return this.bookmarksService.update(id, changes);
   }
 }
@@ -163,5 +164,5 @@ export class BookmarksProviderService {
 
 export function injectMoveMultipleBookmarksCallback() {
   const service = inject(BookmarksProviderService);
-  return (ids: string[], destination: chrome.bookmarks.BookmarkDestinationArg) => service.moveMultiple(ids, destination);
+  return (ids: string[], destination: chrome.bookmarks.MoveDestination) => service.moveMultiple(ids, destination);
 }

@@ -201,7 +201,7 @@ describe('TagsService', () => {
         const setItem = vi.mocked(Storage.prototype.setItem);
         setItem.mockClear();
 
-        removed$.next(['removed', {} as chrome.bookmarks.BookmarkRemoveInfo]);
+        removed$.next(['removed', {} as BookmarkRemovedPayload[1]]);
 
         expect(service.bookmarkTags()).toEqual({ retained: ['Keep'] });
         await vi.waitFor(() => expect(setItem).toHaveBeenCalled());
