@@ -129,7 +129,11 @@ describe('cleanup analysis worker', () => {
 
     const result = analyzeCleanup({
       ...createInput(nodes),
-      settings: { staleDays: 730, excludedFolderIds: ['excluded'] }
+      settings: {
+        staleDays: 730,
+        cleanupExcludedFolderIds: ['excluded'],
+        organizeExcludedFolderIds: []
+      }
     });
 
     expect(result.excludedNodeCount).toBe(4);
@@ -150,7 +154,11 @@ describe('cleanup analysis worker', () => {
       ],
       tags,
       usefulness,
-      settings: { staleDays: 730 },
+      settings: {
+        staleDays: 730,
+        cleanupExcludedFolderIds: [],
+        organizeExcludedFolderIds: []
+      },
       now
     };
   }

@@ -9,8 +9,12 @@ describe('OrganizeCleanupSettingsComponent', () => {
   let fixture: ComponentFixture<OrganizeCleanupSettingsComponent>;
   let component: OrganizeCleanupSettingsComponent;
   const settings = {
-    settings: signal({ staleDays: 730, excludedFolderIds: [] as string[] }),
-    update: vi.fn((changes: { excludedFolderIds?: string[] }) => {
+    settings: signal({
+      staleDays: 730,
+      cleanupExcludedFolderIds: [] as string[],
+      organizeExcludedFolderIds: [] as string[]
+    }),
+    update: vi.fn((changes: { cleanupExcludedFolderIds?: string[]; organizeExcludedFolderIds?: string[] }) => {
       settings.settings.update(current => ({ ...current, ...changes }));
     })
   };
@@ -33,7 +37,11 @@ describe('OrganizeCleanupSettingsComponent', () => {
   };
 
   beforeEach(async () => {
-    settings.settings.set({ staleDays: 730, excludedFolderIds: [] });
+    settings.settings.set({
+      staleDays: 730,
+      cleanupExcludedFolderIds: [],
+      organizeExcludedFolderIds: []
+    });
     vi.clearAllMocks();
     await TestBed.configureTestingModule({
       imports: [OrganizeCleanupSettingsComponent],
@@ -53,18 +61,23 @@ describe('OrganizeCleanupSettingsComponent', () => {
     TestBed.resetTestingModule();
   });
 
-  it('loads nested folder paths and manages exclusions', () => {
-    expect(component.folders()).toEqual([
-      { id: '1', path: 'Bookmarks Bar' },
-      { id: '2', path: 'Bookmarks Bar / Reference' }
-    ]);
+  it('loads a nested folder tree and keeps exclusions independent', () => {
+    expect(fixture.nativeElement.querySelectorAll('select')).toHaveLength(0);
+    expect(fixture.nativeElement.querySelectorAll('[role="tree"]')).toHaveLength(2);
+    expect(component.folders()).toEqual([{
+      id: '1',
+      title: 'Bookmarks Bar',
+      children: [{
+        id: '2',
+        title: 'Reference',
+        children: []
+      }]
+    }]);
 
-    component.selectedFolderId.set('2');
-    component.addExcludedFolder();
-    expect(settings.update).toHaveBeenCalledWith({ excludedFolderIds: ['2'] });
-    expect(component.excludedFolders()).toEqual([{ id: '2', path: 'Bookmarks Bar / Reference' }]);
+    component.updateCleanupExclusions(new Set(['2']));
+    expect(settings.update).toHaveBeenCalledWith({ cleanupExcludedFolderIds: ['2'] });
 
-    component.removeExcludedFolder('2');
-    expect(settings.update).toHaveBeenLastCalledWith({ excludedFolderIds: [] });
+    component.updateOrganizeExclusions(new Set(['1']));
+    expect(settings.update).toHaveBeenCalledWith({ organizeExcludedFolderIds: ['1'] });
   });
 });

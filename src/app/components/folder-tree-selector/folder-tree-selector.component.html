@@ -1,0 +1,24 @@
+<div class="folder-tree" role="tree" [attr.aria-label]="featureLabel + ' excluded folders'">
+  @for (item of visibleFolders(); track item.node.id) {
+    <div class="folder-row" role="treeitem"
+      [style.padding-inline-start.px]="8 + item.level * 22"
+      [attr.aria-level]="item.level + 1"
+      [attr.aria-expanded]="hasChildren(item.node) ? isExpanded(item.node.id) : null">
+      @if (hasChildren(item.node)) {
+        <button type="button" class="expand-button" (click)="toggleExpanded($event, item.node.id)"
+          [attr.aria-label]="(isExpanded(item.node.id) ? 'Collapse ' : 'Expand ') + item.node.title">
+          <span class="material-icons" aria-hidden="true">{{ isExpanded(item.node.id) ? 'expand_more' : 'chevron_right' }}</span>
+        </button>
+      } @else {
+        <span class="expand-spacer" aria-hidden="true"></span>
+      }
+      <input type="checkbox" [checked]="isSelected(item.node.id)"
+        [attr.aria-label]="'Exclude ' + item.node.title + ' from ' + featureLabel"
+        (change)="toggleSelected($event, item.node.id)">
+      <span class="material-icons folder-icon" aria-hidden="true">folder</span>
+      <span class="folder-title">{{ item.node.title }}</span>
+    </div>
+  } @empty {
+    <p class="empty-state">No folders found.</p>
+  }
+</div>

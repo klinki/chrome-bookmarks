@@ -1,0 +1,71 @@
+:host {
+  display: block;
+}
+
+.folder-tree {
+  max-height: 360px;
+  overflow: auto;
+  padding: 4px 0;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+  background: var(--input-bg, #fff);
+}
+
+.folder-row {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 7px;
+  padding-block: 3px;
+  padding-inline-end: 8px;
+  color: var(--text-color, #333);
+}
+
+.folder-row:hover {
+  background: var(--hover-bg, #f5f9ff);
+}
+
+.folder-row input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--primary-color, #1976d2);
+}
+
+.expand-button,
+.expand-spacer {
+  display: inline-flex;
+  width: 22px;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 22px;
+}
+
+.expand-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--secondary-text-color, #666);
+  cursor: pointer;
+}
+
+.expand-button:hover {
+  color: var(--primary-color, #1976d2);
+}
+
+.folder-icon {
+  color: var(--secondary-text-color, #666);
+  font-size: 18px;
+}
+
+.folder-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-state {
+  margin: 12px;
+  color: var(--secondary-text-color, #666);
+}

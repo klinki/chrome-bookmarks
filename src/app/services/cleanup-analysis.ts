@@ -79,7 +79,7 @@ export function analyzeCleanup(
     input.nodes,
     nodeMap,
     cleanupRootIds,
-    input.settings.excludedFolderIds ?? []
+    input.settings.cleanupExcludedFolderIds
   );
   const quarantinedIds = findQuarantinedTopLevelIds(input.nodes, nodeMap, cleanupRootIds);
   const actionableNodes = input.nodes.filter(node => !excludedIds.has(node.id));

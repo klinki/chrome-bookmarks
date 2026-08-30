@@ -54,7 +54,7 @@ export class OrganizationWorkspaceComponent {
       const pathById = new Map<string, string>();
       const nodes = flatten(tree, pathById).filter(node => Boolean(node.url));
       const quarantined = new Set(Object.keys(this.quarantine.records()));
-      const excludedFolderIds = new Set(this.settingsService.settings().excludedFolderIds ?? []);
+      const excludedFolderIds = new Set(this.settingsService.settings().organizeExcludedFolderIds);
       const scoped = this.applyScope(nodes)
         .filter(node => !quarantined.has(node.id))
         .filter(node => !hasExcludedAncestor(node, excludedFolderIds, this.facade.bookmarksMap()));

@@ -39,8 +39,12 @@ describe('CleanupCenterComponent', () => {
     scheduleCurrentLibraryAnalysis: vi.fn()
   };
   const settings = {
-    settings: signal({ staleDays: 730 }),
-    update: vi.fn((update: { staleDays: number }) => settings.settings.set(update))
+    settings: signal({
+      staleDays: 730,
+      cleanupExcludedFolderIds: [] as string[],
+      organizeExcludedFolderIds: [] as string[]
+    }),
+    update: vi.fn((update: { staleDays?: number }) => settings.settings.update(current => ({ ...current, ...update })))
   };
   const quarantine = {
     quarantine: vi.fn().mockResolvedValue(undefined),
@@ -71,7 +75,11 @@ describe('CleanupCenterComponent', () => {
 
   beforeEach(async () => {
     result.set(createResult());
-    settings.settings.set({ staleDays: 730 });
+    settings.settings.set({
+      staleDays: 730,
+      cleanupExcludedFolderIds: [],
+      organizeExcludedFolderIds: []
+    });
     vi.clearAllMocks();
     analyzer.analyzeCurrentLibrary.mockImplementation(async () => result()!);
     await TestBed.configureTestingModule({

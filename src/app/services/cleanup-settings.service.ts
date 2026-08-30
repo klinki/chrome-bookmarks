@@ -2,7 +2,11 @@ import { Injectable, signal } from '@angular/core';
 import { CleanupSettings } from './cleanup.types';
 
 const STORAGE_KEY = 'cleanupSettings';
-const DEFAULT_SETTINGS: CleanupSettings = { staleDays: 730, excludedFolderIds: [] };
+const DEFAULT_SETTINGS: CleanupSettings = {
+  staleDays: 730,
+  cleanupExcludedFolderIds: [],
+  organizeExcludedFolderIds: []
+};
 
 @Injectable({ providedIn: 'root' })
 export class CleanupSettingsService {
@@ -47,10 +51,19 @@ export function normalizeCleanupSettings(value: unknown): CleanupSettings {
     && value['staleDays'] <= 36_500
     ? value['staleDays']
     : DEFAULT_SETTINGS.staleDays;
-  const excludedFolderIds = isRecord(value) && Array.isArray(value['excludedFolderIds'])
-    ? [...new Set(value['excludedFolderIds'].filter((id): id is string => typeof id === 'string' && id.length > 0))]
-    : [];
-  return { staleDays, excludedFolderIds };
+  const legacyExcludedFolderIds = readFolderIds(value, 'excludedFolderIds') ?? [];
+  return {
+    staleDays,
+    cleanupExcludedFolderIds: readFolderIds(value, 'cleanupExcludedFolderIds') ?? legacyExcludedFolderIds,
+    organizeExcludedFolderIds: readFolderIds(value, 'organizeExcludedFolderIds') ?? legacyExcludedFolderIds
+  };
+}
+
+function readFolderIds(value: unknown, key: string): string[] | undefined {
+  if (!isRecord(value) || !Array.isArray(value[key])) {
+    return undefined;
+  }
+  return [...new Set(value[key].filter((id): id is string => typeof id === 'string' && id.length > 0))];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

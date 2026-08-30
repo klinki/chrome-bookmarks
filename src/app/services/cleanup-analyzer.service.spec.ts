@@ -81,7 +81,13 @@ describe('CleanupAnalyzerService', () => {
         },
         {
           provide: CleanupSettingsService,
-          useValue: { settings: signal({ staleDays: 730 }) }
+          useValue: {
+            settings: signal({
+              staleDays: 730,
+              cleanupExcludedFolderIds: [],
+              organizeExcludedFolderIds: []
+            })
+          }
         }
       ]
     });

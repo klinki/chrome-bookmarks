@@ -1,18 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { BookmarksProviderService } from '../../../services/bookmarks-provider.service';
 import { CleanupSettingsService } from '../../../services/cleanup-settings.service';
-
-interface FolderOption {
-  id: string;
-  path: string;
-}
+import { FolderTreeNode, FolderTreeSelectorComponent } from '../../folder-tree-selector/folder-tree-selector.component';
 
 @Component({
   selector: 'app-organize-cleanup-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FolderTreeSelectorComponent],
   templateUrl: './organize-cleanup-settings.component.html',
   styleUrl: './organize-cleanup-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -21,39 +16,24 @@ export class OrganizeCleanupSettingsComponent implements OnInit {
   private readonly provider = inject(BookmarksProviderService);
   private readonly settingsService = inject(CleanupSettingsService);
 
-  public readonly folders = signal<FolderOption[]>([]);
-  public readonly selectedFolderId = signal('');
+  public readonly folders = signal<FolderTreeNode[]>([]);
   public readonly loading = signal(true);
   public readonly error = signal('');
-  public readonly excludedFolders = computed(() => {
-    const excludedIds = new Set(this.settingsService.settings().excludedFolderIds ?? []);
-    return this.folders().filter(folder => excludedIds.has(folder.id));
-  });
-  public readonly availableFolders = computed(() => {
-    const excludedIds = new Set(this.settingsService.settings().excludedFolderIds ?? []);
-    return this.folders().filter(folder => !excludedIds.has(folder.id));
-  });
+  public readonly cleanupExcludedFolderIds = computed(() =>
+    new Set(this.settingsService.settings().cleanupExcludedFolderIds));
+  public readonly organizeExcludedFolderIds = computed(() =>
+    new Set(this.settingsService.settings().organizeExcludedFolderIds));
 
   public ngOnInit(): void {
     void this.loadFolders();
   }
 
-  public addExcludedFolder(): void {
-    const folderId = this.selectedFolderId();
-    if (!folderId || this.settingsService.settings().excludedFolderIds?.includes(folderId)) {
-      return;
-    }
-    this.settingsService.update({
-      excludedFolderIds: [...(this.settingsService.settings().excludedFolderIds ?? []), folderId]
-    });
-    this.selectedFolderId.set('');
+  public updateCleanupExclusions(ids: ReadonlySet<string>): void {
+    this.settingsService.update({ cleanupExcludedFolderIds: [...ids] });
   }
 
-  public removeExcludedFolder(folderId: string): void {
-    this.settingsService.update({
-      excludedFolderIds: (this.settingsService.settings().excludedFolderIds ?? [])
-        .filter(id => id !== folderId)
-    });
+  public updateOrganizeExclusions(ids: ReadonlySet<string>): void {
+    this.settingsService.update({ organizeExcludedFolderIds: [...ids] });
   }
 
   private async loadFolders(): Promise<void> {
@@ -61,19 +41,24 @@ export class OrganizeCleanupSettingsComponent implements OnInit {
     this.error.set('');
     try {
       const tree = await this.provider.getBookmarks();
-      const folders: FolderOption[] = [];
-      const visit = (node: chrome.bookmarks.BookmarkTreeNode, parents: string[]): void => {
+      const toFolder = (node: chrome.bookmarks.BookmarkTreeNode): FolderTreeNode => ({
+        id: node.id,
+        title: node.title,
+        children: (node.children ?? [])
+          .filter(child => child.url === undefined)
+          .map(child => toFolder(child))
+      });
+      const folders: FolderTreeNode[] = [];
+      const visit = (node: chrome.bookmarks.BookmarkTreeNode): void => {
         if (node.url) {
           return;
         }
-        const path = [...parents, node.title];
         if (node.parentId !== undefined) {
-          folders.push({ id: node.id, path: path.join(' / ') });
+          folders.push(toFolder(node));
         }
-        node.children?.forEach(child => visit(child, path));
       };
-      tree.forEach(root => root.children?.forEach(child => visit(child, [])));
-      this.folders.set(folders.sort((left, right) => left.path.localeCompare(right.path)));
+      tree.forEach(root => root.children?.forEach(child => visit(child)));
+      this.folders.set(folders);
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : 'Folders could not be loaded.');
     } finally {
