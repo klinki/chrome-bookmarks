@@ -95,4 +95,12 @@ describe('Component: BookmarksView', () => {
     expect(component).toBeTruthy();
     expect(mockDragAndDropService.start).toHaveBeenCalledOnce();
   });
+
+  it('exposes cleanup and AI organization in the left workspace menu', () => {
+    const links = Array.from(fixture.nativeElement.querySelectorAll<HTMLAnchorElement>('.workspace-nav a'));
+
+    expect(links.map(link => link.textContent?.trim())).toEqual(['Cleanup Center', 'AI Organization']);
+    expect(links.map(link => link.getAttribute('href'))).toEqual(['/cleanup', '/organize']);
+    expect(fixture.nativeElement.querySelectorAll('.header .cleanup-link')).toHaveLength(0);
+  });
 });

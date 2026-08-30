@@ -16,7 +16,7 @@
     justify-content: center;
     width: 32px;
     height: 32px;
-    color: #666;
+    color: var(--secondary-text-color, #666);
     border-radius: 50%;
     transition: all 0.3s ease;
     text-decoration: none;
@@ -27,8 +27,8 @@
     }
 
     &:hover {
-      background-color: #f0f0f0;
-      color: #333;
+      background-color: var(--hover-bg, #f0f0f0);
+      color: var(--text-color, #333);
       transform: rotate(90deg);
     }
   }
@@ -39,16 +39,6 @@
     gap: 10px;
   }
 
-  .cleanup-link {
-    padding: 6px 10px;
-    border-radius: 6px;
-    color: #2867c7;
-    text-decoration: none;
-
-    &:hover {
-      background: #eef5ff;
-    }
-  }
 }
 
 .container {
@@ -67,6 +57,29 @@
   overflow-y: auto;
 }
 
+.workspace-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-color, #e5e7eb);
+
+  a {
+    padding: 8px 10px;
+    border-radius: 6px;
+    color: var(--text-color, #333);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover,
+    &.active {
+      background: var(--active-bg, #eef5ff);
+      color: var(--primary-color, #2867c7);
+    }
+  }
+}
+
 .main-view {
   grid-area: main;
   display: grid;
@@ -78,7 +91,7 @@
   display: grid;
   min-height: 0;
   place-items: center;
-  color: var(--muted-text-color, #666);
+  color: var(--secondary-text-color, #666);
 }
 
 app-search-box {
