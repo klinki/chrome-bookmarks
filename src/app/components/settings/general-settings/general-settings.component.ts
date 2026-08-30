@@ -15,8 +15,9 @@ export class GeneralSettingsComponent {
   settingsService = inject(SettingsService);
 
   themes: { value: Theme; label: string }[] = [
-    { value: 'default', label: 'Default' },
-    { value: 'dark', label: 'Dark' }
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' },
+    { value: 'auto', label: 'Auto' }
   ];
 
   languages: { value: Language; label: string }[] = [
