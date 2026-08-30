@@ -1,2 +1,220 @@
-:host{display:block;padding:20px;height:calc(100vh - 40px);overflow:auto}header{display:flex;gap:20px;align-items:center}.controls{display:flex;flex-wrap:wrap;gap:12px;align-items:end;padding:14px;background:#f5f7fa;border-radius:8px}.controls label{display:grid;gap:4px}.controls select,.controls input,.controls button{min-height:34px}.clusters{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px}.clusters article{display:grid;gap:6px;border:1px solid #ddd;border-radius:8px;padding:10px}.review{height:420px;margin-top:12px;border:1px solid #ddd}.proposal{height:44px;display:grid;grid-template-columns:180px 1fr auto;align-items:center;gap:10px;padding:0 10px;border-bottom:1px solid #eee}
-.apply-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+:host {
+  display: block;
+  min-height: 100%;
+  box-sizing: border-box;
+  color: var(--text-color, #333);
+  background: var(--bg-color, #fff);
+}
+
+.organization-shell {
+  box-sizing: border-box;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+}
+
+.page-header h1,
+.section-heading h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+.page-header h1 {
+  margin: 4px 0;
+  font-size: 26px;
+}
+
+.subtitle,
+.section-heading p,
+.label-hint {
+  color: var(--secondary-text-color, #666);
+}
+
+.subtitle,
+.section-heading p {
+  margin-bottom: 0;
+}
+
+.back-link {
+  color: var(--primary-color, #1976d2);
+  text-decoration: none;
+}
+
+.controls,
+.plan-section {
+  padding: 16px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 10px;
+  background: var(--card-bg, #fff);
+}
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.section-heading h2 {
+  margin-bottom: 4px;
+  font-size: 19px;
+}
+
+.control-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.control-grid label,
+.folder-name {
+  display: grid;
+  gap: 5px;
+  font-weight: 600;
+}
+
+button,
+input,
+select {
+  box-sizing: border-box;
+  min-height: 34px;
+  border: 1px solid var(--input-border, #ccc);
+  border-radius: 6px;
+  background: var(--input-bg, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+input,
+select {
+  padding: 6px 8px;
+}
+
+button {
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button.primary {
+  border-color: var(--primary-color, #1976d2);
+  background: var(--primary-color, #1976d2);
+  color: var(--primary-button-text, #fff);
+}
+
+button.secondary {
+  border-color: var(--border-color, #ccc);
+  background: var(--button-secondary-bg, #eee);
+  color: var(--button-secondary-text, #333);
+}
+
+button:disabled {
+  cursor: default;
+  opacity: .55;
+}
+
+.controls-footer,
+.apply-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.error,
+.success {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid;
+  border-radius: 6px;
+}
+
+.error {
+  border-color: var(--danger-color, #b42318);
+  color: var(--danger-color, #b42318);
+  background: var(--danger-bg, #fff5f5);
+}
+
+.success {
+  border-color: var(--primary-color, #1976d2);
+  background: var(--hover-bg, #f5f9ff);
+}
+
+.plan-heading {
+  margin-bottom: 14px;
+}
+
+.clusters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.cluster-card {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 8px;
+  background: var(--section-bg, #f9f9f9);
+}
+
+.cluster-approve,
+.proposal-select,
+.proposal-exclude {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cluster-approve {
+  font-weight: 600;
+}
+
+.cluster-tags,
+.proposal-destination {
+  overflow: hidden;
+  color: var(--secondary-text-color, #666);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plan-section h3 {
+  margin: 18px 0 8px;
+  font-size: 15px;
+}
+
+.review {
+  height: min(48vh, 420px);
+  min-height: 180px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 6px;
+}
+
+.proposal {
+  display: grid;
+  height: 44px;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 2fr) auto;
+  align-items: center;
+  gap: 10px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+@media (max-width: 700px) {
+  .organization-shell {
+    padding: 16px;
+  }
+
+  .proposal {
+    grid-template-columns: 1fr auto;
+  }
+
+  .proposal-destination {
+    display: none;
+  }
+}

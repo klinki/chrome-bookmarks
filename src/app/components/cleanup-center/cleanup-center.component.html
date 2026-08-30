@@ -3,16 +3,16 @@
     <div>
       <a routerLink="/" class="back-link">← Bookmarks</a>
       <h1>Cleanup Center</h1>
-      <p>Review local findings before moving anything to the reversible Cleanup trash.</p>
+      <p class="subtitle">Review local findings before moving anything to the reversible Cleanup trash.</p>
     </div>
     <div class="scan-controls">
-      <label for="stale-days">Stale after</label>
-      <div>
+      <div class="threshold-control">
+        <label for="stale-days">Stale after</label>
         <input id="stale-days" type="number" min="1" [(ngModel)]="staleDays">
         <span>days</span>
         <button type="button" (click)="updateStaleThreshold()">Apply</button>
       </div>
-      <button type="button" class="secondary" (click)="refresh()" [disabled]="analyzing()">
+      <button type="button" class="primary" (click)="refresh()" [disabled]="analyzing()">
         {{ analyzing() ? 'Scanning…' : 'Scan now' }}
       </button>
     </div>
@@ -51,7 +51,7 @@
       <div class="findings-toolbar">
         <div>
           <h2>{{ selectedView().label }}</h2>
-          <span>{{ selectedCount() }} selected</span>
+          <span class="toolbar-meta">{{ selectedCount() }} selected</span>
         </div>
         <div class="toolbar-actions">
           @if (selectedReason() === 'exact-duplicate') {

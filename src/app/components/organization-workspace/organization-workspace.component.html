@@ -1,42 +1,126 @@
-<header><a routerLink="/">← Bookmarks</a><h1>Organize bookmarks</h1></header>
-<section class="controls" aria-label="Organization plan settings">
-  <label>Scope<select [ngModel]="scopeType()" (ngModelChange)="scopeType.set($event)">
-    <option value="all">All bookmarks</option><option value="folder">Folder subtree</option>
-    <option value="smart-collection">Smart Collection</option><option value="selection">Current selection</option>
-  </select></label>
-  @if (scopeType() === 'folder') {
-    <label>Scope folder<select [ngModel]="scopeId()" (ngModelChange)="scopeId.set($event)">
-      <option value="">Choose…</option>@for (folder of folders(); track folder.id) { <option [value]="folder.id">{{folder.title}}</option> }
-    </select></label>
-  }
-  @if (scopeType() === 'smart-collection') {
-    <label>Collection<select [ngModel]="scopeId()" (ngModelChange)="scopeId.set($event)">
-      @for (collection of collections(); track collection.id) { <option [value]="collection.id">{{collection.name}}</option> }
-    </select></label>
-  }
-  <label>Destination root<select [ngModel]="destinationRootId()" (ngModelChange)="destinationRootId.set($event)">
-    <option value="">Choose…</option>@for (folder of folders(); track folder.id) { <option [value]="folder.id">{{folder.title}}</option> }
-  </select></label>
-  <label>Topics (0 = automatic)<input type="number" min="0" max="100" [ngModel]="topicCount()" (ngModelChange)="topicCount.set($event)"></label>
-  <button type="button" (click)="generate()" [disabled]="isGenerating()">{{isGenerating() ? 'Generating…' : 'Generate plan'}}</button>
-</section>
-@if (error()) { <p role="alert">{{error()}}</p> }
-@if (message()) { <p role="status">{{message()}}</p> }
-@if (plan(); as current) {
-  <p>{{current.proposals.length}} proposals; {{current.excludedCount}} bookmarks excluded. Nothing is selected by default.</p>
-  <div class="clusters">
-    @for (cluster of current.clusters; track cluster.id) {
-      <article><label><input type="checkbox" (change)="selectCluster(cluster.id, $any($event.target).checked)"> Approve cluster</label>
-        <input aria-label="Proposed folder" [value]="cluster.folderPath[0]" (change)="renameFolder(cluster.id, $any($event.target).value)">
-        <span>{{cluster.topicTags.join(', ')}}</span><small>{{cluster.rationale}}</small></article>
-    }
-  </div>
-  <cdk-virtual-scroll-viewport itemSize="44" class="review" aria-label="Organization proposals">
-    <div *cdkVirtualFor="let proposal of proposals()" class="proposal">
-      <label><input type="checkbox" [checked]="proposal.selected" [disabled]="proposal.excluded" (change)="toggleProposal(proposal, $any($event.target).checked)"> {{proposal.bookmarkId}}</label>
-      <span>{{proposal.destinationPath.join(' / ')}} · {{proposal.addTags.join(', ')}}</span>
-      <label>Exclude <input type="checkbox" [checked]="proposal.excluded" (change)="excludeProposal(proposal, $any($event.target).checked)"></label>
+<main class="organization-shell">
+  <header class="page-header">
+    <div>
+      <a routerLink="/" class="back-link">← Bookmarks</a>
+      <h1>AI Organization</h1>
+      <p class="subtitle">Build a reviewable plan for folders and tags before changing your bookmarks.</p>
     </div>
-  </cdk-virtual-scroll-viewport>
-  <div class="apply-actions"><button type="button" (click)="apply()">Apply selected changes</button><button type="button" (click)="undo()">Undo last apply</button></div>
-}
+  </header>
+
+  <section class="controls" aria-labelledby="organization-settings-title">
+    <div class="section-heading">
+      <div>
+        <h2 id="organization-settings-title">Plan settings</h2>
+        <p>Choose what to organize and where proposed folders should live.</p>
+      </div>
+    </div>
+    <div class="control-grid">
+      <label>
+        Scope
+        <select [ngModel]="scopeType()" (ngModelChange)="scopeType.set($event)">
+          <option value="all">All bookmarks</option>
+          <option value="folder">Folder subtree</option>
+          <option value="smart-collection">Smart Collection</option>
+          <option value="selection">Current selection</option>
+        </select>
+      </label>
+      @if (scopeType() === 'folder') {
+        <label>
+          Scope folder
+          <select [ngModel]="scopeId()" (ngModelChange)="scopeId.set($event)">
+            <option value="">Choose…</option>
+            @for (folder of folders(); track folder.id) {
+              <option [value]="folder.id">{{ folder.title }}</option>
+            }
+          </select>
+        </label>
+      }
+      @if (scopeType() === 'smart-collection') {
+        <label>
+          Collection
+          <select [ngModel]="scopeId()" (ngModelChange)="scopeId.set($event)">
+            @for (collection of collections(); track collection.id) {
+              <option [value]="collection.id">{{ collection.name }}</option>
+            }
+          </select>
+        </label>
+      }
+      <label>
+        Destination root
+        <select [ngModel]="destinationRootId()" (ngModelChange)="destinationRootId.set($event)">
+          <option value="">Choose…</option>
+          @for (folder of folders(); track folder.id) {
+            <option [value]="folder.id">{{ folder.title }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        Topics <span class="label-hint">(0 = automatic)</span>
+        <input type="number" min="0" max="100" [ngModel]="topicCount()" (ngModelChange)="topicCount.set($event)">
+      </label>
+    </div>
+    <div class="controls-footer">
+      <button type="button" class="primary" (click)="generate()" [disabled]="isGenerating()">
+        {{ isGenerating() ? 'Generating…' : 'Generate plan' }}
+      </button>
+    </div>
+  </section>
+
+  @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+  }
+  @if (message()) {
+    <p class="success" role="status">{{ message() }}</p>
+  }
+
+  @if (plan(); as current) {
+    <section class="plan-section" aria-labelledby="plan-title">
+      <div class="section-heading plan-heading">
+        <div>
+          <h2 id="plan-title">Review plan</h2>
+          <p>{{ current.proposals.length }} proposals · {{ current.excludedCount }} bookmarks excluded. Nothing is selected by default.</p>
+        </div>
+      </div>
+
+      <div class="clusters">
+        @for (cluster of current.clusters; track cluster.id) {
+          <article class="cluster-card">
+            <label class="cluster-approve">
+              <input type="checkbox" (change)="selectCluster(cluster.id, $any($event.target).checked)">
+              Approve cluster
+            </label>
+            <label class="folder-name">
+              Proposed folder
+              <input [value]="cluster.folderPath[0]" (change)="renameFolder(cluster.id, $any($event.target).value)">
+            </label>
+            <span class="cluster-tags">{{ cluster.topicTags.join(', ') }}</span>
+            <small>{{ cluster.rationale }}</small>
+          </article>
+        }
+      </div>
+
+      <h3>Bookmark proposals</h3>
+      <cdk-virtual-scroll-viewport itemSize="44" class="review" aria-label="Organization proposals">
+        <div *cdkVirtualFor="let proposal of proposals()" class="proposal">
+          <label class="proposal-select">
+            <input type="checkbox" [checked]="proposal.selected" [disabled]="proposal.excluded"
+              (change)="toggleProposal(proposal, $any($event.target).checked)">
+            {{ proposal.bookmarkId }}
+          </label>
+          <span class="proposal-destination" [title]="proposal.destinationPath.join(' / ')">
+            {{ proposal.destinationPath.join(' / ') }} · {{ proposal.addTags.join(', ') }}
+          </span>
+          <label class="proposal-exclude">
+            Exclude
+            <input type="checkbox" [checked]="proposal.excluded"
+              (change)="excludeProposal(proposal, $any($event.target).checked)">
+          </label>
+        </div>
+      </cdk-virtual-scroll-viewport>
+      <div class="apply-actions">
+        <button type="button" class="primary" (click)="apply()">Apply selected changes</button>
+        <button type="button" class="secondary" (click)="undo()">Undo last apply</button>
+      </div>
+    </section>
+  }
+</main>
