@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { CleanupSettings } from './cleanup.types';
 
 const STORAGE_KEY = 'cleanupSettings';
-const DEFAULT_SETTINGS: CleanupSettings = { staleDays: 730 };
+const DEFAULT_SETTINGS: CleanupSettings = { staleDays: 730, excludedFolderIds: [] };
 
 @Injectable({ providedIn: 'root' })
 export class CleanupSettingsService {
@@ -40,14 +40,17 @@ export class CleanupSettingsService {
 }
 
 export function normalizeCleanupSettings(value: unknown): CleanupSettings {
-  if (isRecord(value)
+  const staleDays = isRecord(value)
     && typeof value['staleDays'] === 'number'
     && Number.isInteger(value['staleDays'])
     && value['staleDays'] >= 1
-    && value['staleDays'] <= 36_500) {
-    return { staleDays: value['staleDays'] };
-  }
-  return { ...DEFAULT_SETTINGS };
+    && value['staleDays'] <= 36_500
+    ? value['staleDays']
+    : DEFAULT_SETTINGS.staleDays;
+  const excludedFolderIds = isRecord(value) && Array.isArray(value['excludedFolderIds'])
+    ? [...new Set(value['excludedFolderIds'].filter((id): id is string => typeof id === 'string' && id.length > 0))]
+    : [];
+  return { staleDays, excludedFolderIds };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

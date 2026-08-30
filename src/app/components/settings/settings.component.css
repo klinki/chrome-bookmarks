@@ -35,6 +35,15 @@
   background-color: var(--hover-bg, #e0e0e0);
 }
 
+.nav-section-label {
+  margin: 18px 15px 6px;
+  color: var(--secondary-text-color, #666);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
 .nav-item.active {
   background-color: var(--active-bg, #e3f2fd);
   color: var(--primary-color, #1976d2);

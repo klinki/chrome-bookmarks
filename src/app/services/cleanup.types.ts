@@ -13,6 +13,7 @@ export type DuplicateKind = 'exact' | 'probable';
 
 export interface CleanupSettings {
   staleDays: number;
+  excludedFolderIds?: string[];
 }
 
 export interface CleanupNodeSnapshot {

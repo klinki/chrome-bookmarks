@@ -1,0 +1,55 @@
+<div class="feature-settings">
+  <header class="settings-header">
+    <h2>Organize &amp; Cleanup</h2>
+    <p>Choose which bookmark folders the smart features should leave untouched.</p>
+  </header>
+
+  <section class="settings-card" aria-labelledby="excluded-folders-title">
+    <div class="section-heading">
+      <div>
+        <h3 id="excluded-folders-title">Excluded folders</h3>
+        <p>Folders and all of their subfolders are ignored by Cleanup Center and AI Organization.</p>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <p class="hint">Loading folders…</p>
+    } @else if (availableFolders().length > 0) {
+      <div class="add-folder">
+        <label for="excluded-folder">Add a folder</label>
+        <div class="add-folder-controls">
+          <select id="excluded-folder" [ngModel]="selectedFolderId()"
+            (ngModelChange)="selectedFolderId.set($event)">
+            <option value="">Choose a folder…</option>
+            @for (folder of availableFolders(); track folder.id) {
+              <option [value]="folder.id">{{ folder.path }}</option>
+            }
+          </select>
+          <button type="button" class="primary" (click)="addExcludedFolder()"
+            [disabled]="!selectedFolderId()">Exclude folder</button>
+        </div>
+      </div>
+    } @else {
+      <p class="hint">All available folders are already excluded.</p>
+    }
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    @if (excludedFolders().length > 0) {
+      <ul class="excluded-list">
+        @for (folder of excludedFolders(); track folder.id) {
+          <li>
+            <span>{{ folder.path }}</span>
+            <button type="button" class="remove-button" (click)="removeExcludedFolder(folder.id)">
+              Remove
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (!loading()) {
+      <p class="empty-state">No folders are excluded.</p>
+    }
+  </section>
+</div>

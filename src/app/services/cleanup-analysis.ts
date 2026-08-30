@@ -75,7 +75,12 @@ export function analyzeCleanup(
 ): CleanupAnalysisResult {
   const nodeMap = new Map(input.nodes.map(node => [node.id, node]));
   const cleanupRootIds = findCleanupRootIds(input.nodes, nodeMap);
-  const excludedIds = findExcludedIds(input.nodes, nodeMap, cleanupRootIds);
+  const excludedIds = findExcludedIds(
+    input.nodes,
+    nodeMap,
+    cleanupRootIds,
+    input.settings.excludedFolderIds ?? []
+  );
   const quarantinedIds = findQuarantinedTopLevelIds(input.nodes, nodeMap, cleanupRootIds);
   const actionableNodes = input.nodes.filter(node => !excludedIds.has(node.id));
   const actionableBookmarks = actionableNodes.filter(node => Boolean(node.url));
@@ -241,12 +246,15 @@ function findCleanupRootIds(
 function findExcludedIds(
   nodes: CleanupNodeSnapshot[],
   nodeMap: ReadonlyMap<string, CleanupNodeSnapshot>,
-  cleanupRootIds: ReadonlySet<string>
+  cleanupRootIds: ReadonlySet<string>,
+  excludedFolderIds: readonly string[]
 ): Set<string> {
   const excluded = new Set<string>();
+  const configuredExcludedFolderIds = new Set(excludedFolderIds);
   for (const node of nodes) {
     if (isPermanentRoot(node, nodeMap)
       || hasAncestorMatching(node, nodeMap, ancestor => ancestor.unmodifiable === 'managed')
+      || hasAncestorMatching(node, nodeMap, ancestor => configuredExcludedFolderIds.has(ancestor.id))
       || hasAncestorMatching(node, nodeMap, ancestor => cleanupRootIds.has(ancestor.id))) {
       excluded.add(node.id);
     }

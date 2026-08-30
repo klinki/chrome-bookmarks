@@ -34,6 +34,11 @@ export const routes: Routes = [
                 loadComponent: () => import('./components/ai-settings/ai-settings.component').then(m => m.AiSettingsComponent)
             },
             {
+                path: 'organize-cleanup',
+                loadComponent: () => import('./components/settings/organize-cleanup-settings/organize-cleanup-settings.component')
+                    .then(m => m.OrganizeCleanupSettingsComponent)
+            },
+            {
                 path: 'import-export',
                 loadComponent: () => import('./components/settings/import-export/import-export.component').then(m => m.ImportExportComponent)
             },

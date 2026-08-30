@@ -12,6 +12,7 @@ import { QuarantineService } from '../../services/quarantine.service';
 import { TagsService } from '../../services/tags.service';
 import { UsefulnessService } from '../../services/usefulness.service';
 import { OrganizationApplyService } from '../../services/organization-apply.service';
+import { CleanupSettingsService } from '../../services/cleanup-settings.service';
 
 @Component({
   standalone: true,
@@ -30,6 +31,7 @@ export class OrganizationWorkspaceComponent {
   private embeddings = inject(EmbeddingService);
   private planner = inject(OrganizationPlannerService);
   private applyService = inject(OrganizationApplyService);
+  private settingsService = inject(CleanupSettingsService);
 
   public scopeType = signal<OrganizationScope['type']>('all');
   public scopeId = signal('');
@@ -52,7 +54,10 @@ export class OrganizationWorkspaceComponent {
       const pathById = new Map<string, string>();
       const nodes = flatten(tree, pathById).filter(node => Boolean(node.url));
       const quarantined = new Set(Object.keys(this.quarantine.records()));
-      const scoped = this.applyScope(nodes).filter(node => !quarantined.has(node.id));
+      const excludedFolderIds = new Set(this.settingsService.settings().excludedFolderIds ?? []);
+      const scoped = this.applyScope(nodes)
+        .filter(node => !quarantined.has(node.id))
+        .filter(node => !hasExcludedAncestor(node, excludedFolderIds, this.facade.bookmarksMap()));
       const inputs: OrganizationInput[] = scoped.map(node => {
         const input = {
           id: node.id, title: node.title, url: node.url!, path: pathById.get(node.id) ?? '',
@@ -150,5 +155,20 @@ function flatten(tree: readonly chrome.bookmarks.BookmarkTreeNode[], paths: Map<
 function isDescendant(node: chrome.bookmarks.BookmarkTreeNode, folderId: string, map: Readonly<Record<string, chrome.bookmarks.BookmarkTreeNode>>): boolean {
   let parentId = node.parentId;
   while (parentId) { if (parentId === folderId) return true; parentId = map[parentId]?.parentId; }
+  return false;
+}
+
+function hasExcludedAncestor(
+  node: chrome.bookmarks.BookmarkTreeNode,
+  excludedFolderIds: ReadonlySet<string>,
+  map: Readonly<Record<string, chrome.bookmarks.BookmarkTreeNode>>
+): boolean {
+  let currentId: string | undefined = node.parentId;
+  while (currentId) {
+    if (excludedFolderIds.has(currentId)) {
+      return true;
+    }
+    currentId = map[currentId]?.parentId;
+  }
   return false;
 }

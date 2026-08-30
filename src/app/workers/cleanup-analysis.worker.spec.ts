@@ -119,6 +119,23 @@ describe('cleanup analysis worker', () => {
     expect(result.findings.some(finding => finding.nodeId === 'managed-child')).toBe(false);
   });
 
+  it('excludes configured folders and all of their descendants', () => {
+    const nodes: CleanupNodeSnapshot[] = [
+      folder('0', undefined, 1, 'root'),
+      folder('1', '0', 1, 'Bookmarks Bar'),
+      folder('excluded', '1', 1, 'Reference'),
+      bookmark('excluded-child', 'https://excluded.example', { parentId: 'excluded' })
+    ];
+
+    const result = analyzeCleanup({
+      ...createInput(nodes),
+      settings: { staleDays: 730, excludedFolderIds: ['excluded'] }
+    });
+
+    expect(result.excludedNodeCount).toBe(4);
+    expect(result.findings).toEqual([]);
+  });
+
   function createInput(
     extraNodes: CleanupNodeSnapshot[],
     tags: Record<string, string[]> = {},
