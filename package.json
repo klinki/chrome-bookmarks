@@ -5,7 +5,8 @@
   "scripts": {
     "ng": "ng",
     "start": "nx serve",
-    "build": "npm run version-info && nx build && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution bundler",
+    "build": "npm run version-info && nx build && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks/browser --target es2022 --module es2022 --moduleResolution bundler && npm run verify:extension",
+    "verify:extension": "node scripts/verify-extension.mjs",
     "benchmark": "tsx benchmarks/favicon.benchmark.ts",
     "benchmark:bookmarks": "tsx benchmarks/large-library.benchmark.ts",
     "watch": "nx build --watch --configuration development",
@@ -18,8 +19,8 @@
     "start:dev": "nx run-many --target=build --all --configuration development --watch --parallel 5",
     "start:prod": "nx run-many --target=build --all --configuration production --watch --parallel 5",
     "version-info": "node ./scripts/git-version.mjs .",
-    "build:dev": "npm run version-info && nx run-many --target=build --all --configuration development --parallel 5 && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution bundler",
-    "build:prod": "npm run version-info && nx run-many --target=build --all --configuration production --parallel 5 && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks --target es2022 --module es2022 --moduleResolution bundler"
+    "build:dev": "npm run version-info && nx run-many --target=build --all --configuration development --parallel 5 && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks/browser --target es2022 --module es2022 --moduleResolution bundler && npm run verify:extension",
+    "build:prod": "npm run version-info && nx run-many --target=build --all --configuration production --parallel 5 && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks/browser --target es2022 --module es2022 --moduleResolution bundler && npm run verify:extension"
   },
   "private": true,
   "dependencies": {

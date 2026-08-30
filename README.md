@@ -24,7 +24,21 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 ## Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Run the production build with:
+
+```bash
+npm run build
+```
+
+The build artifacts are stored in `dist/bookmarks/`. To load the unpacked Chrome extension, select `dist/bookmarks/browser/` as the extension directory in `chrome://extensions`.
+
+The build also runs `npm run verify:extension`, which validates the packaged extension in `dist/bookmarks/browser/`. It checks that `manifest.json` is valid, declares a background service worker and options page, and that those files and the manifest icons exist beside the manifest. Run the check independently after an existing build with:
+
+```bash
+npm run verify:extension
+```
+
+The development and production build variants run the same verification step.
 
 ## Running tests
 

@@ -42,6 +42,7 @@ Thumbs.db
 
 vitest.config.*.timestamp*test-results/
 /test-results/
+/playwright-report/
 /src/environments/version.ts
 
 .claude/worktrees
