@@ -92,7 +92,7 @@ runs:
         passphrase: ${{ inputs.ssh_password }}
         source: "${{ inputs.dist_dir }}/*"
         target: "/var/www/${{ inputs.project_name }}/${{ inputs.slug }}"
-        strip_components: 2
+        strip_components: 3
 
     - name: Comment on PR
       if: inputs.action == 'deploy' && inputs.pr_number != ''
