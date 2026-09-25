@@ -6,3 +6,6 @@ allowBuilds:
   nx: true
 
 autoInstallPeers: false
+
+overrides:
+  smol-toml@<=1.7.0: ^1.7.1
