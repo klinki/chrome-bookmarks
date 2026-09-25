@@ -64,6 +64,12 @@ CI='' npm run test:e2e:visible
 
 # Complete local suite
 CI='' npm test
+
+# Repeat the full suite to look for flaky tests (10 runs by default)
+npm run verify:flaky
+
+# Repeat only unit or E2E tests a chosen number of times
+npm run verify:flaky -- -Count 3 -Script test:unit
 ```
 
 Visible mode adds a 300 ms delay to each Playwright action. Override it when needed, for example with `PLAYWRIGHT_SLOW_MO=750 npm run test:e2e:visible`.
@@ -77,7 +83,7 @@ npm run build
 npm run benchmark
 ```
 
-As a reference, the complete CI-mode suite currently contains 148 unit tests and 39 end-to-end tests. It took approximately 40 seconds on an Apple M4, while the end-to-end portion took approximately 8.5 seconds with local parallelism. Timings vary by machine.
+The repeat helper exits with a failure status if any run fails. It requires PowerShell 7 (`pwsh`) and works on Windows, macOS, and Linux.
 
 ## Further help
 
