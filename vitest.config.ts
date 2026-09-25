@@ -11,8 +11,7 @@ export default defineConfig({
     include: ['src/**/*.spec.ts'],
     reporters: ['default', 'junit'],
     outputFile: {
-      junit: 'test-results/junit-report.xml',
+      junit: '.temp/test-results/junit-report.xml',
     },
   },
 });
-
