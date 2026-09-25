@@ -80,6 +80,24 @@ describe('DragAndDropService', () => {
     expect(service.getBookmarkElement([list])).toBe(list);
   });
 
+  it('orders selected drag items by their displayed order', () => {
+    const first = { id: 'first', title: 'First', url: 'https://first.example' };
+    const second = { id: 'second', title: 'Second', url: 'https://second.example' };
+    const third = { id: 'third', title: 'Third', url: 'https://third.example' };
+    const row = document.createElement('tr');
+    row.setAttribute('itemid', second.id);
+    row.setAttribute('draggable', 'true');
+    (service as any).displayedItems = signal([first, second, third]);
+    vi.spyOn(service as any, 'calculateDragData').mockReturnValue({
+      elements: [third, first],
+      sameProfile: true
+    });
+
+    (service as any).onDragStart({ composedPath: () => [row] });
+
+    expect((service as any).dragInfo.dragData.elements).toEqual([first, third]);
+  });
+
   it('allows dropping onto the selected folder through an empty list host', () => {
     const folder = {
       id: 'target',

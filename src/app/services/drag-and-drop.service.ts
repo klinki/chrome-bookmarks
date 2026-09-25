@@ -137,15 +137,12 @@ export class DragAndDropService {
     // TODO: What is this?
     if (isBookmarkItem(dragElement)) {
       const displayingItems = this.displayedItems().map(x => x.id);
-      // TODO(crbug.com/41468833): Make this search more time efficient to avoid
-      // delay on large amount of bookmark dragging.
+      const draggedItemsById = new Map(dragData.elements.map(element => [element.id, element]));
       for (const itemId of displayingItems) {
-        for (const element of dragData.elements) {
-          if (element!.id === itemId) {
-            dragNodeIds.push(element!.id);
-            dragNodes.push(element);
-            break;
-          }
+        const element = draggedItemsById.get(itemId);
+        if (element) {
+          dragNodeIds.push(element.id);
+          dragNodes.push(element);
         }
       }
     } else {
