@@ -7,6 +7,7 @@
     "start": "nx serve",
     "lint": "eslint ./src \"src/**/*.ts\" \"src/**/*.html\" \"e2e/**/*.ts\" \"*.ts\"",
     "build": "npm run version-info && nx build && npx tsc --ignoreConfig src/background.ts --types chrome --outDir dist/bookmarks/browser --target es2022 --module es2022 --moduleResolution bundler && npm run verify:extension",
+    "build:extension": "pwsh -File ./scripts/build-extension.ps1",
     "verify:extension": "node scripts/verify-extension.mjs",
     "benchmark": "tsx benchmarks/favicon.benchmark.ts",
     "benchmark:bookmarks": "tsx benchmarks/large-library.benchmark.ts",

@@ -40,6 +40,14 @@ npm run verify:extension
 
 The development and production build variants run the same verification step.
 
+To build and package an installable ZIP, run:
+
+```bash
+npm run build:extension
+```
+
+The archive is written to `.temp/chrome-extension/chrome-bookmarks.zip`, with `manifest.json` at the archive root. The build workflow uploads this ZIP as the `chrome-extension` artifact. Packaging requires PowerShell 7 (`pwsh`).
+
 ## Running tests
 
 For fast local iteration, keep the `CI` environment variable unset or empty. Playwright uses its presence to select one worker, enable retries, and require a fresh development server; those safeguards make the suite substantially slower.
