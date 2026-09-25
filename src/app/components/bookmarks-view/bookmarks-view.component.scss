@@ -54,6 +54,7 @@
 
 .tree-view {
   grid-area: tree-view;
+  min-height: 0;
   overflow-y: auto;
 }
 
