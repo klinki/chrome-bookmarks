@@ -100,7 +100,7 @@
     "test": {
       "executor": "@nx/vitest:test",
       "options": {
-        "config": "vitest.config.ts"
+        "config": "vitest.config.mts"
       }
     },
     "lint": {
