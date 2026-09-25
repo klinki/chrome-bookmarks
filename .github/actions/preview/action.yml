@@ -79,7 +79,7 @@ runs:
           PROJECT_NAME="${{ inputs.project_name }}"
           TARGET_DIR="/var/www/$PROJECT_NAME/$SLUG"
           mkdir -p "$TARGET_DIR"
-          rm -rf "$TARGET_DIR/*"
+          find "$TARGET_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
 
     - name: Copy Files
       if: inputs.action == 'deploy'
