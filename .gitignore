@@ -6,6 +6,7 @@
 
 # dependencies
 /node_modules
+/.pnpm-store/
 /bower_components
 
 # IDEs and editors
