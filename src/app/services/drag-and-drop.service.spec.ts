@@ -80,6 +80,20 @@ describe('DragAndDropService', () => {
     expect(service.getBookmarkElement([list])).toBe(list);
   });
 
+  it('rejects drag targets without an item id', () => {
+    expect(() => service.getBookmarkNode(document.createElement('tr')))
+      .toThrow('Bookmark drag target is missing an item id');
+  });
+
+  it('rejects drag targets removed from the bookmark map', () => {
+    const row = document.createElement('tr');
+    row.setAttribute('itemid', 'removed');
+    (service as any).bookmarksMap = signal({});
+
+    expect(() => service.getBookmarkNode(row))
+      .toThrow('Bookmark drag target no longer exists: removed');
+  });
+
   it('orders selected drag items by their displayed order', () => {
     const first = { id: 'first', title: 'First', url: 'https://first.example' };
     const second = { id: 'second', title: 'Second', url: 'https://second.example' };
@@ -132,6 +146,31 @@ describe('DragAndDropService', () => {
 
     expect((service as any).calculateValidDropPositions(list)).toBe(DropPosition.NONE);
     expect((service as any).calculateValidDropPositions(item)).toBe(DropPosition.NONE);
+  });
+
+  it('does not move bookmarks when the selected folder disappears before dropping', async () => {
+    vi.useFakeTimers();
+    try {
+      const list = document.createElement('app-list-view');
+      const move = vi.fn();
+      (service as any).selectedFolder = signal(null);
+      (service as any).dropDestination = { element: list, position: DropPosition.ON };
+      (service as any).moveMultipleCallback = move;
+      (service as any).dragInfo.setNativeDragData({
+        elements: [{ id: 'bookmark', title: 'Bookmark', url: 'https://example.com' }],
+        sameProfile: true
+      });
+
+      await expect((service as any).onDrop({ composedPath: () => [list], preventDefault: vi.fn() }))
+        .rejects.toThrow('Cannot drop bookmarks without a selected folder');
+      vi.runAllTimers();
+
+      expect(move).not.toHaveBeenCalled();
+      expect((service as any).dragInfo.dragData).toBeNull();
+      expect((service as any).dropDestination).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('waits for failed moves and always clears drag state', async () => {

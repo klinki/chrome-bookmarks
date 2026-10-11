@@ -131,41 +131,29 @@ export class DragAndDropService {
       return;
     }
 
-    let dragNodeIds = [] as string[];
     let dragNodes = [] as chrome.bookmarks.BookmarkTreeNode[];
 
-    // TODO: What is this?
+    // Preserve the displayed order of selected bookmarks.
     if (isBookmarkItem(dragElement)) {
       const displayingItems = this.displayedItems().map(x => x.id);
       const draggedItemsById = new Map(dragData.elements.map(element => [element.id, element]));
       for (const itemId of displayingItems) {
         const element = draggedItemsById.get(itemId);
         if (element) {
-          dragNodeIds.push(element.id);
           dragNodes.push(element);
         }
       }
     } else {
-      dragNodeIds = dragData.elements.map((item) => item!.id);
       dragNodes = dragData.elements;
     }
-
-    // assert(dragNodeIds.length === dragData.elements.length);
-    const itemId = dragElement?.attributes?.getNamedItem('itemid')?.value ?? '';
-    const dragNodeIndex = dragNodeIds.indexOf(itemId);
-    // assert(dragNodeIndex !== -1);
 
     this.dragInfo.setNativeDragData({
       elements: dragNodes,
       sameProfile: true
     });
-
-    // BookmarkManagerApiProxyImpl.getInstance().startDrag(
-    //   dragNodeIds, dragNodeIndex, this.lastPointerWasTouch_,
-    //   (e as DragEvent).clientX, (e as DragEvent).clientY);
   }
 
-  private onDragLeave(e: Event) {
+  private onDragLeave(_e: Event) {
     this.dropIndicator!.finish();
   }
 
@@ -258,7 +246,7 @@ export class DragAndDropService {
     }
   }
 
-  private onDragEnd(e: Event) {
+  private onDragEnd(_e: Event) {
     this.clearDragData();
   }
 
@@ -277,9 +265,13 @@ export class DragAndDropService {
 
   private calculateDropInfo(dropDestination: DropDestination): { parentId: string, index: number } {
     if (isBookmarkList(dropDestination.element)) {
+      const parentId = this.selectedFolder()?.id;
+      if (!parentId) {
+        throw new Error('Cannot drop bookmarks without a selected folder');
+      }
       return {
         index: 0,
-        parentId: this.selectedFolder()?.id!,
+        parentId,
       };
     }
 
@@ -533,10 +525,11 @@ export class DragAndDropService {
   }
 
   getBookmarkNode(bookmarkElement: BookmarkElement) {
-    const itemId = bookmarkElement?.attributes?.getNamedItem('itemid')?.value!;
+    const itemId = bookmarkElement?.attributes?.getNamedItem('itemid')?.value;
 
-    if (itemId == null) {
+    if (!itemId) {
       developmentLogger.error('bookmarks.drag-node.missing-id');
+      throw new Error('Bookmark drag target is missing an item id');
     }
 
     // Virtual Node Mocking
@@ -556,8 +549,11 @@ export class DragAndDropService {
       } as unknown as chrome.bookmarks.BookmarkTreeNode;
     }
 
-    const nodesMap = this.bookmarksMap()!;
-    return nodesMap[itemId]!;
+    const node = this.bookmarksMap()[itemId];
+    if (!node) {
+      throw new Error(`Bookmark drag target no longer exists: ${itemId}`);
+    }
+    return node;
   }
 }
 
@@ -791,4 +787,4 @@ class DropIndicator {
 
 
 // Ms to wait during a dragover to open closed folder.
-let folderOpenerTimeoutDelay = 400;
+const folderOpenerTimeoutDelay = 400;
