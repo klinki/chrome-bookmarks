@@ -78,13 +78,21 @@ Conventional Commits. Do not push commits without David's explicit approval.
   byte for byte after deletion. `npm test` passed 266 unit and 52 E2E tests.
   Playwright's artifact directory is isolated beneath `.temp/test-results/playwright`
   so its cleanup preserves both unit and E2E JUnit reports in the parent directory.
-- [ ] Investigate the web preview's Google favicon fallback. During the live
+- [x] Fix the web preview's Google favicon fallback. During the live
   check on 11 October 2026, the Seznam and Centrum favicon requests were blocked
-  by Chromium with `net::ERR_BLOCKED_BY_ORB`. The fallback in
-  `src/app/pipes/favicon.pipe.ts` currently sends the Chrome-style `pageUrl`
-  parameter to Google's endpoint. Check the service's expected request format
-  and add coverage for the web fallback; existing tests cover the Chrome path.
-  Folder navigation, bookmark details, and search still worked.
+  by Chromium with `net::ERR_BLOCKED_BY_ORB`. The fallback sent Chrome's
+  `pageUrl` parameter to Google, which returned a 404 HTML response.
+  The pipe now uses `domain_url` for Google and preserves `pageUrl` for
+  Chrome's extension endpoint.
+  - Regression tests cover absent Chrome/runtime APIs, an unavailable extension
+    URL, and an invalidated extension runtime. All four new cases failed
+    before the fix and pass afterward; the native Chrome URL tests still pass.
+  - Headless Playwright verified the local app: Seznam and Centrum requests
+    redirect to HTTP 200 PNGs, both images decode at 16×16 pixels, and no
+    browser errors or warnings occur.
+  - All 270 unit tests, affected-file lint, and the production build with
+    extension output verification passed on 11 October 2026. The fix awaits
+    an approved push; the hosted preview was not redeployed for this local check.
 
 ## Major upgrade review
 
