@@ -78,6 +78,13 @@ Conventional Commits. Do not push commits without David's explicit approval.
   byte for byte after deletion. `npm test` passed 266 unit and 52 E2E tests.
   Playwright's artifact directory is isolated beneath `.temp/test-results/playwright`
   so its cleanup preserves both unit and E2E JUnit reports in the parent directory.
+- [ ] Investigate the web preview's Google favicon fallback. During the live
+  check on 11 October 2026, the Seznam and Centrum favicon requests were blocked
+  by Chromium with `net::ERR_BLOCKED_BY_ORB`. The fallback in
+  `src/app/pipes/favicon.pipe.ts` currently sends the Chrome-style `pageUrl`
+  parameter to Google's endpoint. Check the service's expected request format
+  and add coverage for the web fallback; existing tests cover the Chrome path.
+  Folder navigation, bookmark details, and search still worked.
 
 ## Major upgrade review
 
@@ -116,8 +123,25 @@ with zero failures or skips. Remote Dependabot verification found zero open aler
   - Official migration notes and action manifests were reviewed. Actionlint
     1.7.12 passed; all 21 action references passed manifest/input checks.
     The PR comment script passed a local check with the v9 injected context.
-- [ ] Verify the updated actions in GitHub CI after an approved push. This also
-  requires a live preview deployment/cleanup to exercise the preview actions.
+- [x] Verify the updated actions in GitHub CI and a live preview deployment/cleanup
+  after the approved push of `a51cdb9`.
+  - [CI run 38147885453](https://github.com/klinki/chrome-bookmarks/actions/runs/38147885453)
+    passed frozen installation, lint, extension build/upload, 266 unit tests,
+    52 E2E tests, and the combined 318-test JUnit report. Node runtime
+    deprecation warnings are gone.
+  - [Preview deploy run 38155032607](https://github.com/klinki/chrome-bookmarks/actions/runs/38155032607)
+    succeeded on the same revision. Headless Playwright verified HTTPS,
+    folder navigation, bookmark selection/details, and search. All 27
+    responses from the preview host returned HTTP 200, CSS and JavaScript
+    MIME types were correct, and the app reported zero console errors/warnings.
+    The two external favicon failures are tracked separately above.
+  - [Preview cleanup run 38155400917](https://github.com/klinki/chrome-bookmarks/actions/runs/38155400917)
+    succeeded. Playwright confirmed the root returns HTTP 404; direct checks
+    also confirmed 404 for `index.html`, `manifest.json`, `main.js`, and
+    `styles.css`.
+  - Manual preview runs exercised the SSH key, SSH, and SCP actions. The
+    PR-only comment step was skipped; its `github-script` v9 compatibility
+    was checked locally without posting a comment.
 
 Release references:
 
