@@ -33,7 +33,35 @@ Conventional Commits. Do not push commits without David's explicit approval.
   - The patched lockfile passed pnpm 10 frozen installation, peer checks, lint,
     production extension packaging, 266 unit tests, and 52 E2E tests.
     The authenticated Dependabot alert comparison remains pending browser access.
-- [ ] Review the deferred TypeScript and Vitest major upgrades.
+- [x] Review the deferred TypeScript and Vitest major upgrades.
   - Check current Angular, Nx, Analog, and ESLint compatibility constraints.
-  - Upgrade when supported, or document the specific blockers and revisit criteria.
-  - Validate any upgrades with build, unit tests, and E2E tests.
+  - Document the supported upgrade path, blockers, and validation required before
+    applying a major upgrade.
+  - Review completed on 11 October 2026; findings below.
+
+## Major upgrade review
+
+| Package | Current | Reviewed target | Decision |
+| --- | --- | --- | --- |
+| TypeScript | 6.0.3 | 7.0.2 | Keep 6.0.3. Both Angular compiler-cli 22.2.0 and latest 22.2.2 require `>=6.0 <6.1`. Revisit when Angular's compiler and build tooling explicitly support TypeScript 7. |
+| Vitest | 4.1.11 | 5.0.3 | A supported peer range is available after aligning `nx` and all direct `@nx/*` packages to 23.3.0. Current Nx 23.2.1 excludes Vitest 5. |
+
+Analog's installed `@analogjs/vitest-angular` 2.7.4 already declares support for
+Vitest 5; latest Analog 2.8.0 does too. Vite 8.3.1 and CI's Node 24 meet Vitest 5's
+requirements. These constraints establish an upgrade candidate; the candidate
+has not yet been installed or tested in this repository.
+
+For a Vitest upgrade, run the Nx migrations, review migration output, and then
+validate the full build, unit suite, E2E suite, JUnit output, and repeat helper.
+Vitest 5 enables `clearMocks` by default and rejects nested hoisted mock calls.
+No `vi.mock`, `vi.unmock`, `vi.hoisted`, or `.sequential` calls were found in the
+current source. Check shared mock call counts during the test run. The existing
+`@nx/vitest:test` executor is also deprecated before Nx 24; review conversion to
+inferred targets as part of the Nx migration.
+
+Sources checked on 11 October 2026:
+
+- [Angular compatibility](https://angular.dev/reference/versions)
+- [Nx 23.3.0 Vitest peer declarations](https://registry.npmjs.org/@nx%2Fvitest/23.3.0)
+- [Analog 2.7.4 peer declarations](https://registry.npmjs.org/@analogjs%2Fvitest-angular/2.7.4)
+- [Vitest 5 migration guide](https://vitest.dev/guide/migration/)
