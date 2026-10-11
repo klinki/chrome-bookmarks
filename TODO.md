@@ -21,7 +21,7 @@ Conventional Commits. Do not push commits without David's explicit approval.
   - Run lint and the tests needed for the affected behavior.
   - Verified on 11 October 2026: zero warnings/errors, production extension ZIP
     build, 266 unit tests, and 52 E2E tests passed.
-- [ ] Check Dependabot against the current dependency lockfile.
+- [x] Check Dependabot against the current dependency lockfile.
   - Reconcile GitHub's previously reported 21 alerts with a fresh dependency audit.
   - Address confirmed advisories and record any alerts that require separate work.
   - Local audit on 11 October 2026 found 17 development advisories and zero
@@ -34,12 +34,28 @@ Conventional Commits. Do not push commits without David's explicit approval.
     an upstream fix is published; the advisory has not been suppressed.
   - The patched lockfile passed pnpm 10 frozen installation, peer checks, lint,
     production extension packaging, 266 unit tests, and 52 E2E tests.
-    The authenticated Dependabot alert comparison remains pending browser access.
+  - The authenticated GitHub check on 11 October 2026 found six open alerts,
+    all development-only Axios alerts introduced by Nx 23.2.1. GitHub identifies
+    Axios 1.20.0 as the fix for all six; it is already in the local lockfile.
+    GitHub's dependency files were last checked on 25 September 2026. The old
+    21-alert push banner is no longer the current alert inventory.
+  - Current remote alerts: [#386](https://github.com/klinki/chrome-bookmarks/security/dependabot/386),
+    [#388](https://github.com/klinki/chrome-bookmarks/security/dependabot/388),
+    [#389](https://github.com/klinki/chrome-bookmarks/security/dependabot/389),
+    [#391](https://github.com/klinki/chrome-bookmarks/security/dependabot/391),
+    [#393](https://github.com/klinki/chrome-bookmarks/security/dependabot/393),
+    and [#394](https://github.com/klinki/chrome-bookmarks/security/dependabot/394).
+    None were dismissed. They remain open while the fixes are unpushed.
 - [x] Review the deferred TypeScript and Vitest major upgrades.
   - Check current Angular, Nx, Analog, and ESLint compatibility constraints.
   - Document the supported upgrade path, blockers, and validation required before
     applying a major upgrade.
   - Review completed on 11 October 2026; findings below.
+
+## Remaining work
+
+- [ ] Recheck the six Axios alerts after an approved push and GitHub dependency scan.
+- [ ] Update `braces` when an upstream patch is published for GHSA-vfj7-8cjw-p6xm.
 
 ## Major upgrade review
 
