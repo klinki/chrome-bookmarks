@@ -8,7 +8,7 @@ A web-based Chrome Bookmarks manager built with **Angular** and **Nx**. It featu
 ## Key Technology Stack
 - **Framework**: Angular (using **Signals** for state management)
 - **Styling**: SCSS / Angular Material
-- **Testing**: Playwright (E2E), Karma (Unit)
+- **Testing**: Playwright (E2E), Vitest (Unit)
 - **Build System**: Nx
 
 ## Common Commands
@@ -16,12 +16,14 @@ A web-based Chrome Bookmarks manager built with **Angular** and **Nx**. It featu
 ### Development
 - **Start Local Server**: `npm start` (Runs on http://localhost:4200)
 - **Build**: `npm run build`
-- **Lint**: `nx lint bookmarks`
+- **Lint**: `npm run lint`
 
 ### Testing
 - **Run E2E Tests (Playwright)**: `npx playwright test`
   - *Note*: Tests are consolidated in the `/e2e` directory.
-- **Run Unit Tests (Karma)**: `npm test` or `nx test bookmarks`
+- **Run Unit Tests (Vitest)**: `npm run test:unit` or `nx test bookmarks --watch=false`
+  - *Config*: `vitest.config.mts`; JUnit output goes to `.temp/test-results/junit-report.xml`.
+- **Run Full Suite (Unit + E2E)**: `npm test`
 
 ## Temporary Files & Artifacts
 - **Directory**: `.temp/`
