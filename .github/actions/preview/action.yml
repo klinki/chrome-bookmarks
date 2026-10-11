@@ -55,7 +55,7 @@ runs:
       run: ${{ inputs.build_command }}
 
     - name: Setup SSH Key
-      uses: shimataro/ssh-key-action@v2
+      uses: shimataro/ssh-key-action@v2.8.1
       with:
         key: ${{ inputs.ssh_private_key }}
         known_hosts: unnecessary
@@ -63,7 +63,7 @@ runs:
 
     - name: Prepare Server
       if: inputs.action == 'deploy'
-      uses: appleboy/ssh-action@v1
+      uses: appleboy/ssh-action@v1.2.5
       id: ssh
       env:
         SLUG: ${{ inputs.slug }}
@@ -83,7 +83,7 @@ runs:
 
     - name: Copy Files
       if: inputs.action == 'deploy'
-      uses: appleboy/scp-action@v1
+      uses: appleboy/scp-action@v1.0.0
       with:
         host: ${{ inputs.ssh_host }}
         port: ${{ inputs.ssh_port }}
@@ -96,7 +96,7 @@ runs:
 
     - name: Comment on PR
       if: inputs.action == 'deploy' && inputs.pr_number != ''
-      uses: actions/github-script@v6
+      uses: actions/github-script@v9.0.0
       with:
         script: |
           const prNumber = '${{ inputs.pr_number }}';
@@ -114,7 +114,7 @@ runs:
 
     - name: Cleanup Deployment
       if: inputs.action == 'cleanup'
-      uses: appleboy/ssh-action@v1
+      uses: appleboy/ssh-action@v1.2.5
       with:
         host: ${{ inputs.ssh_host }}
         port: ${{ inputs.ssh_port }}
