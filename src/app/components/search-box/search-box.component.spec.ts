@@ -5,7 +5,7 @@ import {SearchBoxComponent} from "./search-box.component";
 
 describe('Component: SearchBox', () => {
   it('should create an instance', () => {
-    let component = new SearchBoxComponent();
+    const component = new SearchBoxComponent();
     expect(component).toBeTruthy();
   });
 

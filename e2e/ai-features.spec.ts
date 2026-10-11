@@ -125,7 +125,7 @@ test('AI usefulness rating uses the anchored rubric and updates the list', async
     await expect(row.locator('td').nth(3)).toHaveText('4');
 });
 
-test('AI Categorize with allowNewTags=false only applies existing tags', async ({ page, context }) => {
+test('AI Categorize with allowNewTags=false only applies existing tags', async ({ context }) => {
     // Create a new page with different config for this test
     const newPage = await context.newPage();
 

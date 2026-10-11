@@ -10,7 +10,7 @@ export class FaviconPipe implements PipeTransform {
   constructor() {
     try {
       this.baseUrl = chrome?.runtime?.getURL("/_favicon/") ?? 'https://www.google.com/s2/favicons';
-    } catch (e) {
+    } catch {
       this.baseUrl = 'https://www.google.com/s2/favicons';
     }
   }

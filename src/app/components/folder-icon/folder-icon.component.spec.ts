@@ -2,7 +2,6 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FolderIconComponent } from './folder-icon.component';
 
 describe('FolderIconComponent', () => {
-  let component: FolderIconComponent;
   let fixture: ComponentFixture<FolderIconComponent>;
 
   beforeEach(async () => {
@@ -11,7 +10,6 @@ describe('FolderIconComponent', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(FolderIconComponent);
-    component = fixture.componentInstance;
   });
 
   it('should display "bookmarks" for ROOT_ALL', () => {

@@ -2,7 +2,7 @@ const MOCK_BOOKMARKS_MAP: { [id: string]: chrome.bookmarks.BookmarkTreeNode } = 
 
 export function getMockData() {
     function addDirectory(id: string, title: string, parent: chrome.bookmarks.BookmarkTreeNode | null) {
-        let directory: any = {
+        const directory: any = {
             id: id,
             title: title,
             parentId: undefined,
@@ -23,7 +23,7 @@ export function getMockData() {
     }
 
     function addUrl(id: string, title: string, url: string, directory: chrome.bookmarks.BookmarkTreeNode) {
-        let bookmark = {
+        const bookmark = {
             id: id,
             title: title,
             url: url,
@@ -73,7 +73,7 @@ export function getMockData() {
 }
 
 export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {}, initialStorage: any = {}) {
-    await page.addInitScript(({ rootNodeArg, mockMapArg, initialStorageArg }: { rootNodeArg: any, mockMapArg: any, initialStorageArg: any }) => {
+    await page.addInitScript(({ rootNodeArg, initialStorageArg }: { rootNodeArg: any, mockMapArg: any, initialStorageArg: any }) => {
         try {
             console.log('E2E: Starting mock injection');
             (window as any).isE2E = true;
@@ -146,7 +146,7 @@ export async function setupChromeMock(page: any, rootNode: any, mockMap: any = {
                 }
             };
 
-            let storageData = { ...initialStorageArg };
+            const storageData = { ...initialStorageArg };
 
             const chromeMock = {
                 runtime: {
