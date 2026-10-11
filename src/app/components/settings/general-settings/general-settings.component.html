@@ -8,7 +8,9 @@
       [ngModel]="settingsService.theme()"
       (ngModelChange)="updateTheme($event)"
     >
-      <option *ngFor="let t of themes" [value]="t.value">{{ t.label }}</option>
+      @for (theme of themes; track theme) {
+        <option [value]="theme.value">{{ theme.label }}</option>
+      }
     </select>
   </div>
 
@@ -19,7 +21,9 @@
       [ngModel]="settingsService.language()"
       (ngModelChange)="updateLanguage($event)"
     >
-      <option *ngFor="let l of languages" [value]="l.value">{{ l.label }}</option>
+      @for (language of languages; track language) {
+        <option [value]="language.value">{{ language.label }}</option>
+      }
     </select>
   </div>
 </div>

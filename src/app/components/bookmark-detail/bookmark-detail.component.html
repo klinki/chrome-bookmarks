@@ -13,10 +13,12 @@
       <div class="tags-section">
         <label for="bookmark-tags">Tags</label>
         <div class="tags-list">
-          <div *ngFor="let tag of currentTags()" class="tag-chip">
-            {{ tag }}
-            <button type="button" (click)="removeTag(tag)">×</button>
-          </div>
+          @for (tag of currentTags(); track tag) {
+            <div class="tag-chip">
+              {{ tag }}
+              <button type="button" (click)="removeTag(tag)">×</button>
+            </div>
+          }
         </div>
         <div class="tag-input">
           <input #newTag id="bookmark-tags" type="text" placeholder="Add tag..." (keyup.enter)="addTag(newTag)">
@@ -65,13 +67,15 @@
   <div class="tags-section">
     <label for="batch-bookmark-tags">Common Tags (assigned to all selected)</label>
     <div class="tags-list">
-      <div *ngFor="let tag of currentTags()" class="tag-chip">
-        {{ tag }}
-        <button (click)="removeTag(tag)" title="Remove tag from all selected">×</button>
-      </div>
-      <div *ngIf="currentTags().length === 0" class="no-tags">
-        No common tags
-      </div>
+      @for (tag of currentTags(); track tag) {
+        <div class="tag-chip">
+          {{ tag }}
+          <button (click)="removeTag(tag)" title="Remove tag from all selected">×</button>
+        </div>
+      }
+      @if (currentTags().length === 0) {
+        <div class="no-tags">No common tags</div>
+      }
     </div>
     <div class="tag-input">
       <input #newBatchTag id="batch-bookmark-tags" type="text" placeholder="Add tag to all selected..." (keyup.enter)="addTag(newBatchTag)">

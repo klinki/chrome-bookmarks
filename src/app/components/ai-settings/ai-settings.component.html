@@ -1,27 +1,29 @@
 <div class="settings-container">
-    <div *ngIf="progress().isProcessing || progress().isPaused" class="progress-bar-container">
-        <div class="progress-info">
-            <span>{{ progress().currentBatch }}</span>
-            <span>{{ progress().processed }} / {{ progress().total }}</span>
+    @if (progress().isProcessing || progress().isPaused) {
+        <div class="progress-bar-container">
+            <div class="progress-info">
+                <span>{{ progress().currentBatch }}</span>
+                <span>{{ progress().processed }} / {{ progress().total }}</span>
+            </div>
+            <div
+                class="progress-bar"
+                role="progressbar"
+                aria-label="AI processing progress"
+                [attr.aria-valuemin]="0"
+                [attr.aria-valuemax]="progress().total"
+                [attr.aria-valuenow]="progress().processed">
+                <div class="progress-fill" [style.width.%]="(progress().processed / progress().total) * 100"></div>
+            </div>
+            <div class="progress-controls">
+                <button class="control-btn pause-btn" (click)="togglePause()">
+                    {{ progress().isPaused ? 'Resume' : 'Pause' }}
+                </button>
+                <button class="control-btn cancel-btn" (click)="cancelProcessing()">
+                    Cancel
+                </button>
+            </div>
         </div>
-        <div
-            class="progress-bar"
-            role="progressbar"
-            aria-label="AI processing progress"
-            [attr.aria-valuemin]="0"
-            [attr.aria-valuemax]="progress().total"
-            [attr.aria-valuenow]="progress().processed">
-            <div class="progress-fill" [style.width.%]="(progress().processed / progress().total) * 100"></div>
-        </div>
-        <div class="progress-controls">
-            <button class="control-btn pause-btn" (click)="togglePause()">
-                {{ progress().isPaused ? 'Resume' : 'Pause' }}
-            </button>
-            <button class="control-btn cancel-btn" (click)="cancelProcessing()">
-                Cancel
-            </button>
-        </div>
-    </div>
+    }
     @if (checkpoint() && !progress().isProcessing) {
         <section class="checkpoint-card" aria-labelledby="checkpoint-title">
             <div>
@@ -131,62 +133,70 @@
     </section>
 
     <!-- Model Discovery Modal -->
-    <div *ngIf="showDiscoveryModal()" class="modal-overlay">
-        <div
-            class="modal-content"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="discovery-dialog-title"
-            cdkTrapFocus
-            [cdkTrapFocusAutoCapture]="true"
-            (keydown.escape)="closeDiscovery()">
-            <div class="modal-header">
-                <h3 id="discovery-dialog-title">Discover Local Models</h3>
-                <button #discoveryClose type="button" class="close-btn" aria-label="Close model discovery" (click)="closeDiscovery()">×</button>
-            </div>
-
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="discoveryProvider">Provider</label>
-                    <select
-                        id="discoveryProvider"
-                        [ngModel]="selectedProvider()"
-                        (ngModelChange)="onProviderChange($event)"
-                        [compareWith]="compareProviders">
-                        <option *ngFor="let provider of providers" [ngValue]="provider">{{ provider.name }}</option>
-                    </select>
+    @if (showDiscoveryModal()) {
+        <div class="modal-overlay">
+            <div
+                class="modal-content"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="discovery-dialog-title"
+                cdkTrapFocus
+                [cdkTrapFocusAutoCapture]="true"
+                (keydown.escape)="closeDiscovery()">
+                <div class="modal-header">
+                    <h3 id="discovery-dialog-title">Discover Local Models</h3>
+                    <button #discoveryClose type="button" class="close-btn" aria-label="Close model discovery" (click)="closeDiscovery()">×</button>
                 </div>
 
-                <div class="form-group">
-                    <label for="discoveryBaseUrl">Base URL</label>
-                    <input id="discoveryBaseUrl" type="text" [value]="selectedProvider().discoveryUrl" readonly>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="discoveryProvider">Provider</label>
+                        <select
+                            id="discoveryProvider"
+                            [ngModel]="selectedProvider()"
+                            (ngModelChange)="onProviderChange($event)"
+                            [compareWith]="compareProviders">
+                            @for (provider of providers; track provider) {
+                                <option [ngValue]="provider">{{ provider.name }}</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="discoveryBaseUrl">Base URL</label>
+                        <input id="discoveryBaseUrl" type="text" [value]="selectedProvider().discoveryUrl" readonly>
+                    </div>
+
+                    <button class="action-btn" (click)="discoverModels()" [disabled]="isDiscovering()">
+                        {{ isDiscovering() ? 'Discovering...' : 'Discover models' }}
+                    </button>
+
+                    @if (discoveryError()) {
+                        <div class="error-msg" role="alert">{{ discoveryError() }}</div>
+                    }
+
+                    @if (discoveredModels().length > 0) {
+                        <div class="form-group results-group">
+                            <label for="discoveredModel">Available Models</label>
+                            <select
+                                id="discoveredModel"
+                                [ngModel]="selectedDiscoveredModel()"
+                                (ngModelChange)="selectedDiscoveredModel.set($event)">
+                                @for (model of discoveredModels(); track model) {
+                                    <option [value]="model">{{ model }}</option>
+                                }
+                            </select>
+                        </div>
+                    }
                 </div>
 
-                <button class="action-btn" (click)="discoverModels()" [disabled]="isDiscovering()">
-                    {{ isDiscovering() ? 'Discovering...' : 'Discover models' }}
-                </button>
-
-                <div *ngIf="discoveryError()" class="error-msg" role="alert">
-                    {{ discoveryError() }}
+                <div class="modal-footer">
+                    <button class="secondary-btn" (click)="closeDiscovery()">Cancel</button>
+                    <button class="primary-btn" (click)="confirmDiscovery()" [disabled]="!selectedDiscoveredModel()">
+                        Confirm Selection
+                    </button>
                 </div>
-
-                <div *ngIf="discoveredModels().length > 0" class="form-group results-group">
-                    <label for="discoveredModel">Available Models</label>
-                    <select
-                        id="discoveredModel"
-                        [ngModel]="selectedDiscoveredModel()"
-                        (ngModelChange)="selectedDiscoveredModel.set($event)">
-                        <option *ngFor="let model of discoveredModels()" [value]="model">{{ model }}</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <button class="secondary-btn" (click)="closeDiscovery()">Cancel</button>
-                <button class="primary-btn" (click)="confirmDiscovery()" [disabled]="!selectedDiscoveredModel()">
-                    Confirm Selection
-                </button>
             </div>
         </div>
-    </div>
+    }
 </div>
