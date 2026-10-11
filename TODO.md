@@ -22,6 +22,17 @@ Conventional Commits. Do not push commits without David's explicit approval.
 - [ ] Check Dependabot against the current dependency lockfile.
   - Reconcile GitHub's previously reported 21 alerts with a fresh dependency audit.
   - Address confirmed advisories and record any alerts that require separate work.
+  - Local audit on 11 October 2026 found 17 development advisories and zero
+    production advisories. Compatible patches for `axios` (1.20.0),
+    `brace-expansion` (5.0.12), and `source-map-js` (1.2.2) reduced this to one
+    development advisory. Nx's exact pins require the two targeted overrides.
+  - `braces` 3.0.3 remains affected by
+    [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm).
+    GitHub lists no patched version and npm does not publish 3.0.4. Revisit when
+    an upstream fix is published; the advisory has not been suppressed.
+  - The patched lockfile passed pnpm 10 frozen installation, peer checks, lint,
+    production extension packaging, 266 unit tests, and 52 E2E tests.
+    The authenticated Dependabot alert comparison remains pending browser access.
 - [ ] Review the deferred TypeScript and Vitest major upgrades.
   - Check current Angular, Nx, Analog, and ESLint compatibility constraints.
   - Upgrade when supported, or document the specific blockers and revisit criteria.

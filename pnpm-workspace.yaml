@@ -9,3 +9,6 @@ autoInstallPeers: false
 
 overrides:
   smol-toml@<=1.7.0: ^1.7.1
+  # Nx 23.2.1 pins these vulnerable versions; keep fixes within their major.
+  axios@1.18.1: 1.20.0
+  brace-expansion@5.0.9: 5.0.12
