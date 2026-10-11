@@ -6,6 +6,7 @@ settings:
 
 overrides:
   undici@7.29.0: 7.29.1
+  http-server@14.1.1>html-encoding-sniffer: 7.0.0
 
 importers:
 
@@ -3280,10 +3281,6 @@ packages:
     resolution: {integrity: sha512-DeOnSPAvOndYKfw075gt8yZzQ7S2hNztw34zBTfhIzLhmBTswIBg5/y+pqu/VD5cYWm5goAFTusDmUEmKZ0PEQ==}
     engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
-  html-encoding-sniffer@3.0.0:
-    resolution: {integrity: sha512-oWv4T4yJ52iKrufjnyZPkrN0CH3QnrUqdB6In1g5Fe1mia8GmF36gnfNySxoZtxD5+NmYw1EElVXiBk93UeskA==}
-    engines: {node: '>=12'}
-
   html-encoding-sniffer@7.0.0:
     resolution: {integrity: sha512-UikN5yr7xsCDAq87Or5or0PAlD3HJJOKVzM05az588WnpDJ4Ux7a2A53Qi6gofGg2/EtvF/H4hCi/TXfCW4Y6w==}
     engines: {node: ^22.13.0 || >=24.0.0}
@@ -3304,10 +3301,6 @@ packages:
   https-proxy-agent@9.1.0:
     resolution: {integrity: sha512-ag87y7cJJ9/3+GxFr8Oy4O5faDsGRGnBGsJj/YjOSsSx/5eadKLYTMPlzuR6obgoCDDm0abAAZitXXQkMOPSpA==}
     engines: {node: '>= 20'}
-
-  iconv-lite@0.6.3:
-    resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
-    engines: {node: '>=0.10.0'}
 
   iconv-lite@0.7.3:
     resolution: {integrity: sha512-IKXpvIzjnC9XTAUbVBcMfGS0EPaIXtW6v+zr+RRp+hqULEpo0owZax6wyRwPOJbWbzjYspQwusTsfVr0ifh4uQ==}
@@ -4463,11 +4456,6 @@ packages:
   webidl-conversions@8.0.1:
     resolution: {integrity: sha512-BMhLD/Sw+GbJC21C/UgyaZX41nPt8bUTg+jWyDeg7e7YN4xOM05YPSIXceACnXVtqyEw/LMClUQMtMZ+PGGpqQ==}
     engines: {node: '>=20'}
-
-  whatwg-encoding@2.0.0:
-    resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
-    engines: {node: '>=12'}
-    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@5.0.0:
     resolution: {integrity: sha512-sXcNcHOC51uPGF0P/D4NVtrkjSU2fNsm9iog4ZvZJsL3rjoDAzXZhkm2MWt1y+PUdggKAYVoMAIYcs78wJ51Cw==}
@@ -6180,6 +6168,7 @@ snapshots:
       '@angular/build': 22.2.2(@angular/compiler-cli@22.2.2(@angular/compiler@22.2.2)(typescript@6.0.3))(@angular/compiler@22.2.2)(@angular/core@22.2.2(@angular/compiler@22.2.2)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@22.2.2(@angular/common@22.2.2(@angular/core@22.2.2(@angular/compiler@22.2.2)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.2(@angular/compiler@22.2.2)(rxjs@7.8.2)(zone.js@0.16.3)))(postcss@8.5.29)(tslib@2.8.1)(tsx@4.23.15)(typescript@6.0.3)(vitest@5.0.3(jsdom@30.1.2)(vite@8.3.4(esbuild@0.28.2)(sass-embedded@1.104.1)(sass@1.104.1)(tsx@4.23.15)(yaml@2.9.0)))(yaml@2.9.0)
     transitivePeerDependencies:
       - '@babel/traverse'
+      - '@noble/hashes'
       - '@nx/jest'
       - '@nx/vite'
       - '@swc-node/register'
@@ -6322,6 +6311,7 @@ snapshots:
       '@nx/eslint': 23.3.0(@babel/traverse@7.29.8)(@zkochan/js-yaml@0.0.7)(eslint@10.12.0)(nx@23.3.0)
     transitivePeerDependencies:
       - '@babel/traverse'
+      - '@noble/hashes'
       - '@swc-node/register'
       - '@swc/cli'
       - '@swc/core'
@@ -7580,10 +7570,6 @@ snapshots:
     dependencies:
       lru-cache: 11.5.3
 
-  html-encoding-sniffer@3.0.0:
-    dependencies:
-      whatwg-encoding: 2.0.0
-
   html-encoding-sniffer@7.0.0:
     dependencies:
       '@exodus/bytes': 1.16.0
@@ -7611,7 +7597,7 @@ snapshots:
       chalk: 4.1.2
       corser: 2.0.1
       he: 1.2.0
-      html-encoding-sniffer: 3.0.0
+      html-encoding-sniffer: 7.0.0
       http-proxy: 1.18.1
       mime: 1.6.0
       minimist: 1.2.8
@@ -7621,6 +7607,7 @@ snapshots:
       union: 0.5.0
       url-join: 4.0.1
     transitivePeerDependencies:
+      - '@noble/hashes'
       - debug
       - supports-color
 
@@ -7632,10 +7619,6 @@ snapshots:
     transitivePeerDependencies:
       - kerberos
       - supports-color
-
-  iconv-lite@0.6.3:
-    dependencies:
-      safer-buffer: 2.1.2
 
   iconv-lite@0.7.3:
     dependencies:
@@ -8802,10 +8785,6 @@ snapshots:
     optional: true
 
   webidl-conversions@8.0.1: {}
-
-  whatwg-encoding@2.0.0:
-    dependencies:
-      iconv-lite: 0.6.3
 
   whatwg-mimetype@5.0.0: {}
 

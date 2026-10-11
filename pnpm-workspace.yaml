@@ -10,3 +10,5 @@ autoInstallPeers: false
 overrides:
   # Nx 23.3.0 pins Undici 7.29.0; use the compatible security patch.
   undici@7.29.0: 7.29.1
+  # http-server's sniffer API is unchanged; v7 replaces deprecated whatwg-encoding.
+  http-server@14.1.1>html-encoding-sniffer: 7.0.0
