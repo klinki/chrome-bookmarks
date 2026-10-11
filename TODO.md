@@ -3,7 +3,7 @@
 Work through these items in order. Commit each completed change separately using
 Conventional Commits. Do not push commits without David's explicit approval.
 
-- [ ] Verify the live preview deployment and cleanup.
+- [x] Verify the live preview deployment and cleanup.
   - Deploy the existing remote revision through GitHub Actions.
   - Confirm the preview serves the app and its assets from the site root.
   - Verify redeployment replaces old files and cleanup removes the preview.
@@ -13,7 +13,9 @@ Conventional Commits. Do not push commits without David's explicit approval.
     HTTPS, the bookmark view, 16 root assets, and browser console checks passed.
   - [Redeployment run 38132035443](https://github.com/klinki/chrome-bookmarks/actions/runs/38132035443)
     replaced the asset graph and removed all five obsolete JavaScript chunks.
-    Cleanup is pending access to the authenticated GitHub browser tab.
+  - [Cleanup run 38137287063](https://github.com/klinki/chrome-bookmarks/actions/runs/38137287063)
+    succeeded. The live preview root, `index.html`, and `manifest.json` each
+    returned HTTP 404 after cleanup.
 - [x] Fix the remaining lint warnings.
   - Resolve the 39 warnings reported by the previous audit without disabling rules.
   - Run lint and the tests needed for the affected behavior.
