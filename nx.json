@@ -29,17 +29,10 @@
         "^production"
       ],
       "cache": true
-    },
-    "@nx/vitest:test": {
-      "cache": true,
-      "inputs": [
-        "default",
-        "^production"
-      ]
     }
   },
   "nxCloudAccessToken": "MDVjMzdlY2QtZjNkNy00N2RiLWFhOTctMTg4YTk1MjIzZTA5fHJlYWQ=",
-  "useInferencePlugins": false,
+  "useInferencePlugins": true,
   "defaultBase": "master",
   "generators": {
     "@nx/angular:component": {
@@ -103,6 +96,13 @@
       "plugin": "@nx/eslint/plugin",
       "options": {
         "targetName": "lint"
+      }
+    },
+    {
+      "plugin": "@nx/vitest",
+      "options": {
+        "testMode": "watch",
+        "testTargetName": "test"
       }
     }
   ]

@@ -98,10 +98,13 @@
       }
     },
     "test": {
-      "executor": "@nx/vitest:test",
       "options": {
         "config": "vitest.config.mts"
-      }
+      },
+      "outputs": [
+        "{projectRoot}/.temp/test-results/junit-report.xml",
+        "{projectRoot}/.temp/coverage"
+      ]
     },
     "lint": {
       "options": {
