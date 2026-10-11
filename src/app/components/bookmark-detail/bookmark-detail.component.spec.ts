@@ -5,7 +5,6 @@ import { BookmarksFacadeService } from '../../services/bookmarks-facade.service'
 import { TagsService } from '../../services/tags.service';
 import { AiService } from '../../services/ai.service';
 import { signal } from '@angular/core';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { UsefulnessService } from '../../services/usefulness.service';
 
 describe('BookmarkDetailComponent', () => {
@@ -51,7 +50,7 @@ describe('BookmarkDetailComponent', () => {
     mockUsefulnessService.setManualScore.mockReset();
     mockUsefulnessService.setAiScores.mockReset();
     await TestBed.configureTestingModule({
-      imports: [ BookmarkDetailComponent, NoopAnimationsModule ],
+      imports: [ BookmarkDetailComponent ],
       providers: [
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
         { provide: TagsService, useValue: mockTagsService },

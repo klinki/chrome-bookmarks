@@ -4,7 +4,6 @@ import { enableProdMode, importProvidersFrom, provideZoneChangeDetection } from 
 import { AppComponent } from "./app";
 
 import { environment } from "./environments/environment";
-import { provideNoopAnimations } from "@angular/platform-browser/animations";
 import { provideRouter, withHashLocation } from "@angular/router";
 
 import { routes } from "./app/app.routes";
@@ -24,7 +23,6 @@ bootstrapApplication(AppComponent, {
     provideZoneChangeDetection(),
     provideRouter(routes, withHashLocation()),
     importProvidersFrom(BrowserModule, FormsModule),
-    provideNoopAnimations(),
     BookmarksServiceProvider,
     BookmarksProviderService,
     SelectionService,

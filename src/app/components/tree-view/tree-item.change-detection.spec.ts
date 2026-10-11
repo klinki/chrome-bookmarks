@@ -2,7 +2,6 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TreeItemComponent } from './tree-item.component';
 import { SelectionService } from '../../services';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock SelectionService
@@ -38,7 +37,7 @@ describe('TreeItemComponent change detection', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TestHostComponent, NoopAnimationsModule],
+      imports: [TestHostComponent],
       providers: [
         { provide: SelectionService, useClass: MockSelectionService }
       ]

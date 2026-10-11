@@ -8,7 +8,6 @@ import { AiService } from '../../services/ai.service';
 import { TagsService } from '../../services/tags.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { signal } from '@angular/core';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 import { BookmarksService } from '../../services/chrome/bookmarks/bookmarks.service';
 import { UsefulnessService } from '../../services/usefulness.service';
@@ -69,7 +68,7 @@ describe('Component: BookmarksView', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      imports: [BookmarksViewComponent, NoopAnimationsModule, ReactiveFormsModule],
+      imports: [BookmarksViewComponent, ReactiveFormsModule],
       providers: [
         provideRouter([]),
         { provide: BookmarksFacadeService, useValue: mockBookmarksFacade },
