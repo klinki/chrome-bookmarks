@@ -7,6 +7,7 @@ import {
 
 @Injectable()
 export class BookmarksProviderService {
+  protected readonly bookmarksService = inject(BookmarksService);
   private readonly bulkMutations = inject(BulkMutationCoordinatorService);
   protected bookmarks: any[] = [];
 
@@ -31,10 +32,6 @@ export class BookmarksProviderService {
   public onImportBeganEvent$ = this.bookmarksService.onImportBeganEvent$;
   public onImportEndedEvent$ = this.bookmarksService.onImportEndedEvent$;
 
-  constructor(protected bookmarksService: BookmarksService) {
-    this.onMovedEvent$ = this.bookmarksService.onMovedEvent$;
-  }
-
   public getChildren(id: string): Promise<chrome.bookmarks.BookmarkTreeNode[]> {
     return this.bookmarksService.getChildren(id);
   }
@@ -53,7 +50,7 @@ export class BookmarksProviderService {
 
   public filterDirectories(bookmarks: chrome.bookmarks.BookmarkTreeNode[]): chrome.bookmarks.BookmarkTreeNode[] {
     return bookmarks.filter((bookmark) => bookmark.url === undefined).map((bookmark) => {
-      let newBookmark = Object.create(bookmark);
+      const newBookmark = Object.create(bookmark);
       newBookmark.children = this.filterDirectories(bookmark.children ?? []);
 
       return newBookmark;

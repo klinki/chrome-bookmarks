@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { type Mock, vi } from 'vitest';
 import { BookmarksProviderService } from './bookmarks-provider.service';
