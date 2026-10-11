@@ -30,7 +30,7 @@ A web-based Chrome Bookmarks manager built with **Angular** and **Nx**. It featu
 - **Directory**: `.temp/`
 - **Rule**: All command outputs (txt), test results (json), screenshots (png), and tool-generated test results (e.g. Playwright's `test-results/`) should be redirected to the `.temp/` directory to keep the root clean.
   - *Example*: `npx playwright test > .temp/test-results.txt 2>&1`
-- **Config**: Playwright is configured to use `.temp/test-results` for artifacts.
+- **Config**: Playwright artifacts go to `.temp/test-results/playwright`; unit and E2E JUnit reports stay in `.temp/test-results/` so Playwright's artifact cleanup preserves both.
 - **Git**: The `.temp/` directory is ignored by Git.
 
 ## E2E Testing Infrastructure

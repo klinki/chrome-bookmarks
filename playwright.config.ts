@@ -9,7 +9,7 @@ export default defineConfig({
     retries: process.env['CI'] ? 2 : 0,
     workers: process.env['CI'] ? 1 : undefined,
     reporter: [['html', { outputFolder: '.temp/playwright-report', open: 'never' }], ['junit', { outputFile: '.temp/test-results/e2e-junit.xml' }]],
-    outputDir: '.temp/test-results',
+    outputDir: '.temp/test-results/playwright',
     use: {
         baseURL: 'http://localhost:4200',
         trace: 'on-first-retry',

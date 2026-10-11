@@ -73,6 +73,8 @@ Conventional Commits. Do not push commits without David's explicit approval.
   All other existing npm-script targets are preserved. JUnit and coverage
   outputs are declared under `.temp/`; a cache hit restored the JUnit file
   byte for byte after deletion. `npm test` passed 266 unit and 52 E2E tests.
+  Playwright's artifact directory is isolated beneath `.temp/test-results/playwright`
+  so its cleanup preserves both unit and E2E JUnit reports in the parent directory.
 
 ## Major upgrade review
 
