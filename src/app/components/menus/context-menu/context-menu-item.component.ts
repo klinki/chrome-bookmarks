@@ -30,6 +30,10 @@ export class ContextMenuItemComponent {
   @Output()
   activate = new EventEmitter();
 
+  get hasIcon() {
+    return this.icon !== null && this.icon !== undefined;
+  }
+
   get hasChildren() {
     return this.menuGroups?.toArray()?.length > 0;
   }

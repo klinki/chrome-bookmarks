@@ -13,7 +13,7 @@
               >
               <div class="icon-container">
                 <div class="icon-backdrop"></div>
-                @if (item.icon != null) {
+                @if (item.hasIcon) {
                   <div class="icon">{{item.icon}}</div>
                 }
               </div>
@@ -27,15 +27,15 @@
             [menuGroupsInput]="item.menuGroups.toArray()">
           </app-context-menu>
         } @else {
-          <a class="item" cdkMenuItem [attr.toggled]="item.toggled && item.icon != null ? 'true' : null"
+          <a class="item" cdkMenuItem [attr.toggled]="item.toggled && item.hasIcon ? 'true' : null"
             [attr.disabled]="!item.enabled ? 'true': null"
             [cdkMenuItemDisabled]="!item.enabled"
             (cdkMenuItemTriggered)="item?.activate?.emit()">
-            <div class="icon-container" [ngStyle]="item.iconColor != null && {'--icon-color': item.iconColor} || null">
+            <div class="icon-container" [ngStyle]="item.iconColor !== null && item.iconColor !== undefined && {'--icon-color': item.iconColor} || null">
               <div class="icon-backdrop"></div>
-              @if (item.icon != null || item.toggled) {
+              @if (item.hasIcon || item.toggled) {
                 <div class="icon">
-                  @if (item.icon != null) {
+                  @if (item.hasIcon) {
                     {{item.icon}}
                   } @else {
                     {{Icons.accept}}
