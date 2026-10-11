@@ -3,15 +3,15 @@
     <h3>Bookmark Details</h3>
     <form [formGroup]="editForm" (ngSubmit)="saveChanges()">
       <div class="field">
-        <label>Title</label>
-        <input type="text" formControlName="title" name="title" />
+        <label for="bookmark-title">Title</label>
+        <input id="bookmark-title" type="text" formControlName="title" name="title" />
       </div>
       <div class="field">
-        <label>URL</label>
-        <input type="text" formControlName="url" name="url" />
+        <label for="bookmark-url">URL</label>
+        <input id="bookmark-url" type="text" formControlName="url" name="url" />
       </div>
       <div class="tags-section">
-        <label>Tags</label>
+        <label for="bookmark-tags">Tags</label>
         <div class="tags-list">
           <div *ngFor="let tag of currentTags()" class="tag-chip">
             {{ tag }}
@@ -19,7 +19,7 @@
           </div>
         </div>
         <div class="tag-input">
-          <input #newTag type="text" placeholder="Add tag..." (keyup.enter)="addTag(newTag)">
+          <input #newTag id="bookmark-tags" type="text" placeholder="Add tag..." (keyup.enter)="addTag(newTag)">
         </div>
       </div>
 
@@ -63,7 +63,7 @@
   </div>
 
   <div class="tags-section">
-    <label>Common Tags (assigned to all selected)</label>
+    <label for="batch-bookmark-tags">Common Tags (assigned to all selected)</label>
     <div class="tags-list">
       <div *ngFor="let tag of currentTags()" class="tag-chip">
         {{ tag }}
@@ -74,7 +74,7 @@
       </div>
     </div>
     <div class="tag-input">
-      <input #newBatchTag type="text" placeholder="Add tag to all selected..." (keyup.enter)="addTag(newBatchTag)">
+      <input #newBatchTag id="batch-bookmark-tags" type="text" placeholder="Add tag to all selected..." (keyup.enter)="addTag(newBatchTag)">
     </div>
   </div>
 
