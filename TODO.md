@@ -59,6 +59,20 @@ Conventional Commits. Do not push commits without David's explicit approval.
 
 - [ ] Recheck the six Axios alerts after an approved push and GitHub dependency scan.
 - [x] Eliminate the affected `braces` dependency from the local dependency graph.
+- [x] Remove the deprecated Angular animations dependency and legacy no-op
+  providers from startup and test fixtures. Build and all tests pass without it.
+- [x] Remove deprecated `whatwg-encoding`. Its parent chain was
+  `@nx/web -> http-server 14.1.1 -> html-encoding-sniffer 3.0.0`.
+  The latest http-server still uses v3, so a narrowly scoped override selects
+  sniffer 7.0.0 for that parent. Its Node requirement is compatible with this
+  project's supported versions. Eight live static-server cases preserved
+  UTF-8, Latin-1, UTF-16, CSS, and JavaScript charsets and response bytes.
+- [x] Convert Vitest to inferred Nx targets using
+  `@nx/vitest:convert-to-inferred`. The full-suite npm `test` script is excluded
+  from Nx script inference to prevent it from replacing the unit target.
+  All other existing npm-script targets are preserved. JUnit and coverage
+  outputs are declared under `.temp/`; a cache hit restored the JUnit file
+  byte for byte after deletion. `npm test` passed 266 unit and 52 E2E tests.
 
 ## Major upgrade review
 
@@ -76,9 +90,9 @@ JUnit contains 266 cases with zero failures/errors. The production ZIP matches
 all 46 extension output files, lint has zero warnings/errors, and all 52 E2E
 tests pass. Vitest 5's default mock clearing was retained.
 
-The existing `@nx/vitest:test` executor remains deprecated before Nx 24; convert
-to inferred targets before that future upgrade. Package deprecation notices
-remain for `@angular/animations` and transitive `whatwg-encoding`.
+The legacy Vitest executor and both deprecated dependency packages are now
+removed. The final audit and peer checks are clean. GitHub CI and remote
+Dependabot verification remain pending explicit push approval.
 
 Sources checked on 11 October 2026:
 

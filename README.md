@@ -66,10 +66,10 @@ CI='' npm run test:e2e:visible
 CI='' npm test
 
 # Repeat the full suite to look for flaky tests (10 runs by default)
-npm run verify:flaky
+NX_SKIP_NX_CACHE=true npm run verify:flaky
 
 # Repeat only unit or E2E tests a chosen number of times
-npm run verify:flaky -- -Count 3 -Script test:unit
+NX_SKIP_NX_CACHE=true npm run verify:flaky -- -Count 3 -Script test:unit
 ```
 
 Visible mode adds a 300 ms delay to each Playwright action. Override it when needed, for example with `PLAYWRIGHT_SLOW_MO=750 npm run test:e2e:visible`.
