@@ -38,13 +38,15 @@ Conventional Commits. Do not push commits without David's explicit approval.
     entirely from the local dependency graph.
     GitHub's dependency files were last checked on 25 September 2026. The old
     21-alert push banner is no longer the current alert inventory.
-  - Current remote alerts: [#386](https://github.com/klinki/chrome-bookmarks/security/dependabot/386),
+  - Previously open remote alerts: [#386](https://github.com/klinki/chrome-bookmarks/security/dependabot/386),
     [#388](https://github.com/klinki/chrome-bookmarks/security/dependabot/388),
     [#389](https://github.com/klinki/chrome-bookmarks/security/dependabot/389),
     [#391](https://github.com/klinki/chrome-bookmarks/security/dependabot/391),
     [#393](https://github.com/klinki/chrome-bookmarks/security/dependabot/393),
     and [#394](https://github.com/klinki/chrome-bookmarks/security/dependabot/394).
-    None were dismissed. They remain open while the fixes are unpushed.
+    None were dismissed. After the approved push of `7226f0e`, GitHub's
+    dependency scan on 11 October 2026 closed all six automatically. The
+    authenticated Dependabot inventory now shows zero open alerts.
 - [x] Review the deferred TypeScript and Vitest major upgrades.
   - Check current Angular, Nx, Analog, and ESLint compatibility constraints.
   - Document the supported upgrade path, blockers, and validation required before
@@ -57,7 +59,8 @@ Conventional Commits. Do not push commits without David's explicit approval.
 
 ## Remaining work
 
-- [ ] Recheck the six Axios alerts after an approved push and GitHub dependency scan.
+- [x] Recheck the six Axios alerts after an approved push and GitHub dependency scan.
+  All six closed automatically; zero alerts remain open.
 - [x] Eliminate the affected `braces` dependency from the local dependency graph.
 - [x] Remove the deprecated Angular animations dependency and legacy no-op
   providers from startup and test fixtures. Build and all tests pass without it.
@@ -85,7 +88,8 @@ Conventional Commits. Do not push commits without David's explicit approval.
 
 Angular Build 22.2.2, Nx Vitest 23.3.0, and Analog 2.8.0 all declare support for
 Vitest 5. Vite 8.3.4 and CI's Node 24 meet the declared engine requirements.
-Validation ran locally on Node 26.0.0; GitHub CI awaits an approved push.
+Validation ran locally on Node 26.0.0 and passed on CI's Node 24 after the
+approved push of `7226f0e`.
 
 The repeat helper ran with Nx caching disabled and passed all 266 unit tests;
 JUnit contains 266 cases with zero failures/errors. The production ZIP matches
@@ -93,8 +97,39 @@ all 46 extension output files, lint has zero warnings/errors, and all 52 E2E
 tests pass. Vitest 5's default mock clearing was retained.
 
 The legacy Vitest executor and both deprecated dependency packages are now
-removed. The final audit and peer checks are clean. GitHub CI and remote
-Dependabot verification remain pending explicit push approval.
+removed. The final audit and peer checks are clean.
+[GitHub CI run 38143295667](https://github.com/klinki/chrome-bookmarks/actions/runs/38143295667)
+passed frozen installation, lint, extension packaging and artifact upload,
+266 unit tests, and 52 E2E tests. Both JUnit files were parsed: 318 tests passed
+with zero failures or skips. Remote Dependabot verification found zero open alerts.
+
+## Workflow action maintenance
+
+- [x] Update all active external action references to their latest stable releases
+  checked on 11 October 2026. JavaScript actions declare Node 24; the SSH/SCP
+  actions use composite steps.
+  - Checkout 7.0.1, Node setup 7.1.0, pnpm setup 6.1.0, artifact upload 7.0.2,
+    JUnit reporting 6.6.1, GitHub script 9.0.0, SSH key setup 2.8.1,
+    SSH deployment 1.2.5, and SCP deployment 1.0.0.
+  - Exact release versions are pinned. Project Node 24, pnpm 10, caching,
+    report paths, extension archive format, and preview inputs are preserved.
+  - Official migration notes and action manifests were reviewed. Actionlint
+    1.7.12 passed; all 21 action references passed manifest/input checks.
+    The PR comment script passed a local check with the v9 injected context.
+- [ ] Verify the updated actions in GitHub CI after an approved push. This also
+  requires a live preview deployment/cleanup to exercise the preview actions.
+
+Release references:
+
+- [Checkout 7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1)
+- [Node setup 7.1.0](https://github.com/actions/setup-node/releases/tag/v7.1.0)
+- [pnpm setup 6.1.0](https://github.com/pnpm/action-setup/releases/tag/v6.1.0)
+- [Artifact upload 7.0.2](https://github.com/actions/upload-artifact/releases/tag/v7.0.2)
+- [JUnit reporting 6.6.1](https://github.com/mikepenz/action-junit-report/releases/tag/v6.6.1)
+- [GitHub script 9.0.0](https://github.com/actions/github-script/releases/tag/v9.0.0)
+- [SSH key setup 2.8.1](https://github.com/shimataro/ssh-key-action/releases/tag/v2.8.1)
+- [SSH deployment 1.2.5](https://github.com/appleboy/ssh-action/releases/tag/v1.2.5)
+- [SCP deployment 1.0.0](https://github.com/appleboy/scp-action/releases/tag/v1.0.0)
 
 Sources checked on 11 October 2026:
 
